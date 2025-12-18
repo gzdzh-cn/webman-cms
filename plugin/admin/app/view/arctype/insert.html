@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+    <head>
+        <meta charset="UTF-8">
+        <title>新增页面</title>
+        <link rel="stylesheet" href="/app/admin/component/pear/css/pear.css" />
+        <link rel="stylesheet" href="/app/admin/component/jsoneditor/css/jsoneditor.css" />
+        <link rel="stylesheet" href="/app/admin/admin/css/reset.css" />
+    </head>
+    <body>
+
+        <form class="layui-form" action="">
+
+            <div class="mainBox">
+                <div class="main-container">
+                    <div id="tabContent"  ></div>
+                </div>
+
+            </div>
+
+ 
+        </form>
+
+        <script src="/app/admin/component/layui/layui.js?v=2.8.12"></script>
+        <script src="/app/admin/component/pear/pear.js"></script>
+        <script src="/app/admin/component/jsoneditor/jsoneditor.js"></script>
+        <script src="/app/admin/admin/js/permission.js"></script>
+        
+        <script>
+            
+            // 相关接口
+            const INSERT_API = "/app/admin/arctype/insert";
+            
+            //提交事件
+            layui.use(["form","layer", "popup", "pearTab","tab","jquery"], function () {
+                var layer = layui.layer,
+					tabs = layui.tabs,
+					pearTab = layui.pearTab,
+					$ = layui.jquery,
+					form = layui.form;
+
+
+
+                // tabs.render({
+                //     elem: 'tabContent',
+                //     id: 'tabContent',
+                //     index: 0, // 初始选中标签索引
+                // });
+
+                // tabs.add('tabContent', {
+                //     id: 'base',
+                //     title: '常规选项',
+                //     content: '/app/admin/arctype/base' 
+                // });
+
+ 
+                // pearTab.render({
+				// 	elem: 'tabContent',
+				// 	roll: false,
+				// 	tool: false,
+				// 	width: '100%',
+				// 	height: '600px',
+				// 	index: 0,
+				// 	session: false,
+				// 	tabMax: 30,
+				// 	closeEvent: function(id) {
+				// 		layer.msg("关闭回调")
+				// 	}
+				// });
+ 
+                // pearTab.addTabOnlyByElem('tabContent', {
+                //     id: 'base',
+                //     title: '常规选项',
+                //     url: '/app/admin/arctype/base',
+                //     close: false
+                // }, false)
+
+                // // 通过控制器路由加载高级设置 Tab 内容
+                // pearTab.addTabOnlyByElem('tabContent', {
+                //     id: 'advanced',
+                //     title: '高级选项',
+                //     url: '/app/admin/arctype/advanced',
+                //     close: false
+                // }, false)
+            });
+
+        </script>
+
+    </body>
+</html>
