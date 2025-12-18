@@ -8,6 +8,38 @@
     <link rel="stylesheet" href="/app/admin/component/jsoneditor/css/jsoneditor.css" />
     <link rel="stylesheet" href="/app/admin/admin/css/reset.css" />
     <link rel="stylesheet" href="/app/admin/component/dzh/dzh.css" />
+    <style>
+        /* 弹窗页面本身不滚动，只在 tab 内容区滚动 */
+        html, body {
+            height: 100%;
+            overflow: hidden;
+        }
+        .mainBox {
+            height: 100%;
+            overflow: hidden;
+        }
+        .main-container {
+            height: 100%;
+            overflow: hidden;
+        }
+        /* 让 tab 区域固定高度，内容滚动，但标题不滚动 */
+        .layui-tab[lay-filter="arctype-tab"] {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        .layui-tab[lay-filter="arctype-tab"] .layui-tab-title {
+            flex-shrink: 0;
+        }
+        .layui-tab[lay-filter="arctype-tab"] .layui-tab-content {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            min-height: 0;
+            padding: 10px 15px 80px; /* 关键：底部留出 80px 空间，避免被按钮挡住 */
+            box-sizing: border-box;
+        }
+    </style>
 </head>
 
 <body>
@@ -23,153 +55,11 @@
                         <li lay-id="advanced">高级选项</li>
                     </ul>
                     <div class="layui-tab-content">
-                        <div class="layui-tab-item layui-show" >
-
-                            <div class="main-container mr-5">
-
-                                <div class="layui-form-item">
-                                    <label class="layui-form-label">栏目名称</label>
-                                    <div class="layui-input-block">
-                                        <input type="text" name="typename" value="" class="layui-input">
-                                    </div>
-                                </div>
-                                <div class="layui-form-item">
-                                    <label class="layui-form-label">目录名称</label>
-                                    <div class="layui-input-block">
-                                        <input type="text" name="dirname" value="" class="layui-input">
-                                        <span class="text-9 ftn12">留空系统自动匹配栏目名称拼音，如有重复拼音后加随机数</span>
-                                    </div>
-                                </div>
-
-
-                                <div class="layui-form-item">
-                                    <label class="layui-form-label">内容模型</label>
-                                    <div class="layui-input-block">
-                                        <select name="current_channel" lay-verify="">
-                                            <option value="1"> 文章模型 </option>
-                                            <option value="2"> 产品模型 </option>
-                                            <option value="3"> 图集模型 </option>
-                                            <option value="4"> 下载模型 </option>
-                                            <option value="5"> 单页模型 </option>
-                                            <option value="6"> 留言模型 </option>
-                                            <option value="7"> 招聘模型 </option>
-                                        </select>
-                                    </div>
-                                </div>
-
-                                <div class="layui-form-item">
-                                    <label class="layui-form-label">所属栏目</label>
-                                    <div class="layui-input-block">
-                                        <select name="parent_id" lay-verify="">
-
-
-                                        </select>
-                                    </div>
-                                </div>
-
-                                <div class="layui-form-item">
-                                    <label class="layui-form-label">隐藏栏目</label>
-                                    <div class="layui-input-block">
-                                        <input type="radio" name="is_hidden" value="1" title="显示">
-                                        <input type="radio" name="is_hidden" value="0" title="隐藏" checked>
-                                    </div>
-
-                                </div>
-                            </div>
-
+                        <div class="layui-tab-item layui-show">
+                            <div id="tab-base"></div>
                         </div>
-                        <div class="layui-tab-item" >
-
-                            <div class="main-container mr-5">
-                                <div class="layui-form-item">
-                                    <label class="layui-form-label">外部链接</label>
-                                    <div class="layui-input-block">
-                                        <input type="radio" name="is_part" value="1" title="是">
-                                        <input type="radio" name="is_part" value="0" title="否" checked>
-                                    </div>
-
-                                </div>
-
-                                <div class="layui-form-item">
-                                    <label class="layui-form-label">英文别名</label>
-                                    <div class="layui-input-block">
-                                        <input type="text" name="englist_name" value="" class="layui-input">
-                                    </div>
-                                </div>
-                                <div class="layui-form-item">
-                                    <label class="layui-form-label">栏目图片</label>
-                                    <div class="layui-input-block">
-                                        <div class="layui-input-group">
-
-                                            <input type="text" name="litpic" value="" class="layui-input">
-                                            <div class="layui-input-suffix">
-                                                <button type="button" id="upload-image"
-                                                    class="layui-btn layui-btn-normal" lay-options="{accept: 'image'}">
-                                                    上传图片
-                                                </button>
-                                                <input type="checkbox" name="1" lay-text="远程图片">
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                </div>
-
-                                <div class="layui-form-item">
-                                    <label class="layui-form-label">访问权限</label>
-                                    <div class="layui-input-block">
-                                        <select name="typearcrank" lay-verify="">
-                                            <option value="0"> 开放浏览 </option>
-                                            <option value="1"> 注册会员 </option>
-                                            <option value="2"> 中级会员 </option>
-                                            <option value="3"> 高级会员 </option>
-
-                                        </select>
-                                    </div>
-                                </div>
-
-                                <div class="layui-form-item">
-                                    <label class="layui-form-label">栏目模板</label>
-                                    <div class="layui-input-block">
-                                        <select name="templist" lay-verify="">
-                                            <option value="0"> </option>
-
-
-                                        </select>
-                                    </div>
-                                </div>
-
-                                <div class="layui-form-item">
-                                    <label class="layui-form-label">文档模板</label>
-                                    <div class="layui-input-block">
-                                        <select name="tempview" lay-verify="">
-                                            <option value="0"> </option>
-
-
-                                        </select>
-                                    </div>
-                                </div>
-
-                                <div class="layui-form-item">
-                                    <label class="layui-form-label">SEO标题</label>
-                                    <div class="layui-input-block">
-                                        <input type="text" name="seo_title" value="" class="layui-input">
-                                    </div>
-                                </div>
-
-                                <div class="layui-form-item">
-                                    <label class="layui-form-label">seo关键字</label>
-                                    <div class="layui-input-block">
-                                        <input type="text" name="seo_keywords" value="" class="layui-input">
-                                    </div>
-                                </div>
-
-                                <div class="layui-form-item">
-                                    <label class="layui-form-label">seo描述</label>
-                                    <div class="layui-input-block">
-                                        <input type="text" name="seo_description" value="" class="layui-input">
-                                    </div>
-                                </div>
-                            </div>
+                        <div class="layui-tab-item">
+                            <div id="tab-advanced"></div>
                         </div>
                     </div>
                 </div>
@@ -201,10 +91,9 @@
         const INSERT_API = "/app/admin/arctype/insert";
 
         //提交事件
-        layui.use(["form", "layer", "popup", "pearTab", "element", "jquery"], function () {
+        layui.use(["form", "layer", "popup", "element", "jquery"], function () {
             var layer = layui.layer,
                 element = layui.element,
-                pearTab = layui.pearTab,
                 $ = layui.jquery,
                 form = layui.form;
 
@@ -214,34 +103,14 @@
                 console.log('切换到 tab:', data.index);
             });
 
-            // pearTab.render({
-            //     elem: 'tabContent',
-            //     roll: false,
-            //     tool: false,
-            //     width: '100%',
-            //     height: '600px',
-            //     index: 0,
-            //     session: false,
-            //     tabMax: 30,
-            //     closeEvent: function (id) {
-            //         layer.msg("关闭回调")
-            //     }
-            // });
-
-            // pearTab.addTabOnlyByElem('tabContent', {
-            //     id: 'base',
-            //     title: '常规选项',
-            //     url: '/app/admin/arctype/base',
-            //     close: false
-            // }, false)
-
-            // // 通过控制器路由加载高级设置 Tab 内容
-            // pearTab.addTabOnlyByElem('tabContent', {
-            //     id: 'advanced',
-            //     title: '高级选项',
-            //     url: '/app/admin/arctype/advanced',
-            //     close: false
-            // }, false)
+            // 通过 AJAX 动态加载 base.html 和 Advanced.html 的表单主体
+            // 只加载 .mainBox 内部的 .main-container，避免嵌套 form/html 结构
+            $('#tab-base').load('/app/admin/arctype/base .mainBox .main-container', function () {
+                form.render();
+            });
+            $('#tab-advanced').load('/app/admin/arctype/advanced .mainBox .main-container', function () {
+                form.render();
+            });
 
             // 字段验证允许为空
             layui.form.verify({
