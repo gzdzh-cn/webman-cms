@@ -11,7 +11,7 @@ use support\Response;
 use think\db\Where;
 use Throwable;
 use Workerman\Worker;
-use support\Log;
+ 
 
 
 class IndexController
@@ -37,9 +37,7 @@ class IndexController
      */
     public function index(Request $request): Response
     {
-        Log::debug('这是一条测试日志');
-Log::info('信息日志');
-Log::error('错误日志');
+ 
         clearstatcache();
         if (!is_file(base_path('plugin/admin/config/database.php'))) {
             return raw_view('index/install');
