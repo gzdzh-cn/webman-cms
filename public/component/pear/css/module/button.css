@@ -167,3 +167,27 @@
 	padding: 0 25px;
 	font-size: 16px;
 }
+
+/** 无边框按钮 */
+.pear-btn-borderless {
+	border: none;
+	background-color: transparent;
+	/* padding: 0 5px; */
+}
+.pear-btn-borderless:hover {
+	background-color: transparent;
+}
+
+/** 无内边距按钮 */
+.pear-btn-nopadding {
+	padding: 0 !important;
+}
+
+/** 文本按钮（无hover背景） */
+.pear-btn-text {
+	background-color: transparent;
+}
+.pear-btn-text:hover {
+	background-color: transparent !important;
+	opacity: 0.7;
+}

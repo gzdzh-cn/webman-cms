@@ -4,6 +4,7 @@ namespace plugin\admin\app\model;
 
 use DateTimeInterface;
 use support\Model;
+use plugin\admin\app\common\Util;
 
 
 class Base extends Model
@@ -22,5 +23,18 @@ class Base extends Model
     protected function serializeDate(DateTimeInterface $date)
     {
         return $date->format('Y-m-d H:i:s');
+    }
+
+    /**
+     * 获取数据库连接实例
+     * 重写此方法以确保 SQL 日志监听器被注册
+     *
+     * @return \Illuminate\Database\Connection
+     */
+    public function getConnection()
+    {
+        // 触发 SQL 日志监听器注册
+        Util::db();
+        return parent::getConnection();
     }
 }

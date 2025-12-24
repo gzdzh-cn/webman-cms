@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta charset="UTF-8">
+    <title>更新字段</title>
+    <link rel="stylesheet" href="/app/admin/component/pear/css/pear.css" />
+    <link rel="stylesheet" href="/app/admin/admin/css/reset.css" />
+</head>
+<body>
+    <form class="layui-form" lay-filter="field-form" style="padding: 20px;">
+        <div class="layui-form-item">
+            <label class="layui-form-label">字段标题</label>
+            <div class="layui-input-block">
+                <input type="text" name="title" required lay-verify="required" placeholder="请输入字段标题" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">字段名称</label>
+            <div class="layui-input-block">
+                <input type="text" name="name" required lay-verify="required" placeholder="请输入字段名称" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">字段类型</label>
+            <div class="layui-input-block">
+                <select name="dtype" lay-verify="">
+                    <option value="text">单行文本</option>
+                    <option value="multitext">多行文本</option>
+                    <option value="radio">单选项[]</option>
+                    <option value="switch">开关</option>
+                    <option value="select">下拉框</option>
+                    <option value="img">单张图</option>
+                    <option value="int">整数类型</option>
+                    <option value="datetime">日期和时间</option>
+                    <option value="htmltext">HTML文本</option>
+                    <option value="imgs">多张图</option>
+                    <option value="decimal">金额类型</option>
+                    <option value="float">小数类型</option>
+                    <option value="region">区域类型</option>
+                    <option value="file">附件类型</option>
+                    <option value="media">多媒体类型</option>
+                    <option value="checkboxs">多选项</option>
+                    <option value="radios">单选项</option>
+                </select>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">排序</label>
+            <div class="layui-input-block">
+                <input type="number" name="sort_order" value="0" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-input-block">
+                <button class="layui-btn" lay-submit lay-filter="field-form-submit">提交</button>
+                <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+            </div>
+        </div>
+    </form>
+
+    <script src="/app/admin/component/layui/layui.js?v=2.13.12"></script>
+    <script src="/app/admin/component/pear/pear.js"></script>
+    <script>
+        const PRIMARY_KEY = "id";
+        const SELECT_API = "/app/admin/channelfield/index" + location.search;
+        const UPDATE_API = "/app/admin/channelfield/update";
+
+        layui.use(["form", "util", "pearPopup"], function () {
+            let $ = layui.$;
+            let form = layui.form;
+
+            // 加载数据 - 通过 fieldSelect 接口获取单个字段数据
+            var id = new URLSearchParams(location.search).get('id');
+            $.ajax({
+                url: "/app/admin/channelfield/index?page=1&limit=1000" + (location.search ? "&" + location.search.substring(1) : ""),
+                dataType: "json",
+                success: function (res) {
+                    if (res.code) {
+                        return layui.pearPopup.failure(res.msg);
+                    }
+                    // 从返回的数据中找到对应 id 的记录
+                    var record = {};
+                    if (res.data && res.data.length > 0) {
+                        for (var i = 0; i < res.data.length; i++) {
+                            if (res.data[i].id == id) {
+                                record = res.data[i];
+                                break;
+                            }
+                        }
+                    }
+                    form.val("field-form", record);
+                    form.render('select'); // 重新渲染下拉框，确保选中值正确显示
+                }
+            });
+
+            // 提交表单
+            form.on("submit(field-form-submit)", function (data) {
+                var field = data.field;
+                field.id = new URLSearchParams(location.search).get('id');
+                
+                $.ajax({
+                    url: UPDATE_API,
+                    data: field,
+                    dataType: "json",
+                    type: "post",
+                    success: function (res) {
+                        if (res.code) {
+                            return layui.pearPopup.failure(res.msg);
+                        }
+                        layui.pearPopup.success("操作成功", function() {
+                            var index = parent.layer.getFrameIndex(window.name);
+                            parent.layer.close(index);
+                            if (parent.refreshTable) {
+                                parent.refreshTable();
+                            }
+                        });
+                    }
+                });
+                return false;
+            });
+        });
+    </script>
+</body>
+</html>
+

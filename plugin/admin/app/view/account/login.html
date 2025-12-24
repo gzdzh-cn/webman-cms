@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-cn">
     <head>
         <meta charset="utf-8">
@@ -40,11 +40,13 @@
             }
         </script>
         <!-- 资 源 引 入 -->
-        <script src="/app/admin/component/layui/layui.js?v=2.8.12"></script>
+        <script src="/app/admin/component/layui/layui.js?v=2.13.12"></script>
         <script src="/app/admin/component/pear/pear.js"></script>
         <script>
          
-            layui.use(['form', 'button', 'popup', 'layer', 'theme', 'admin'], function() {
+            layui.use(['form', 'pearButton', 'pearPopup', 'layer', 'pearTheme', 'pearAdmin'], function() {
+                console.log('layui.use', layui);
+                
                 var $ = layui.$, layer = layui.layer, form = layui.form;
                 function switchCaptcha() {
                     $('.codeImage').attr("src", "/app/admin/account/captcha/login?v=" + new Date().getTime());
@@ -58,13 +60,13 @@
                         type: "POST",
                         data: data.field,
                         success: function (res) {
-                            layer.closeAll('loading');
+                            layer.closeAll('pearLoading');
                             if (!res.code) {
-                                layui.popup.success('登录成功', function () {
+                                layui.pearPopup.success('登录成功', function () {
                                     location.reload();
                                 })
                             } else {
-                                layui.popup.failure(res.msg)
+                                layui.pearPopup.failure(res.msg)
                                 switchCaptcha();
                             }
                         }

@@ -1,4 +1,4 @@
-<style>
+﻿<style>
 	.expand.pear-btn:hover {
 		color: currentColor;
 		background-color: unset;
@@ -108,11 +108,11 @@
 		{{layui.util.toDateString(d.createTime, 'yyyy-MM-dd')}}
 </script>
 <script>
-	layui.use(['table', 'form', 'jquery', 'drawer', 'dropdown'], function () {
+	layui.use(['table', 'form', 'jquery', 'pearDrawer', 'dropdown'], function () {
 		let table = layui.table;
 		let form = layui.form;
 		let $ = layui.jquery;
-		let drawer = layui.drawer;
+		let drawer = layui.pearDrawer;
 		let dropdown = layui.dropdown;
 
 		let MODULE_PATH = "/system/user/";

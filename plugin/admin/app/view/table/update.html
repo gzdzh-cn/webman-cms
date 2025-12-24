@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-cn">
     <head>
         <meta charset="UTF-8">
@@ -34,7 +34,7 @@
             </div>
         </form>
 
-        <script src="/app/admin/component/layui/layui.js?v=2.8.12"></script>
+        <script src="/app/admin/component/layui/layui.js?v=2.13.12"></script>
         <script src="/app/admin/component/pear/pear.js"></script>
         <script src="/app/admin/component/jsoneditor/jsoneditor.js"></script>
         <script src="/app/admin/admin/js/permission.js"></script>
@@ -44,7 +44,7 @@
             const SELECT_API = "/app/admin/table/select" + location.search;
             const UPDATE_API = "/app/admin/table/update";
 
-            layui.use(["form", "util", "popup"], function () {
+            layui.use(["form", "util", "pearPopup"], function () {
                 let $ = layui.$;
                 let util = layui.util;
                 $.ajax({
@@ -70,14 +70,14 @@
 
                         // ajax返回失败
                         if (res.code) {
-                            layui.popup.failure(res.msg);
+                            layui.pearPopup.failure(res.msg);
                         }
 
                     }
                 });
             });
 
-            layui.use(["form", "popup"], function () {
+            layui.use(["form", "pearPopup"], function () {
                 // 字段验证允许为空
                 layui.form.verify({
                     phone: [/(^$)|^1\d{10}$/, "请输入正确的手机号"],
@@ -96,9 +96,9 @@
                         data: data.field,
                         success: function (res) {
                             if (res.code) {
-                                return layui.popup.failure(res.msg);
+                                return layui.pearPopup.failure(res.msg);
                             }
-                            return layui.popup.success("操作成功", function () {
+                            return layui.pearPopup.success("操作成功", function () {
                                 parent.refreshTable();
                                 parent.layer.close(parent.layer.getFrameIndex(window.name));
                             });

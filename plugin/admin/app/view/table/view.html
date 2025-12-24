@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-cn">
     <head>
         <meta charset="utf-8">
@@ -50,7 +50,7 @@
             <button class="pear-btn pear-btn-xs tool-btn" lay-event="remove" permission="app.admin.table.delete">删除</button>
         </script>
 
-        <script src="/app/admin/component/layui/layui.js?v=2.8.12"></script>
+        <script src="/app/admin/component/layui/layui.js?v=2.13.12"></script>
         <script src="/app/admin/component/pear/pear.js"></script>
         <script src="/app/admin/admin/js/permission.js"></script>
         <script src="/app/admin/admin/js/common.js"></script>
@@ -68,11 +68,11 @@
 
             <?=$form->js(3)?>
 
-            layui.use(["table", "form","common", "popup", "util"], function() {
+            layui.use(["table", "form","pearCommon", "pearPopup", "util"], function() {
                 let table = layui.table;
                 let form = layui.form;
                 let $ = layui.$;
-                let common = layui.common;
+                let common = layui.pearCommon;
                 let util = layui.util;
 
                 let apis = [];
@@ -82,7 +82,7 @@
                     dataType: "json",
                     success: function (res) {
                         if (res.code) {
-                            return layui.popup.failure(res.msg);
+                            return layui.pearPopup.failure(res.msg);
                         }
                         let forms = res.data.forms;
                         let cols = [{
@@ -106,7 +106,7 @@
                                 schema.templet = function (d) {
                                     form.on("switch("+field+")", function (data) {
                                         if (!PRIMARY_KEY) {
-                                            return layui.popup.warning("该表没有主键，无法完成此操作");
+                                            return layui.pearPopup.warning("该表没有主键，无法完成此操作");
                                         }
                                         let load = layer.load();
                                         let postData = { table: TABLE_NAME };
@@ -115,15 +115,15 @@
                                         $.post(UPDATE_API, postData, function (res) {
                                             layer.close(load);
                                             if (res.code) {
-                                                return layui.popup.failure(res.msg);
+                                                return layui.pearPopup.failure(res.msg);
                                             }
-                                            return layui.popup.success("操作成功");
+                                            return layui.pearPopup.success("操作成功");
                                         })
                                     });
                                     let checked = d[field] === 1 ? "checked" : "";
                                     return '<input type="checkbox" value="'+util.escape(d[PRIMARY_KEY])+'" lay-filter="'+util.escape(field)+'" lay-skin="switch" lay-text="'+util.escape(layText)+'" '+checked+'/>';
                                 }
-                            } else if (control === "iconpicker") {
+                            } else if (control === "pearIconPicker") {
                                 schema.templet = function (d) {
                                     return '<i class="layui-icon ' + util.escape(d[field]) + '"></i>';
                                 };
@@ -141,7 +141,7 @@
                                     }
                                     return imagesHtml;
                                 };
-                            } else if (["select", "selectmulti", "treeselect", "treeselectmulti"].indexOf(control) !== -1) {
+                            } else if (["pearSelect", "selectmulti", "treeselect", "treeselectmulti"].indexOf(control) !== -1) {
                                 let props = getControlProps(item.control_args);
                                 apiResults[field] = [];
                                 if (props.url) {
@@ -198,7 +198,7 @@
                                     dateType: "json",
                                     success: function (res) {
                                         if (res.code) {
-                                            return layui.popup.failure(res.msg);
+                                            return layui.pearPopup.failure(res.msg);
                                         }
                                         function travel(items) {
                                             for (let k in items) {
@@ -291,7 +291,7 @@
 
                 window.edit = function(obj) {
                     if (!PRIMARY_KEY) {
-                        return layui.popup.warning("该表没有主键，无法完成此操作");
+                        return layui.pearPopup.warning("该表没有主键，无法完成此操作");
                     }
                     let value = obj.data[PRIMARY_KEY];
                     layer.open({
@@ -310,7 +310,7 @@
                 window.batchRemove = function(obj) {
                     var checkIds = common.checkField(obj, PRIMARY_KEY);
                     if (checkIds === "") {
-                        layui.popup.warning("未选中数据");
+                        layui.pearPopup.warning("未选中数据");
                         return false;
                     }
                     window.doRemove(checkIds.split(","));
@@ -318,7 +318,7 @@
 
                 window.doRemove = function (ids) {
                     if (!PRIMARY_KEY) {
-                        return layui.popup.warning("该表没有主键，无法完成此操作");
+                        return layui.pearPopup.warning("该表没有主键，无法完成此操作");
                     }
                     let data = {
                         table: TABLE_NAME
@@ -338,9 +338,9 @@
                             success: function(res) {
                                 layer.close(loading);
                                 if (res.code) {
-                                    return layui.popup.failure(res.msg);
+                                    return layui.pearPopup.failure(res.msg);
                                 }
-                                return layui.popup.success("操作成功", refreshTable);
+                                return layui.pearPopup.success("操作成功", refreshTable);
                             }
                         })
                     });

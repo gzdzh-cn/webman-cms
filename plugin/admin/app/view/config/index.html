@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-cn">
     <head>
         <meta charset="UTF-8">
@@ -91,7 +91,7 @@
                             <div class="layui-form-item">
                                 <label class="layui-form-label">默认菜单ID</label>
                                 <div class="layui-input-block">
-                                    <input type="number" name="select" required  lay-verify="required" placeholder="请输入默认菜单ID" autocomplete="off" class="layui-input">
+                                    <input type="number" name="pearSelect" required  lay-verify="required" placeholder="请输入默认菜单ID" autocomplete="off" class="layui-input">
                                 </div>
                             </div>
                             <div class="layui-form-item">
@@ -186,13 +186,13 @@
         </div>
 
 
-        <script src="/app/admin/component/layui/layui.js?v=2.8.12"></script>
+        <script src="/app/admin/component/layui/layui.js?v=2.13.12"></script>
         <script src="/app/admin/component/pear/pear.js"></script>
         <script src="/app/admin/admin/js/permission.js"></script>
         <script>
 
             // 基础设置
-            layui.use(["upload", "layer", "popup"], function() {
+            layui.use(["upload", "layer", "pearPopup"], function() {
                 let $ = layui.$;
                 let form = layui.form;
 
@@ -218,7 +218,7 @@
                     acceptMime: "image/gif,image/jpeg,image/jpg,image/png",
                     done: function (res) {
                         if (res.code) {
-                            return layui.popup.failure(res.msg);
+                            return layui.pearPopup.failure(res.msg);
                         }
                         this.item.prev().val(res.data.url).prev().attr("src", res.data.url);
                     }
@@ -233,9 +233,9 @@
                         data: {logo: data.field},
                         success: function (res) {
                             if (res.code) {
-                                return layui.popup.failure(res.msg);
+                                return layui.pearPopup.failure(res.msg);
                             }
-                            return layui.popup.success("操作成功");
+                            return layui.pearPopup.success("操作成功");
                         }
                     });
                     return false;
@@ -243,7 +243,7 @@
             });
 
             // 菜单设置
-            layui.use(["upload", "layer", "popup"], function() {
+            layui.use(["upload", "layer", "pearPopup"], function() {
                 let $ = layui.$;
                 let form = layui.form;
                 // 提交
@@ -255,9 +255,9 @@
                         data: {menu: data.field},
                         success: function (res) {
                             if (res.code) {
-                                return layui.popup.failure(res.msg);
+                                return layui.pearPopup.failure(res.msg);
                             }
-                            return layui.popup.success("操作成功");
+                            return layui.pearPopup.success("操作成功");
                         }
                     });
                     return false;
@@ -265,7 +265,7 @@
             });
 
             // 标签设置
-            layui.use(["upload", "layer", "popup"], function() {
+            layui.use(["upload", "layer", "pearPopup"], function() {
                 let $ = layui.$;
                 let form = layui.form;
                 // 提交
@@ -284,9 +284,9 @@
                         data: {tab: field},
                         success: function (res) {
                             if (res.code) {
-                                return layui.popup.failure(res.msg);
+                                return layui.pearPopup.failure(res.msg);
                             }
-                            return layui.popup.success("操作成功");
+                            return layui.pearPopup.success("操作成功");
                         }
                     });
                     // 删除sessionStorage缓存
@@ -303,7 +303,7 @@
                     dataType: "json",
                     success: function (res) {
                         if (res.code) {
-                            return layui.popup.failure(res.msg);
+                            return layui.pearPopup.failure(res.msg);
                         }
                         form.val("baseInfo", res.logo);
                         $("#image").prev().val(res.logo.image).prev().attr("src", res.logo.image);

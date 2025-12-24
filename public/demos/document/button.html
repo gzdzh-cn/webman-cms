@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html>
 	<head>
 		<meta charset="utf-8">
@@ -181,8 +181,8 @@
 						<h2 class="layui-colla-title">显示代码</h2>
 						<div class="layui-colla-content">
 							<pre class="layui-code" lay-encode="true">
-								layui.use(["button"], function() {
-								    var button = layui.button;
+								layui.use(["pearButton"], function() {
+								    var button = layui.pearButton;
 								    
 									button.load({
 								        elem:'[load]',
@@ -216,8 +216,8 @@
 						<h2 class="layui-colla-title">显示代码</h2>
 						<div class="layui-colla-content">
 							<pre class="layui-code" lay-encode="true">
-								layui.use(["button"], function() {
-								    var button = layui.button;
+								layui.use(["pearButton"], function() {
+								    var button = layui.pearButton;
 								    
 									var dom = button.load({
 								        elem:'[load]',
@@ -252,7 +252,7 @@
 								    var $ = layui.jquery;
 								    
 								    $("[to]").click(function(){
-								        top.layui.frame.changePageByElement("content","http://www.baidu.com","百度一下",true)
+								        top.layui.pearFrame.changePageByElement("content","http://www.baidu.com","百度一下",true)
 								    })
 								})
 							</pre>
@@ -264,11 +264,11 @@
 		<script src="../../component/layui/layui.js"></script>
 		<script src="../../component/pear/pear.js"></script>
 		<script>
-			layui.use(['element', 'code', 'jquery', "button", "popup"], function() {
+			layui.use(['element', 'code', 'jquery', "pearButton", "pearPopup"], function() {
 				var element = layui.element;
 				var $ = layui.jquery;
-				var popup = layui.popup;
-				var button = layui.button;
+				var popup = layui.pearPopup;
+				var button = layui.pearButton;
 				
 				layui.code();
 				
@@ -297,7 +297,7 @@
 				})
 				
 				$("[to]").click(function(){
-					top.layui.admin.jump(14,"百度一下","http://www.bing.com",true)
+					top.layui.pearAdmin.jump(14,"百度一下","http://www.bing.com",true)
 				})
 			})
 		</script>

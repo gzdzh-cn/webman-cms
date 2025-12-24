@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-cn">
     <head>
         <meta charset="UTF-8">
@@ -36,13 +36,13 @@
             
         </form>
 
-        <script src="/app/admin/component/layui/layui.js?v=2.8.12"></script>
+        <script src="/app/admin/component/layui/layui.js?v=2.13.12"></script>
         <script src="/app/admin/component/pear/pear.js"></script>
         <script src="/app/admin/admin/js/permission.js"></script>
         <script>
             
             // 字段 文件 url
-            layui.use(["upload", "layer", "popup", "util"], function() {
+            layui.use(["upload", "layer", "pearPopup", "util"], function() {
                 let input = layui.$("#url").prev();
                 input.prev().html(layui.util.escape(input.val()));
                 layui.upload.render({
@@ -54,7 +54,7 @@
                     url: "/app/admin/upload/insert",
                     field: "__file__",
                     done: function (res) {
-                        if (res.code) return layui.popup.failure(res.msg);
+                        if (res.code) return layui.pearPopup.failure(res.msg);
                         parent.refreshTable();
                         parent.layer.close(parent.layer.getFrameIndex(window.name));
                     }
@@ -79,7 +79,7 @@
                             radio: true,
                         });
                         if (res.code) {
-                            return layui.popup.failure(res.msg);
+                            return layui.pearPopup.failure(res.msg);
                         }
                     }
                 });

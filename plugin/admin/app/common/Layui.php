@@ -331,7 +331,7 @@ EOF;
         $this->jsContent .= <<<EOF
 
 // 字段 {$options['label']} $field
-layui.use(["upload", "layer", "popup", "util"], function() {
+layui.use(["upload", "layer", "pearPopup", "util"], function() {
     let input = layui.$("#$id").prev();
     input.prev().html(layui.util.escape(input.val()));
     layui.$("#attachment-choose-$id").on("click", function() {
@@ -350,7 +350,7 @@ layui.use(["upload", "layer", "popup", "util"], function() {
     layui.upload.render({
         elem: "#$id",$options_string
         done: function (res) {
-            if (res.code) return layui.popup.failure(res.msg);
+            if (res.code) return layui.pearPopup.failure(res.msg);
             this.item.prev().val(res.data.url).prev().html(layui.util.escape(res.data.url));
         }
     });
@@ -846,7 +846,7 @@ EOF;
             $this->jsContent .= <<<EOF
 
 // 字段 {$options['label']} $field
-layui.use(["jquery", "xmSelect", "popup"], function() {
+layui.use(["jquery", "xmSelect", "pearPopup"], function() {
     layui.$.ajax({
         url: "$url",
         dataType: "json",
@@ -861,7 +861,7 @@ layui.use(["jquery", "xmSelect", "popup"], function() {
                 data: res.data, $options_string
             });
             if (res.code) {
-                layui.popup.failure(res.msg);
+                layui.pearPopup.failure(res.msg);
             }
         }
     });
@@ -1028,12 +1028,12 @@ EOF;
 				$.post(UPDATE_API, postData, function (res) {
 					layer.close(load);
 					if (res.code) {
-                        return layui.popup.failure(res.msg, function () {
+                        return layui.pearPopup.failure(res.msg, function () {
                             data.elem.checked = !data.elem.checked;
                             form.render();
                         });
                     }
-					return layui.popup.success("操作成功");
+					return layui.pearPopup.success("操作成功");
 				})
 			});
 			let checked = d[field] === 1 ? "checked" : "";
@@ -1200,7 +1200,7 @@ layui.each(apis, function (k, item) {
         dateType: "json",
         success: function (res) {
             if (res.code) {
-                return layui.popup.failure(res.msg);
+                return layui.pearPopup.failure(res.msg);
             }
             function travel(items) {
                 for (let k in items) {

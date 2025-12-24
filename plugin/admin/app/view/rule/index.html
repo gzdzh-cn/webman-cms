@@ -1,4 +1,4 @@
-
+﻿
 <!DOCTYPE html>
 <html lang="zh-cn">
     <head>
@@ -32,7 +32,7 @@
             <button class="pear-btn pear-btn-xs tool-btn" lay-event="remove" permission="app.admin.rule.delete">删除</button>
         </script>
 
-        <script src="/app/admin/component/layui/layui.js?v=2.8.12"></script>
+        <script src="/app/admin/component/layui/layui.js?v=2.13.12"></script>
         <script src="/app/admin/component/pear/pear.js"></script>
         <script src="/app/admin/admin/js/permission.js"></script>
         <script src="/app/admin/admin/js/common.js"></script>
@@ -48,12 +48,12 @@
             const UPDATE_URL = "/app/admin/rule/update";
 
             // 表格渲染
-            layui.use(["table", "treetable", "form", "common", "popup", "util"], function() {
+            layui.use(["table", "pearTreetable", "form", "pearCommon", "pearPopup", "util"], function() {
                 let table = layui.table;
                 let form = layui.form;
                 let $ = layui.$;
-                let common = layui.common;
-                let treeTable = layui.treetable;
+                let common = layui.pearCommon;
+                let treeTable = layui.pearTreetable;
                 let util = layui.util;
 
                 // 表格头部列数据
@@ -128,6 +128,7 @@
                 {
                     treeTable.render({
                         elem: "#data-table",
+                        id: "data-table",
                         url: SELECT_API,
                         treeColIndex: 1,
                         treeIdName: "id",
@@ -159,7 +160,7 @@
                         dateType: "json",
                         success: function (res) {
                             if (res.code) {
-                                return layui.popup.failure(res.msg);
+                                return layui.pearPopup.failure(res.msg);
                             }
                             function travel(items) {
                                 for (let k in items) {
@@ -235,7 +236,7 @@
                 let batchRemove = function(obj) {
                     let checkIds = common.checkField(obj, PRIMARY_KEY);
                     if (checkIds === "") {
-                        layui.popup.warning("未选中数据");
+                        layui.pearPopup.warning("未选中数据");
                         return false;
                     }
                     doRemove(checkIds.split(","));
@@ -259,9 +260,9 @@
                             success: function(res) {
                                 layer.close(loading);
                                 if (res.code) {
-                                    return layui.popup.failure(res.msg);
+                                    return layui.pearPopup.failure(res.msg);
                                 }
-                                return layui.popup.success("操作成功", function () {
+                                return layui.pearPopup.success("操作成功", function () {
                                     return obj ? obj.del() : refreshTable();
                                 });
                             }
@@ -271,19 +272,7 @@
 
                 // 刷新表格
                 window.refreshTable = function() {
-                    table.reloadData("data-table", {
-                        scrollPos: "fixed",
-                        done: function (res, curr) {
-                            if (curr > 1 && res.data && !res.data.length) {
-                                curr = curr - 1;
-                                table.reloadData("data-table", {
-                                    page: {
-                                        curr: curr
-                                    },
-                                })
-                            }
-                        }
-                    });
+                    treeTable.reload("#data-table");
                 }
             })
 

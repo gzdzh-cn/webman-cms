@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta charset="UTF-8">
+    <title>新增字段</title>
+    <link rel="stylesheet" href="/app/admin/component/pear/css/pear.css" />
+    <link rel="stylesheet" href="/app/admin/admin/css/reset.css" />
+    <link rel="stylesheet" href="/app/admin/admin/css/dzh.css" />
+</head>
+<body>
+    <form class="layui-form" lay-filter="field-form" style="padding: 20px;">
+        <div class="layui-form-item">
+            <label class="layui-form-label required">字段名称</label>
+            <div class="layui-input-block">
+                <input type="text" name="title" required lay-verify="required" placeholder="请输入字段名称" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label required">字段标识</label>
+            <div class="layui-input-block">
+                <input type="text" name="name" required lay-verify="required" placeholder="请输入字段标识（英文）" class="layui-input">
+                <span class="text-9 ftn12">支持字母、数字和下划线，不能和别的标识值相同</span>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label required">数据类型</label>
+            <div class="layui-input-block">
+                <select name="dtype" lay-verify="required">
+                    <option value="">请选择数据类型</option>
+                    <option value="text">单行文本</option>
+                    <option value="multitext">多行文本</option>
+                    <option value="radio">单选项[]</option>
+                    <option value="switch">开关</option>
+                    <option value="select">下拉框</option>
+                    <option value="img">单张图</option>
+                    <option value="int">整数类型</option>
+                    <option value="datetime">日期和时间</option>
+                    <option value="htmltext">HTML文本</option>
+                    <option value="imgs">多张图</option>
+                    <option value="decimal">金额类型</option>
+                    <option value="float">小数类型</option>
+                    <option value="region">区域类型</option>
+                    <option value="file">附件类型</option>
+                    <option value="media">多媒体类型</option>
+                    <option value="checkboxs">多选项</option>
+                    <option value="radios">单选项</option>
+                </select>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">默认值</label>
+            <div class="layui-input-block">
+                <textarea name="dfvalue" placeholder="前端将默认显示输入的默认值" class="layui-textarea" rows="3"></textarea>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">数值单位</label>
+            <div class="layui-input-block">
+                <input type="text" name="dfvalue_unit" placeholder="比如：元、个、件等等" class="layui-input">
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">支持投稿</label>
+            <div class="layui-input-block">
+                <input type="radio" name="is_release" value="1" title="是">
+                <input type="radio" name="is_release" value="0" title="否" checked>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">提示文字</label>
+            <div class="layui-input-block">
+                <textarea name="remark" placeholder="问号提示文字" class="layui-textarea" rows="3"></textarea>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <label class="layui-form-label">指定栏目</label>
+            <div class="layui-input-block">
+                <select name="typeid" lay-verify="" id="typeid-select">
+                    <option value="0">请选择栏目</option>
+                </select>
+            </div>
+        </div>
+        <div class="layui-form-item">
+            <div class="layui-input-block">
+                <button class="layui-btn" lay-submit lay-filter="field-form-submit">提交</button>
+                <button type="reset" class="layui-btn layui-btn-primary">重置</button>
+            </div>
+        </div>
+    </form>
+
+    <script src="/app/admin/component/layui/layui.js?v=2.13.12"></script>
+    <script src="/app/admin/component/pear/pear.js"></script>
+    <script>
+        const INSERT_API = "/app/admin/channelfield/insert" + location.search;
+
+        layui.use(["form", "pearPopup", "jquery"], function () {
+            let $ = layui.jquery;
+            let form = layui.form;
+
+            /**
+             * 将树形数据拍平成带缩进的下拉选项
+             */
+            function flattenTree(nodes, level = 0) {
+                let list = [];
+                nodes.forEach(function (node) {
+                    const indent = level ? new Array(level).fill('　').join('') + '└ ' : '';
+                    list.push({
+                        id: node.id,
+                        label: indent + node.typename
+                    });
+                    if (node.children && node.children.length) {
+                        list = list.concat(flattenTree(node.children, level + 1));
+                    }
+                });
+                return list;
+            }
+
+            /**
+             * 加载栏目树到"指定栏目"下拉框，支持树状展开子级
+             * 通过模型ID（channel_id）筛选对应的栏目列表
+             */
+            function loadTypeidOptions() {
+                // 获取 channel_id 参数
+                var urlParams = new URLSearchParams(location.search);
+                var channelId = urlParams.get('channel_id') || 0;
+                
+                console.log('channelId: ' + channelId);
+                // 构建请求参数
+                var requestParams = { format: 'tree', limit: 2000 };
+                if (channelId > 0) {
+                    requestParams.channeltype = channelId; // 通过 channeltype 参数筛选栏目（对应 arctype 表的 channeltype 字段）
+                }
+                
+                $.getJSON("/app/admin/channelfield/getArctypeList", requestParams, function (res) {
+                    if (res.code !== 0 || !Array.isArray(res.data)) {
+                        return;
+                    }
+                    var options = flattenTree(res.data);
+                    var $select = $('#typeid-select');
+                    $select.empty().append('<option value="0">请选择栏目</option>');
+                    if (options.length === 0) {
+                        $select.append('<option value="0">该模型下暂无栏目</option>');
+                    } else {
+                        options.forEach(function (item) {
+                            $select.append('<option value="' + item.id + '">' + item.label + '</option>');
+                        });
+                    }
+                    form.render('select');
+                }).fail(function () {
+                    // 静默失败，不影响表单提交
+                });
+            }
+
+            // 加载栏目列表
+            loadTypeidOptions();
+
+            // 提交表单
+            form.on("submit(field-form-submit)", function (data) {
+                // 获取 channel_id 参数
+                var urlParams = new URLSearchParams(location.search);
+                var channelId = urlParams.get('channel_id') || 0;
+                
+                var formData = data.field;
+                formData.channel_id = channelId;
+                formData.ifmain = 0; // 设置为非主表字段
+                formData.status = 1; // 默认启用
+                
+                $.ajax({
+                    url: INSERT_API,
+                    data: formData,
+                    dataType: "json",
+                    type: "post",
+                    success: function (res) {
+                        if (res.code) {
+                            return layui.pearPopup.failure(res.msg);
+                        }
+                        layui.pearPopup.success("操作成功", function() {
+                            var index = parent.layer.getFrameIndex(window.name);
+                            parent.layer.close(index);
+                            if (parent.refreshTable) {
+                                parent.refreshTable();
+                            }
+                        });
+                    }
+                });
+                return false;
+            });
+        });
+    </script>
+</body>
+</html>
+

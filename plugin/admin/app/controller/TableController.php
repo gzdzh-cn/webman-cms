@@ -815,7 +815,7 @@ EOF
             <button class="pear-btn pear-btn-xs tool-btn" lay-event="remove" permission="$code_base.delete">删除</button>
         </script>
 
-        <script src="/app/admin/component/layui/layui.js?v=2.8.12"></script>
+        <script src="/app/admin/component/layui/layui.js?v=2.13.12"></script>
         <script src="/app/admin/component/pear/pear.js"></script>
         <script src="/app/admin/admin/js/permission.js"></script>
         <script src="/app/admin/admin/js/common.js"></script>
@@ -831,11 +831,11 @@ EOF
             const UPDATE_URL = "$url_path_base/update";
             $js
             // 表格渲染
-            layui.use(["table", "form", "common", "popup", "util"], function() {
+            layui.use(["table", "form", "pearCommon", "pearPopup", "util"], function() {
                 let table = layui.table;
                 let form = layui.form;
                 let $ = layui.$;
-                let common = layui.common;
+                let common = layui.pearCommon;
                 let util = layui.util;
                 $table_js
                 // 编辑或删除行事件
@@ -932,7 +932,7 @@ EOF
                 let batchRemove = function(obj) {
                     let checkIds = common.checkField(obj, PRIMARY_KEY);
                     if (checkIds === "") {
-                        layui.popup.warning("未选中数据");
+                        layui.pearPopup.warning("未选中数据");
                         return false;
                     }
                     doRemove(checkIds.split(","));
@@ -956,9 +956,9 @@ EOF
                             success: function(res) {
                                 layer.close(loading);
                                 if (res.code) {
-                                    return layui.popup.failure(res.msg);
+                                    return layui.pearPopup.failure(res.msg);
                                 }
-                                return layui.popup.success("操作成功", refreshTable);
+                                return layui.pearPopup.success("操作成功", refreshTable);
                             }
                         })
                     });
@@ -1027,7 +1027,7 @@ EOF;
             
         </form>
 
-        <script src="/app/admin/component/layui/layui.js?v=2.8.12"></script>
+        <script src="/app/admin/component/layui/layui.js?v=2.13.12"></script>
         <script src="/app/admin/component/pear/pear.js"></script>
         <script src="/app/admin/component/jsoneditor/jsoneditor.js"></script>
         <script src="/app/admin/admin/js/permission.js"></script>
@@ -1038,7 +1038,7 @@ EOF;
             const INSERT_API = "$url_path_base/insert";
             $js
             //提交事件
-            layui.use(["form", "popup"], function () {
+            layui.use(["form", "pearPopup"], function () {
                 // 字段验证允许为空
                 layui.form.verify({
                     phone: [/(^$)|^1\d{10}$/, "请输入正确的手机号"],
@@ -1056,9 +1056,9 @@ EOF;
                         data: data.field,
                         success: function (res) {
                             if (res.code) {
-                                return layui.popup.failure(res.msg);
+                                return layui.pearPopup.failure(res.msg);
                             }
-                            return layui.popup.success("操作成功", function () {
+                            return layui.pearPopup.success("操作成功", function () {
                                 parent.refreshTable();
                                 parent.layer.close(parent.layer.getFrameIndex(window.name));
                             });
@@ -1116,7 +1116,7 @@ EOF;
             
         </form>
 
-        <script src="/app/admin/component/layui/layui.js?v=2.8.12"></script>
+        <script src="/app/admin/component/layui/layui.js?v=2.13.12"></script>
         <script src="/app/admin/component/pear/pear.js"></script>
         <script src="/app/admin/component/jsoneditor/jsoneditor.js"></script>
         <script src="/app/admin/admin/js/permission.js"></script>
@@ -1128,7 +1128,7 @@ EOF;
             const SELECT_API = "$url_path_base/select" + location.search;
             const UPDATE_API = "$url_path_base/update";
             // 获取数据库记录
-            layui.use(["form", "util", "popup"], function () {
+            layui.use(["form", "util", "pearPopup"], function () {
                 let $ = layui.$;
                 $.ajax({
                     url: SELECT_API,
@@ -1167,7 +1167,7 @@ EOF;
                         
                         // ajax返回失败
                         if (res.code) {
-                            layui.popup.failure(res.msg);
+                            layui.pearPopup.failure(res.msg);
                         }
                         
                     }
@@ -1175,7 +1175,7 @@ EOF;
             });
 
             //提交事件
-            layui.use(["form", "popup"], function () {
+            layui.use(["form", "pearPopup"], function () {
                 // 字段验证允许为空
                 layui.form.verify({
                     phone: [/(^$)|^1\d{10}$/, "请输入正确的手机号"],
@@ -1194,9 +1194,9 @@ EOF;
                         data: data.field,
                         success: function (res) {
                             if (res.code) {
-                                return layui.popup.failure(res.msg);
+                                return layui.pearPopup.failure(res.msg);
                             }
-                            return layui.popup.success("操作成功", function () {
+                            return layui.pearPopup.success("操作成功", function () {
                                 parent.refreshTable();
                                 parent.layer.close(parent.layer.getFrameIndex(window.name));
                             });

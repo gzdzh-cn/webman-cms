@@ -96,7 +96,7 @@ layui.define(['jquery'],function (exports) {
 
     function initOptions(option,callback) {
         
-        var admin = layui.admin || {}
+        var admin = layui.pearAdmin || {}
 
         var form = option.form || {}
 

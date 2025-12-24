@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-cn">
 
 <head>
@@ -6,6 +6,8 @@
     <title>浏览页面</title>
     <link rel="stylesheet" href="/app/admin/component/pear/css/pear.css" />
     <link rel="stylesheet" href="/app/admin/admin/css/reset.css" />
+    <link rel="stylesheet" href="/app/admin/admin/css/dzh.css" />
+ 
 </head>
 
 <body class="pear-container">
@@ -59,32 +61,28 @@
 
     <!-- 表格顶部工具栏 -->
     <script type="text/html" id="table-toolbar">
-        <button class="pear-btn pear-btn-primary pear-btn-md" lay-event="add" permission="app.admin.arctype.insert">
+        <button class="pear-btn pear-btn-primary pear-btn-xs" lay-event="add" permission="app.admin.arctype.insert">
             <i class="layui-icon layui-icon-add-1"></i>新增
         </button>
-        <button class="pear-btn pear-btn-danger pear-btn-md" lay-event="batchRemove" permission="app.admin.arctype.delete">
+        <button class="pear-btn pear-btn-danger pear-btn-xs" lay-event="batchRemove" permission="app.admin.arctype.delete">
             <i class="layui-icon layui-icon-delete"></i>删除
         </button>
-        <button class="pear-btn pear-btn-success pear-btn-md" lay-event="expandAll">
-            <i class="layui-icon layui-icon-spread-left"></i>
-            展开
-        </button>
-        <button class="pear-btn pear-btn-success pear-btn-md" lay-event="foldAll">
-            <i class="layui-icon layui-icon-shrink-right"></i>
-            折叠
+        <button class="pear-btn pear-btn-success pear-btn-xs" id="expand-fold-btn" lay-event="expandFold">
+            <i class="layui-icon layui-icon-spread-left"></i><span class="btn-text">展开</span>
         </button>
     </script>
 
     <!-- 表格行工具栏 -->
     <script type="text/html" id="table-bar">
-        <button class="pear-btn pear-btn-xs tool-btn" lay-event="remove" permission="app.admin.arctype.delete">内容 |</button>
-        <button class="pear-btn pear-btn-xs tool-btn" lay-event="edit" permission="app.admin.arctype.update">编辑 |</button>
-        <button class="pear-btn pear-btn-xs tool-btn" lay-event="add" permission="app.admin.arctype.insert">增加子栏目 |</button>
-        <button class="pear-btn pear-btn-xs tool-btn" lay-event="preview" permission="app.admin.arctype.preview">预览 |</button>
-        <button class="pear-btn pear-btn-xs tool-btn" lay-event="remove" permission="app.admin.arctype.delete">删除 |</button>
+        <span class="pear-text pear-text-primary" lay-event="content" permission="app.admin.arctype.delete">内容 |</span>
+        <span class="pear-text pear-text-primary" lay-event="edit" permission="app.admin.arctype.update">编辑 |</span>
+        <span class="pear-text pear-text-primary" lay-event="addSub" permission="app.admin.arctype.insert">增加子栏目 |</span>
+        <span class="pear-text pear-text-primary" lay-event="preview" permission="app.admin.arctype.preview">预览 |</span>
+        <span class="pear-text pear-text-danger" lay-event="remove" permission="app.admin.arctype.delete">删除</span>
     </script>
 
-    <script src="/app/admin/component/layui/layui.js?v=2.8.12"></script>
+ 
+    <script src="/app/admin/component/layui/layui.js?v=2.13.12"></script>
     <script src="/app/admin/component/pear/pear.js"></script>
     <script src="/app/admin/admin/js/permission.js"></script>
     <script src="/app/admin/admin/js/common.js"></script>
@@ -109,184 +107,86 @@
         })
 
         // 表格渲染
-        layui.use(["table", "form", "common", "popup", "util", "treetable"], function () {
+        layui.use(["table", "form", "pearCommon", "pearPopup", "util", "pearTreetable"], function () {
             let table = layui.table;
             let form = layui.form;
             let $ = layui.$;
-            let common = layui.common;
+            let common = layui.pearCommon;
             let util = layui.util;
-            let treetable = layui.treetable;
+            let treetable = layui.pearTreetable;
+            
+            // 树形表格展开/折叠状态（true=展开，false=折叠）
+            let isExpanded = false; // 初始状态为折叠（因为 treeDefaultClose: true）
+            
+            // 更新展开/折叠按钮显示
+            function updateExpandFoldButton(expanded) {
+                var $btn = $('#expand-fold-btn');
+                var $icon = $btn.find('i');
+                var $text = $btn.find('.btn-text');
+                if (expanded) {
+                    $icon.removeClass('layui-icon-spread-left').addClass('layui-icon-shrink-right');
+                    $text.text('折叠');
+                } else {
+                    $icon.removeClass('layui-icon-shrink-right').addClass('layui-icon-spread-left');
+                    $text.text('展开');
+                }
+            }
 
             // 表头参数
             let cols = [
                 {
                     type: "checkbox",
                     align: "center"
-                }, {
-                    title: "ID", align: "center",
-                    field: "id",
-                    // sort: true,
                 },
                 {
-                    title: "+栏目名称", align: "center",
+                    title: "ID", align: "center",
+                    field: "id",
+                    width: 50,
+                },
+                {
+                    title: "栏目名称", align: "left",
                     field: "typename",
                 },
                 {
                     title: "模型", align: "center",
-                    field: "current_channel",
+                    field: "channel_name",
+                    width: 100,
                 },
                 {
                     title: "显示", align: "center",
                     field: "is_hidden",
-                },
-                {
-                    title: "操作",
-                    toolbar: "#table-bar",
-                    align: "center",
-                    fixed: "right",
-                    width: 120,
+                    templet: function (d) {
+                        const isShow = d.is_hidden == 0;
+                        const cls = isShow ? "status-show" : "status-hide";
+                        const icon = isShow ? "layui-icon-ok-circle" : "layui-icon-close-fill";
+                        const text = isShow ? "是" : "否";
+                        const val = isShow ? "0" : "1";
+                        return '<span class="status-badge ' + cls + '" data-id="' + util.escape(d.id) + '" data-field="is_hidden" data-value="' + val + '"><i class="layui-icon ' + icon + '"></i>' + text + '</span>';
+                    },
+                    width: 80,
                 },
                 {
                     title: "排序", align: "center",
                     field: "sort_order",
+                    edit: 'text',
+                    width: 80,
+                },
+                {
+                    title: "操作",
+                    templet: "#table-bar",
+                    align: "center",
+                    fixed: "right",
+                    width: 250,
                 },
 
 
-                // {
-                // 	title: "创建时间",align: "center",
-                // 	field: "created_at",
-                // 	sort: true,
-                // },{
-                // 	title: "更新时间",align: "center",
-                // 	field: "updated_at",
-                // },{
-                // 	title: "栏目顶级模型ID",align: "center",
-                // 	field: "channeltype",
-                // },{
-                // 	title: "栏目上级ID",align: "center",
-                // 	field: "parent_id",
-                // },{
-                // 	title: "顶级栏目ID",align: "center",
-                // 	field: "topid",
-                // },
-                // {
-                // 	title: "目录英文名",align: "center",
-                // 	field: "dirname",
-                // },{
-                // 	title: "目录存放HTML路径",align: "center",
-                // 	field: "dirpath",
-                // },{
-                // 	title: "列表静态文件存放规则",align: "center",
-                // 	field: "diy_dirpath",
-                // },{
-                // 	title: "列表静态文件存放规则",align: "center",
-                // 	field: "rulelist",
-                // },{
-                // 	title: "文档静态文件存放规则",align: "center",
-                // 	field: "ruleview",
-                // },{
-                // 	title: "栏目英文名",align: "center",
-                // 	field: "englist_name",
-                // },{
-                // 	title: "栏目等级",align: "center",
-                // 	field: "grade",
-                // },{
-                // 	title: "栏目链接",align: "center",
-                // 	field: "typelink",
-                // },{
-                // 	title: "栏目图片",align: "center",
-                // 	field: "litpic",
-                // },{
-                // 	title: "列表模板文件名",align: "center",
-                // 	field: "templist",
-                // },{
-                // 	title: "文档模板文件名",align: "center",
-                // 	field: "tempview",
-                // },{
-                // 	title: "SEO标题",align: "center",
-                // 	field: "seo_title",
-                // },{
-                // 	title: "seo关键字",align: "center",
-                // 	field: "seo_keywords",
-                // },{
-                // 	title: "seo描述",align: "center",
-                // 	field: "seo_description",
-                // },{
-                // 	title: "栏目属性：0=内容栏目，1=外部链接",align: "center",
-                // 	field: "is_part",
-                // },{
-                // 	title: "管理员ID",align: "center",
-                // 	field: "admin_id",
-                // },{
-                // 	title: "伪删除，1=是，0=否",align: "center",
-                // 	field: "is_del",
-                // },{
-                // 	title: "伪删除状态，1为主动删除，2为跟随上级栏目被动删除",align: "center",
-                // 	field: "del_method",
-                // },{
-                // 	title: "启用 (1=正常，0=屏蔽)",align: "center",
-                // 	field: "status",
-                // },{
-                // 	title: "栏目是否应用于会员投稿发布，1是，0否",align: "center",
-                // 	field: "is_release",
-                // },{
-                // 	title: "插件栏目唯一标识",align: "center",
-                // 	field: "weapp_code",
-                // },{
-                // 	title: "语言标识",align: "center",
-                // 	field: "lang",
-                // },{
-                // 	title: "新增时间",align: "center",
-                // 	field: "add_time",
-                // },{
-                // 	title: "更新时间",align: "center",
-                // 	field: "update_time",
-                // },{
-                // 	title: "新窗口打开",align: "center",
-                // 	field: "target",
-                // },{
-                // 	title: "防抓取",align: "center",
-                // 	field: "nofollow",
-                // },{
-                // 	title: "阅读权限：0=开放浏览，-1=待审核稿件",align: "center",
-                // 	field: "typearcrank",
-                // },{
-                // 	title: "空内容逻辑",align: "center",
-                // 	field: "empty_logic",
-                // },{
-                // 	title: "限制页面 1-栏目页面 0-文档页面",align: "center",
-                // 	field: "page_limit",
-                // },{
-                // 	title: "栏目下文档数量",align: "center",
-                // 	field: "total_arc",
-                // }
             ];
-
-            // 渲染表格
-            // trtableeetable.render({
-            //     elem: "#data-table",
-            //     url: SELECT_API,
-            //     page: true,
-            //     cols: [cols],
-            //     skin: "line",
-            //     size: "lg",
-            //     toolbar: "#table-toolbar",
-            //     autoSort: false,
-            //     defaultToolbar: [{
-            //         title: "刷新",
-            //         layEvent: "refresh",
-            //         icon: "layui-icon-refresh",
-            //     }, "filter", "print", "exports"],
-            //     done: function () {
-            //         layer.photos({photos: 'div[lay-id="data-table"]', anim: 5});
-            //     }
-            // });
 
 
             treetable.render({
-                treeColIndex: 1,
-                treeIdName: 'powerId',
-                treePidName: 'parentId',
+                treeColIndex: 2,
+                treeIdName: 'id',
+                treePidName: 'parent_id',
                 skin: 'line',
                 treeDefaultClose: true,
                 toolbar: '#table-toolbar',
@@ -294,6 +194,22 @@
                 url: SELECT_API,
                 page: false,
                 cols: [cols],
+                defaultToolbar: [{
+                    title: "刷新",
+                    layEvent: "refresh",
+                    icon: "layui-icon-refresh",
+                }, "filter", "print", "exports"],
+                // 单击编辑回调
+                onEdit: function (obj) {
+                    var id = obj.data.id;
+                    var field = obj.field;
+                    var value = obj.value;
+
+                    // 更新到数据库
+                    updateField(id, field, value, function () {
+                        layer.msg('更新成功', { icon: 1, time: 1000 });
+                    });
+                }
             });
 
 
@@ -315,25 +231,30 @@
                     refreshTable();
                 } else if (obj.event === "batchRemove") {
                     batchRemove(obj);
+                } else if (obj.event === "expandFold") {
+                    // 切换展开/折叠状态
+                    if (isExpanded) {
+                        treetable.foldAll("#data-table");
+                        isExpanded = false;
+                        updateExpandFoldButton(false);
+                    } else {
+                        treetable.expandAll("#data-table");
+                        isExpanded = true;
+                        updateExpandFoldButton(true);
+                    }
                 }
             });
 
             // 表格顶部搜索事件
             form.on("submit(table-query)", function (data) {
-                table.reload("data-table", {
-                    page: {
-                        curr: 1
-                    },
-                    where: data.field
-                })
+                var keyword = data.field.keyword;
+                treetable.search('#data-table', keyword);
                 return false;
             });
 
             // 表格顶部搜索重置事件
             form.on("submit(table-reset)", function (data) {
-                table.reload("data-table", {
-                    where: []
-                })
+                treetable.reload("#data-table");
             });
 
             // 字段允许为空
@@ -378,7 +299,7 @@
                     title: "修改",
                     shade: 0.1,
                     maxmin: true,
-                    area: [common.isModile() ? "100%" : "800px", common.isModile() ? "100%" : "800px"],
+                    area: [common.isModile() ? "100%" : "700px", common.isModile() ? "100%" : "700px"],
                     content: UPDATE_URL + "?" + PRIMARY_KEY + "=" + value
                 });
             }
@@ -392,7 +313,7 @@
             let batchRemove = function (obj) {
                 let checkIds = common.checkField(obj, PRIMARY_KEY);
                 if (checkIds === "") {
-                    layui.popup.warning("未选中数据");
+                    layui.pearPopup.warning("未选中数据");
                     return false;
                 }
                 doRemove(checkIds.split(","));
@@ -416,9 +337,9 @@
                         success: function (res) {
                             layer.close(loading);
                             if (res.code) {
-                                return layui.popup.failure(res.msg);
+                                return layui.pearPopup.failure(res.msg);
                             }
-                            return layui.popup.success("操作成功", refreshTable);
+                            return layui.pearPopup.success("操作成功", refreshTable);
                         }
                     })
                 });
@@ -426,20 +347,56 @@
 
             // 刷新表格数据
             window.refreshTable = function () {
-                table.reloadData("data-table", {
-                    scrollPos: "fixed",
-                    done: function (res, curr) {
-                        if (curr > 1 && res.data && !res.data.length) {
-                            curr = curr - 1;
-                            table.reloadData("data-table", {
-                                page: {
-                                    curr: curr
-                                },
-                            })
+                treetable.reload("#data-table");
+            }
+
+            // 更新字段到数据库
+            function updateField(id, field, value, callback) {
+                let data = {};
+                data[PRIMARY_KEY] = id;
+                data[field] = value;
+                $.ajax({
+                    url: UPDATE_API,
+                    type: "POST",
+                    dataType: "json",
+                    data: data,
+                    success: function (res) {
+                        if (res.code) {
+                            layui.pearPopup.failure(res.msg);
+                            return;
                         }
+                        if (callback) callback();
+                    },
+                    error: function () {
+                        layui.pearPopup.failure("请求失败");
                     }
                 });
             }
+
+            // 点击切换显示/隐藏状态
+            $(document).on('click', '.status-badge', function () {
+                var $this = $(this);
+                var id = $this.data('id');
+                var currentValue = parseInt($this.data('value'));
+                var newValue = currentValue === 0 ? 1 : 0;
+
+                updateField(id, 'is_hidden', newValue, function () {
+                    // 更新UI - 只改变类名和属性
+                    $this.data('value', newValue);
+                    var $icon = $this.find('.layui-icon');
+                    if (newValue === 0) {
+                        $this.removeClass('status-hide').addClass('status-show');
+                        $icon.removeClass('layui-icon-close-fill').addClass('layui-icon-ok-circle');
+                        $icon[0].nextSibling.nodeValue = '是';
+                    } else {
+                        $this.removeClass('status-show').addClass('status-hide');
+                        $icon.removeClass('layui-icon-ok-circle').addClass('layui-icon-close-fill');
+                        $icon[0].nextSibling.nodeValue = '否';
+                    }
+                    layer.msg('更新成功', { icon: 1, time: 1000 });
+                });
+            });
+
         })
 
     </script>

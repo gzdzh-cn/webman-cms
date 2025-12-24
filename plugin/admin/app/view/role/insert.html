@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-cn">
     <head>
         <meta charset="UTF-8">
@@ -51,7 +51,7 @@
             
         </form>
 
-        <script src="/app/admin/component/layui/layui.js?v=2.8.12"></script>
+        <script src="/app/admin/component/layui/layui.js?v=2.13.12"></script>
         <script src="/app/admin/component/pear/pear.js"></script>
         <script src="/app/admin/admin/js/permission.js"></script>
         
@@ -61,7 +61,7 @@
             const INSERT_API = "/app/admin/role/insert";
             
             // 字段 权限 rules
-            layui.use(["jquery", "xmSelect", "popup"], function() {
+            layui.use(["jquery", "xmSelect", "pearPopup"], function() {
                 layui.$.ajax({
                     url: "/app/admin/role/rules?id=1",
                     dataType: "json",
@@ -81,7 +81,7 @@
             });
             
             // 字段 父级 pid
-            layui.use(["jquery", "xmSelect", "popup"], function() {
+            layui.use(["jquery", "xmSelect", "pearPopup"], function() {
                 layui.$.ajax({
                     url: "/app/admin/role/select?format=tree",
                     dataType: "json",
@@ -107,7 +107,7 @@
                                     dataType: 'json',
                                     success: function (res) {
                                         if (res.code) {
-                                            return layui.popup.failure(res.msg);
+                                            return layui.pearPopup.failure(res.msg);
                                         }
                                         layui.xmSelect.get('#rules')[0].update({data:res.data});
                                     }
@@ -115,14 +115,14 @@
                             }
                         })
                         if (res.code) {
-                            layui.popup.failure(res.msg);
+                            layui.pearPopup.failure(res.msg);
                         }
                     }
                 });
             });
             
             //提交事件
-            layui.use(["form", "popup"], function () {
+            layui.use(["form", "pearPopup"], function () {
                 layui.form.on("submit(save)", function (data) {
                     layui.$.ajax({
                         url: INSERT_API,
@@ -131,9 +131,9 @@
                         data: data.field,
                         success: function (res) {
                             if (res.code) {
-                                return layui.popup.failure(res.msg);
+                                return layui.pearPopup.failure(res.msg);
                             }
-                            return layui.popup.success("操作成功", function () {
+                            return layui.pearPopup.success("操作成功", function () {
                                 parent.refreshTable();
                                 parent.layer.close(parent.layer.getFrameIndex(window.name));
                             });

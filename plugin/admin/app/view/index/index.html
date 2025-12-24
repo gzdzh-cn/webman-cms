@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-cn">
     <head>
         <meta charset="utf-8">
@@ -90,7 +90,7 @@
             <a href="#" class="layui-icon layui-icon-shrink-right"></a>
         </div>
         <!-- 依 赖 脚 本 -->
-        <script src="/app/admin/component/layui/layui.js?v=2.8.12"></script>
+        <script src="/app/admin/component/layui/layui.js?v=2.13.12"></script>
         <script src="/app/admin/component/pear/pear.js"></script>
         <!-- 框 架 初 始 化 -->
         <script>
@@ -100,10 +100,10 @@
                 Account: {}
             };
 
-            layui.use(["admin","jquery","popup","drawer"], function() {
+            layui.use(["pearAdmin","jquery","pearPopup","pearDrawer"], function() {
                 var $ = layui.$;
-                var admin = layui.admin;
-                var popup = layui.popup;
+                var admin = layui.pearAdmin;
+                var popup = layui.pearPopup;
 
                 admin.setConfigType("json");
                 admin.setConfigPath("/app/admin/config/get");
@@ -117,7 +117,7 @@
                         dataType: "json",
                         success: function (res) {
                             if (res.code) {
-                                return popup.error(res.msg);
+                                return popup.failure(res.msg);
                             }
                             popup.success("注销成功",function(){
                                 location.reload();

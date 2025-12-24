@@ -144,6 +144,30 @@ a {
 {
     margin-bottom: 48px;
 }
+.pb-1
+{
+    padding-bottom: 4px;
+}
+.pb-2
+{
+    padding-bottom: 8px;
+}
+.pb-3
+{
+    padding-bottom: 16px;
+}
+.pb-4
+{
+    padding-bottom: 24px;
+}
+.pb-5
+{
+    padding-bottom: 48px;
+}
+.pb-6
+{
+    padding-bottom: 96px;
+}
 
 /** 图片尺寸 **/
 .img-1
@@ -259,3 +283,5 @@ a {
 }
 
 /* tinymce 样式优化 End */
+
+

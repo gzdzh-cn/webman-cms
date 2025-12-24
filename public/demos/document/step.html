@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html>
 	<head>
 		<meta charset="utf-8">
@@ -160,10 +160,10 @@
 						<h2 class="layui-colla-title">显示代码</h2>
 						<div class="layui-colla-content">
 							<pre class="layui-code" lay-encode="true">
-		                        layui.use(['form', 'step','element'], function() {
+		                        layui.use(['form', 'pearStep','element'], function() {
 		                            var $ = layui.$,
 		                            form = layui.form,
-		                            step = layui.step;
+		                            step = layui.pearStep;
 		                            
 		                            step.render({
 		                                elem: '#stepForm',
@@ -209,10 +209,10 @@
 		<script src="../../component/layui/layui.js"></script>
 		<script src="../../component/pear/pear.js"></script>
 		<script>
-			layui.use(['form', 'step','code','element'], function() {
+			layui.use(['form', 'pearStep','code','element'], function() {
 				var $ = layui.$,
 					form = layui.form,
-					step = layui.step;
+					step = layui.pearStep;
 					
 				layui.code();
 

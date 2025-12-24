@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-cn">
     <head>
         <meta charset="UTF-8">
@@ -102,12 +102,12 @@
         </div>
 
 
-        <script src="/app/admin/component/layui/layui.js?v=2.8.12"></script>
+        <script src="/app/admin/component/layui/layui.js?v=2.13.12"></script>
         <script src="/app/admin/component/pear/pear.js"></script>
         <script src="/app/admin/admin/js/permission.js"></script>
         <script>
 
-            layui.use(["form", "popup"], function () {
+            layui.use(["form", "pearPopup"], function () {
                 let form = layui.form;
                 let $ = layui.$;
                 $.ajax({
@@ -126,9 +126,9 @@
                         data: data.field,
                         success: function (res) {
                             if (res.code) {
-                                return layui.popup.failure(res.msg);
+                                return layui.pearPopup.failure(res.msg);
                             }
-                            return layui.popup.success("操作成功");
+                            return layui.pearPopup.success("操作成功");
                         }
                     });
                     return false;
@@ -142,9 +142,9 @@
                         data: data.field,
                         success: function (res) {
                             if (res.code) {
-                                return layui.popup.failure(res.msg);
+                                return layui.pearPopup.failure(res.msg);
                             }
-                            return layui.popup.success("操作成功");
+                            return layui.pearPopup.success("操作成功");
                         }
                     });
                     return false;

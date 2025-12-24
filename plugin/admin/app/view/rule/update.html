@@ -1,4 +1,4 @@
-
+﻿
 <!DOCTYPE html>
 <html lang="zh-cn">
     <head>
@@ -84,7 +84,7 @@
             </div>
         </form>
 
-        <script src="/app/admin/component/layui/layui.js?v=2.8.12"></script>
+        <script src="/app/admin/component/layui/layui.js?v=2.13.12"></script>
         <script src="/app/admin/component/pear/pear.js"></script>
         <script src="/app/admin/admin/js/permission.js"></script>
         <script>
@@ -95,7 +95,7 @@
             const UPDATE_API = "/app/admin/rule/update";
 
             // 获取行数据
-            layui.use(["form", "util", "popup"], function () {
+            layui.use(["form", "util", "pearPopup"], function () {
                 let $ = layui.$;
                 $.ajax({
                     url: SELECT_API,
@@ -118,8 +118,8 @@
                         });
 
                         // 图标选择
-                        layui.use(["iconPicker"], function() {
-                            layui.iconPicker.render({
+                        layui.use(["pearIconPicker"], function() {
+                            layui.pearIconPicker.render({
                                 elem: "#icon",
                                 type: "fontClass",
                                 page: false,
@@ -127,7 +127,7 @@
                         });
 
                         // 获取上级菜单
-                        layui.use(["jquery", "xmSelect", "popup"], function() {
+                        layui.use(["jquery", "xmSelect", "pearPopup"], function() {
                             layui.$.ajax({
                                 url: "/app/admin/rule/select?format=tree&type=0,1",
                                 dataType: "json",
@@ -147,7 +147,7 @@
                                         tree: {show: true,"strict":false,"clickCheck":true,"clickExpand":false,expandedKeys: initValue},
                                     });
                                     if (res.code) {
-                                        return layui.popup.failure(res.msg);
+                                        return layui.pearPopup.failure(res.msg);
                                     }
                                 }
                             });
@@ -170,7 +170,7 @@
 
                         // ajax产生错误
                         if (res.code) {
-                            layui.popup.failure(res.msg);
+                            layui.pearPopup.failure(res.msg);
                         }
 
                     }
@@ -178,7 +178,7 @@
             });
 
             // 提交事件
-            layui.use(["form", "popup"], function () {
+            layui.use(["form", "pearPopup"], function () {
                 layui.form.on("submit(save)", function (data) {
                     data.field[PRIMARY_KEY] = layui.url().search[PRIMARY_KEY];
                     layui.$.ajax({
@@ -188,9 +188,9 @@
                         data: data.field,
                         success: function (res) {
                             if (res.code) {
-                                return layui.popup.failure(res.msg);
+                                return layui.pearPopup.failure(res.msg);
                             }
-                            return layui.popup.success("操作成功", function () {
+                            return layui.pearPopup.success("操作成功", function () {
                                 parent.refreshTable();
                                 parent.layer.close(parent.layer.getFrameIndex(window.name));
                             });

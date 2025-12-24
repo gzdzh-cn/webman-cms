@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html>
 	<head>
 		<meta charset="utf-8">
@@ -63,7 +63,7 @@
 		</div>
 		<div class="layui-card">
 			<div class="layui-card-body">
-				<button id="fullScreen" class="pear-btn">有点多余</button>
+				<button id="pearFullscreen" class="pear-btn">有点多余</button>
 			</div>
 		</div>
 		<div class="layui-card">
@@ -166,51 +166,51 @@
 				var $ = layui.jquery;
 				
 				$("#collapseSide").click(function(){
-					parent.layui.admin.collapseSide()
+					parent.layui.pearAdmin.collapseSide()
 				})
 				
 				$("#refreshThis").click(function(){
-					parent.layui.admin.refreshThis()
+					parent.layui.pearAdmin.refreshThis()
 				})
 				
 				$("#refresh").click(function(){
-					parent.layui.admin.refresh(14)
+					parent.layui.pearAdmin.refresh(14)
 				})
 				
 				$("#addTab").click(function(){
-					parent.layui.admin.addTab(14,"百度一下","http://www.bing.com")
+					parent.layui.pearAdmin.addTab(14,"百度一下","http://www.bing.com")
 				})
 				
 				$("#closeTab").click(function(){
-					parent.layui.admin.closeTab(14)
+					parent.layui.pearAdmin.closeTab(14)
 				})
 				
 				$("#closeThis").click(function(){
-					parent.layui.admin.closeCurrentTab()
+					parent.layui.pearAdmin.closeCurrentTab()
 				})
 				
 				$("#closeAll").click(function(){
-					parent.layui.admin.closeAllTab()
+					parent.layui.pearAdmin.closeAllTab()
 				})
 				
 				$("#changeTabTitle").click(function(){
-					parent.layui.admin.changeTabTitle(16,"修改标题")
+					parent.layui.pearAdmin.changeTabTitle(16,"修改标题")
 				})
 				
 				$("#closeOther").click(function(){
-					parent.layui.admin.closeOtherTab()
+					parent.layui.pearAdmin.closeOtherTab()
 				})
 				
 				$("#changeIframe").click(function(){
-					parent.layui.admin.changeIframe(14,"百度一下","http://www.bing.com")
+					parent.layui.pearAdmin.changeIframe(14,"百度一下","http://www.bing.com")
 				})
 				
 				$("#jump").click(function(){
-					parent.layui.admin.jump(14,"百度一下","http://www.bing.com")
+					parent.layui.pearAdmin.jump(14,"百度一下","http://www.bing.com")
 				})
 				
 				$("#fullScreen").click(function(){
-					parent.layui.admin.fullScreen()
+					parent.layui.pearAdmin.fullScreen()
 				})
 				
 			})

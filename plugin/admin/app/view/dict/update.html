@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-cn">
 <head>
     <meta charset="UTF-8">
@@ -90,7 +90,7 @@
     </div>
 </form>
 
-<script src="/app/admin/component/layui/layui.js?v=2.8.12"></script>
+<script src="/app/admin/component/layui/layui.js?v=2.13.12"></script>
 <script src="/app/admin/component/pear/pear.js"></script>
         <script src="/app/admin/admin/js/permission.js"></script>
 <script>
@@ -100,10 +100,10 @@
     const SELECT_API = "/app/admin/dict/get/" + DICT_NAME;
 
     // 字段设置
-    layui.use(["table", "common", "popup"], function () {
+    layui.use(["table", "pearCommon", "pearPopup"], function () {
 
         let table = layui.table;
-        let common = layui.common;
+        let common = layui.pearCommon;
         let $ = layui.$;
         let cols = [
             {
@@ -137,7 +137,7 @@
                 })
                 // ajax产生错误
                 if (res.code) {
-                    layui.popup.failure(res.msg);
+                    layui.pearPopup.failure(res.msg);
                 }
             }
         });
@@ -176,7 +176,7 @@
 
         let batchRemove = function(obj) {
             var checkIds = common.checkField(obj,"_field_id");
-            if (checkIds === "") return layui.popup.warning("未选中数据");
+            if (checkIds === "") return layui.pearPopup.warning("未选中数据");
             let data = table.getData("column-table");
             let newData = [];
             let deleteIds = checkIds.split(",");
@@ -190,7 +190,7 @@
 
     });
 
-    layui.use(["form", "popup"], function () {
+    layui.use(["form", "pearPopup"], function () {
         //提交事件
         layui.form.on("submit(save)", function () {
             let data = layui.form.val("create-dict-form");
@@ -201,9 +201,9 @@
                 data: data,
                 success: function (res) {
                     if (res.code) {
-                        return layui.popup.failure(res.msg);
+                        return layui.pearPopup.failure(res.msg);
                     }
-                    return layui.popup.success("操作成功", function () {
+                    return layui.pearPopup.success("操作成功", function () {
                         parent.refreshTable();
                         parent.layer.close(parent.layer.getFrameIndex(window.name));
                     });

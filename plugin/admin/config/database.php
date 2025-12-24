@@ -4,11 +4,11 @@ return  [
     'connections' => [
         'mysql' => [
             'driver'      => 'mysql',
-            'host'        => '127.0.0.1',
-            'port'        => '13307',
-            'database'    => 'webman_admin',
-            'username'    => 'root',
-            'password'    => 'dzh123456',
+            'host'        => getenv('DB_HOST'),
+            'port'        => getenv('DB_PORT'),
+            'database'    => getenv('DB_NAME'),
+            'username'    => getenv('DB_USER'),
+            'password'    => getenv('DB_PASSWORD'),
             'charset'     => 'utf8mb4',
             'collation'   => 'utf8mb4_general_ci',
             'prefix'      => '',

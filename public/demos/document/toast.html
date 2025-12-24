@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 	<head>
 		<meta charset="UTF-8">
@@ -68,8 +68,8 @@
 							<h2 class="layui-colla-title">显示代码</h2>
 							<div class="layui-colla-content">
 								<pre class="layui-code" lay-encode="true">
-									layui.use(['toast', 'jquery', 'layer', 'code'], function() {
-									    var toast = layui.toast;
+									layui.use(['pearToast', 'jquery', 'layer', 'code'], function() {
+									    var toast = layui.pearToast;
 										                         
 									    toast.success({title: 'Caution',message: 'You forgot important data',position: 'topRight'});
 									    
@@ -107,8 +107,8 @@
 							<h2 class="layui-colla-title">显示代码</h2>
 							<div class="layui-colla-content">
 								<pre class="layui-code" lay-encode="true">
-									layui.use(['toast', 'jquery', 'layer', 'code'], function() {
-									    var toast = layui.toast;
+									layui.use(['pearToast', 'jquery', 'layer', 'code'], function() {
+									    var toast = layui.pearToast;
 										                         
 									    $(".toast-top-left-btn").click(function(){
 									        toast.success({title: 'Caution',message: 'You forgot important data',position: 'topLeft'});
@@ -150,8 +150,8 @@
 							<h2 class="layui-colla-title">显示代码</h2>
 							<div class="layui-colla-content">
 								<pre class="layui-code" lay-encode="true">
-									layui.use(['toast', 'jquery', 'layer', 'code'], function() {
-									    var toast = layui.toast;
+									layui.use(['pearToast', 'jquery', 'layer', 'code'], function() {
+									    var toast = layui.pearToast;
 										                         
 									    toast.destroy();
 									})
@@ -166,11 +166,11 @@
 	<script src="../../component/layui/layui.js"></script>
 	<script src="../../component/pear/pear.js"></script>
 	<script>
-		layui.use(['toast', 'toast', 'jquery', 'layer', 'code', 'element'], function() {
-			var toast = layui.toast;
+		layui.use(['pearToast', 'pearToast', 'jquery', 'layer', 'code', 'element'], function() {
+			var toast = layui.pearToast;
 			var layer = layui.layer;
 			var $ = layui.jquery;
-			var toast = layui.toast;
+			var toast = layui.pearToast;
 
 			layui.code();
 

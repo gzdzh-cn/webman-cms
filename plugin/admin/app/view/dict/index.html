@@ -1,4 +1,4 @@
-
+﻿
 <!DOCTYPE html>
 <html lang="zh-cn">
     <head>
@@ -61,7 +61,7 @@
             <button class="pear-btn pear-btn-xs tool-btn" lay-event="remove" permission="app.admin.dict.delete">删除</button>
         </script>
 
-        <script src="/app/admin/component/layui/layui.js?v=2.8.12"></script>
+        <script src="/app/admin/component/layui/layui.js?v=2.13.12"></script>
         <script src="/app/admin/component/pear/pear.js"></script>
         <script src="/app/admin/admin/js/permission.js"></script>
         <script src="/app/admin/admin/js/common.js"></script>
@@ -75,11 +75,11 @@
             const UPDATE_URL = "/app/admin/dict/update";
 
             // 表格渲染
-            layui.use(["table", "form", "common", "popup", "util"], function() {
+            layui.use(["table", "form", "pearCommon", "pearPopup", "util"], function() {
                 let table = layui.table;
                 let form = layui.form;
                 let $ = layui.$;
-                let common = layui.common;
+                let common = layui.pearCommon;
                 let util = layui.util;
                 
 				// 表头参数
@@ -140,7 +140,7 @@
               dateType: "json",
               success : function (res) {
                 if (res.code) {
-                  return layui.popup.failure(res.msg);
+                  return layui.pearPopup.failure(res.msg);
                 }
 
                 function travel(items) {
@@ -267,7 +267,7 @@
                 let batchRemove = function(obj) {
                     let checkIds = common.checkField(obj, "name");
                     if (checkIds === "") {
-                        layui.popup.warning("未选中数据");
+                        layui.pearPopup.warning("未选中数据");
                         return false;
                     }
                     doRemove(checkIds.split(","));
@@ -291,9 +291,9 @@
                             success: function(res) {
                                 layer.close(loading);
                                 if (res.code) {
-                                    return layui.popup.failure(res.msg);
+                                    return layui.pearPopup.failure(res.msg);
                                 }
-                                return layui.popup.success("操作成功", refreshTable);
+                                return layui.pearPopup.success("操作成功", refreshTable);
                             }
                         })
                     });

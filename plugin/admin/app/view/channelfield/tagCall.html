@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+<head>
+    <meta charset="UTF-8">
+    <title>标签调用</title>
+    <link rel="stylesheet" href="/app/admin/component/pear/css/pear.css" />
+    <link rel="stylesheet" href="/app/admin/admin/css/reset.css" />
+    <style>
+        .tag-call-container {
+            padding: 20px;
+            box-sizing: border-box;
+            width: 700px;
+            margin: 0 auto;
+        }
+        .tag-call-label {
+            margin-bottom: 10px;
+            font-weight: 500;
+        }
+        .tag-code-textarea {
+            width: 100%;
+            height: 30px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-family: monospace;
+            resize: vertical;
+            margin-bottom: 10px;
+            box-sizing: border-box;
+        }
+        .tag-call-item {
+            margin-bottom: 15px;
+        }
+        .tag-call-action {
+            text-align: right;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="tag-call-container">
+        <div class="tag-call-item">
+            <p class="tag-call-label">内容页：</p>
+            <textarea id="tag-code-content" class="tag-code-textarea" readonly></textarea>
+            <div class="tag-call-action">
+                <button class="layui-btn layui-btn-sm" id="copy-content-btn">复制</button>
+            </div>
+        </div>
+        
+        <div class="tag-call-item" style="margin-top: 20px;">
+            <p class="tag-call-label">标签 arclist / list 内调用：</p>
+            <textarea id="tag-code-list" class="tag-code-textarea" readonly></textarea>
+            <div class="tag-call-action">
+                <button class="layui-btn layui-btn-sm" id="copy-list-btn">复制</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/app/admin/component/layui/layui.js?v=2.13.12"></script>
+    <script src="/app/admin/component/pear/pear.js"></script>
+    <script>
+        // 从 URL 参数获取字段名称
+        var urlParams = new URLSearchParams(location.search);
+        var fieldName = urlParams.get('field_name') || '';
+        
+        // 内容页标签格式
+        var tagCodeContent = '{$eyou.field.' + fieldName + '}';
+        
+        // 标签 arclist / list 内调用格式
+        var tagCodeList = '{eyou:field aid=\'$field.aid\' addfields=\'' + fieldName + '|html_msubstr=###,0,150,true\' /}';
+        
+        // 设置文本域内容
+        document.getElementById('tag-code-content').value = tagCodeContent;
+        document.getElementById('tag-code-list').value = tagCodeList;
+        
+        // 复制功能
+        function copyToClipboard(text, successMsg) {
+            try {
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(text).then(function() {
+                        layui.pearPopup.success(successMsg || '已复制到剪贴板');
+                    }).catch(function() {
+                        fallbackCopy(text, successMsg);
+                    });
+                } else {
+                    fallbackCopy(text, successMsg);
+                }
+            } catch (err) {
+                fallbackCopy(text, successMsg);
+            }
+        }
+        
+        function fallbackCopy(text, successMsg) {
+            var textarea = document.createElement('textarea');
+            textarea.value = text;
+            textarea.style.position = 'fixed';
+            textarea.style.opacity = '0';
+            document.body.appendChild(textarea);
+            textarea.select();
+            textarea.setSelectionRange(0, 99999);
+            
+            try {
+                document.execCommand('copy');
+                layui.pearPopup.success(successMsg || '已复制到剪贴板');
+            } catch (err) {
+                layui.pearPopup.failure('复制失败，请手动复制');
+            }
+            
+            document.body.removeChild(textarea);
+        }
+        
+        layui.use(['pearPopup'], function() {
+            // 复制内容页标签
+            document.getElementById('copy-content-btn').addEventListener('click', function() {
+                copyToClipboard(tagCodeContent, '内容页标签已复制到剪贴板');
+            });
+            
+            // 复制列表调用标签
+            document.getElementById('copy-list-btn').addEventListener('click', function() {
+                copyToClipboard(tagCodeList, '列表调用标签已复制到剪贴板');
+            });
+        });
+    </script>
+</body>
+</html>
+

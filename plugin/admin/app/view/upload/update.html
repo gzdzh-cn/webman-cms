@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-cn">
     <head>
         <meta charset="UTF-8">
@@ -36,7 +36,7 @@
             
         </form>
 
-        <script src="/app/admin/component/layui/layui.js?v=2.8.12"></script>
+        <script src="/app/admin/component/layui/layui.js?v=2.13.12"></script>
         <script src="/app/admin/component/pear/pear.js"></script>
         <script src="/app/admin/admin/js/permission.js"></script>
         <script>
@@ -47,7 +47,7 @@
             const UPDATE_API = "/app/admin/upload/update";
 
             // 获取数据库记录
-            layui.use(["form", "util", "popup"], function () {
+            layui.use(["form", "util", "pearPopup"], function () {
                 let $ = layui.$;
                 $.ajax({
                     url: SELECT_API,
@@ -62,7 +62,7 @@
                         });
                         
                         // 字段 文件 url
-                        layui.use(["upload", "layer", "popup", "util"], function() {
+                        layui.use(["upload", "layer", "pearPopup", "util"], function() {
                             let input = layui.$("#url").prev();
                             input.prev().html(layui.util.escape(input.val()));
                             layui.upload.render({
@@ -71,14 +71,14 @@
                                 accept: "file",
                                 field: "__file__",
                                 done: function (res) {
-                                    if (res.code) return layui.popup.failure(res.msg);
+                                    if (res.code) return layui.pearPopup.failure(res.msg);
                                     this.item.prev().val(res.data.url).prev().html(layui.util.escape(res.data.url));
                                 }
                             });
                         });
                         
                         // 字段 类别 category
-                        layui.use(["jquery", "xmSelect", "popup"], function() {
+                        layui.use(["jquery", "xmSelect", "pearPopup"], function() {
                             layui.$.ajax({
                                 url: "/app/admin/dict/get/upload",
                                 dataType: "json",
@@ -95,7 +95,7 @@
                                         radio: true,
                                     });
                                     if (res.code) {
-                                        layui.popup.failure(res.msg);
+                                        layui.pearPopup.failure(res.msg);
                                     }
                                 }
                             });
@@ -103,14 +103,14 @@
 
                         // ajax产生错误
                         if (res.code) {
-                            layui.popup.failure(res.msg);
+                            layui.pearPopup.failure(res.msg);
                         }
                     }
                 });
             });
 
             //提交事件
-            layui.use(["form", "popup"], function () {
+            layui.use(["form", "pearPopup"], function () {
                 layui.form.on("submit(save)", function (data) {
                     data.field[PRIMARY_KEY] = layui.url().search[PRIMARY_KEY];
                     layui.$.ajax({
@@ -120,9 +120,9 @@
                         data: data.field,
                         success: function (res) {
                             if (res.code) {
-                                return layui.popup.failure(res.msg);
+                                return layui.pearPopup.failure(res.msg);
                             }
-                            return layui.popup.success("操作成功", function () {
+                            return layui.pearPopup.success("操作成功", function () {
                                 parent.refreshTable();
                                 parent.layer.close(parent.layer.getFrameIndex(window.name));
                             });

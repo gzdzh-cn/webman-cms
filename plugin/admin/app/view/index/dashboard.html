@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-cn">
 	<head>
 		<meta charset="utf-8">
@@ -197,15 +197,15 @@
 			</div>
 		</div>
 		<!--</div>-->
-		<script src="/app/admin/component/layui/layui.js?v=2.8.12"></script>
+		<script src="/app/admin/component/layui/layui.js?v=2.13.12"></script>
 		<script src="/app/admin/component/pear/pear.js"></script>
 		<script>
-			layui.use(['layer', 'echarts', 'element', 'count'], function() {
+			layui.use(['layer', 'pearEcharts', 'element', 'pearCount'], function() {
 				var $ = layui.jquery,
 					layer = layui.layer,
 					element = layui.element,
-					count = layui.count,
-					echarts = layui.echarts;
+					count = layui.pearCount,
+					echarts = layui.pearEcharts;
 
 				count.up("value1", {
 					time: 4000,

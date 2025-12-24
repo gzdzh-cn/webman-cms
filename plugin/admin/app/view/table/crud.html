@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-cn">
     <head>
         <meta charset="UTF-8">
@@ -71,14 +71,14 @@
             </div>
         </form>
 
-        <script src="/app/admin/component/layui/layui.js?v=2.8.12"></script>
+        <script src="/app/admin/component/layui/layui.js?v=2.13.12"></script>
         <script src="/app/admin/component/pear/pear.js"></script>
         <script src="/app/admin/admin/js/permission.js"></script>
         <script>
 
             const CRUD_API = "/app/admin/table/crud";
 
-            layui.use(["jquery", "xmSelect", "popup"], function() {
+            layui.use(["jquery", "xmSelect", "pearPopup"], function() {
                 layui.$.ajax({
                     url: "/app/admin/rule/select?format=tree&type=0,1",
                     dataType: "json",
@@ -98,21 +98,21 @@
                             tree: {show:true, strict:false, clickCheck:true, clickExpand:false},
                         });
                         if (res.code) {
-                            return layui.popup.failure(res.msg);
+                            return layui.pearPopup.failure(res.msg);
                         }
                     }
                 });
             });
 
-            layui.use(["iconPicker"], function() {
-                layui.iconPicker.render({
+            layui.use(["pearIconPicker"], function() {
+                layui.pearIconPicker.render({
                     elem: "#icon",
                     type: "fontClass",
                     page: false
                 });
             });
 
-            layui.use(["form", "popup"], function () {
+            layui.use(["form", "pearPopup"], function () {
                 //提交事件
                 layui.form.on("submit(save)", function (data) {
                     layui.$.ajax({
@@ -122,9 +122,9 @@
                         data: data.field,
                         success: function (res) {
                             if (res.code) {
-                                return layui.popup.failure(res.msg);
+                                return layui.pearPopup.failure(res.msg);
                             }
-                            return layui.popup.success("操作成功", function () {
+                            return layui.pearPopup.success("操作成功", function () {
                                 parent.layer.close(parent.layer.getFrameIndex(window.name));
                             });
                         }

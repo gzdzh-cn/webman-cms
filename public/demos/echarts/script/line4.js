@@ -1,5 +1,5 @@
-layui.use(['echarts'], function() {
-	let echarts = layui.echarts;
+﻿layui.use(['pearEcharts'], function() {
+	let echarts = layui.pearEcharts;
 
 	var line4 = echarts.init(document.getElementById('line4'),null, {
 		width: 600,

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-cn">
     <head>
         <meta charset="UTF-8">
@@ -132,7 +132,7 @@
 
                                 <script type="text/html" id="form-control">
                                     <select name="forms[{{ d.LAY_NUM-1 }}][control]" lay-verify="">
-                                        {{# layui.each([["input", "文本框"],["inputNumber", "数字文本框"],["textArea", "多行文本"],["richText", "富文本"],["jsonEditor", "json编辑框"],["select", "下拉单选"],["selectMulti", "下拉多选"],["treeSelect", "树形单选"],["treeSelectMulti", "树形多选"],["datePicker", "日期选择"],["dateTimePicker", "日期时间选择"],["switch", "开关"],["upload", "上传文件"],["uploadImage", "上传图片"],["iconPicker", "图标选择"]], function (index, item) { }}
+                                        {{# layui.each([["input", "文本框"],["inputNumber", "数字文本框"],["textArea", "多行文本"],["richText", "富文本"],["jsonEditor", "json编辑框"],["pearSelect", "下拉单选"],["selectMulti", "下拉多选"],["treeSelect", "树形单选"],["treeSelectMulti", "树形多选"],["datePicker", "日期选择"],["dateTimePicker", "日期时间选择"],["switch", "开关"],["upload", "上传文件"],["uploadImage", "上传图片"],["pearIconPicker", "图标选择"]], function (index, item) { }}
                                         <option value="{{ item[0] }}" {{ d.control.toLocaleLowerCase()==item[0].toLocaleLowerCase()?'selected':''}}>{{ item[1] }}</option>
                                         {{#  }); }}
                                     </select>
@@ -213,7 +213,7 @@
             </div>
         </form>
 
-        <script src="/app/admin/component/layui/layui.js?v=2.8.12"></script>
+        <script src="/app/admin/component/layui/layui.js?v=2.13.12"></script>
         <script src="/app/admin/component/pear/pear.js"></script>
         <script src="/app/admin/admin/js/permission.js"></script>
         <script>
@@ -221,10 +221,10 @@
             const CREATE_API = "/app/admin/table/create";
 
             // 字段设置
-            layui.use(["table", "common", "popup"], function () {
+            layui.use(["table", "pearCommon", "pearPopup"], function () {
 
                 let table = layui.table;
-                let common = layui.common;
+                let common = layui.pearCommon;
                 let cols = [
                     {
                         type: "checkbox",
@@ -369,7 +369,7 @@
 
                 let batchRemove = function(obj) {
                     var checkIds = common.checkField(obj,"_field_id");
-                    if (checkIds === "") return layui.popup.warning("未选中数据");
+                    if (checkIds === "") return layui.pearPopup.warning("未选中数据");
                     let data = table.getData("column-table");
                     let newData = [];
                     let deleteIds = checkIds.split(",");
@@ -385,7 +385,7 @@
             });
 
             // 表单设置
-            layui.use(["table", "common", "element"], function () {
+            layui.use(["table", "pearCommon", "element"], function () {
                 let table = layui.table;
 
                 layui.element.on("tab(create-table-tab)", function(){
@@ -507,9 +507,9 @@
             });
 
             // 索引设置
-            layui.use(["table", "common", "xmSelect", "popup"], function () {
+            layui.use(["table", "pearCommon", "xmSelect", "pearPopup"], function () {
                 let table = layui.table;
-                let common = layui.common;
+                let common = layui.pearCommon;
 
                 let cols = [
                     {
@@ -582,7 +582,7 @@
 
                 let batchRemove = function(obj) {
                     var checkIds = common.checkField(obj,"_key_id");
-                    if (checkIds === "") return layui.popup.warning("未选中数据");
+                    if (checkIds === "") return layui.pearPopup.warning("未选中数据");
                     let data = table.getData("key-table");
                     let newData = [];
                     let deleteIds = checkIds.split(",");
@@ -714,7 +714,7 @@
                 keyColumnMultiSelectRender();
             });
 
-            layui.use(["form", "popup"], function () {
+            layui.use(["form", "pearPopup"], function () {
                 //提交事件
                 layui.form.on("submit(save)", function () {
                     syncTableData();
@@ -726,9 +726,9 @@
                         data: data,
                         success: function (res) {
                             if (res.code) {
-                                return layui.popup.failure(res.msg);
+                                return layui.pearPopup.failure(res.msg);
                             }
-                            return layui.popup.success("操作成功", function () {
+                            return layui.pearPopup.success("操作成功", function () {
                                 parent.refreshTable();
                                 parent.layer.close(parent.layer.getFrameIndex(window.name));
                             });

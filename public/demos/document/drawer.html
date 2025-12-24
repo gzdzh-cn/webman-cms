@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html>
 	<head>
 		<meta charset="utf-8">
@@ -51,8 +51,8 @@
 						<h2 class="layui-colla-title">显示代码</h2>
 						<div class="layui-colla-content">
 							<pre class="layui-code" lay-encode="true">
-								layui.use(['drawer'], function() {
-									var drawer = layui.drawer;
+								layui.use(['pearDrawer'], function() {
+									var drawer = layui.pearDrawer;
 
 								    drawer.open({
 								        direction: "right",
@@ -113,8 +113,8 @@
 						<h2 class="layui-colla-title">显示代码</h2>
 						<div class="layui-colla-content">
 							<pre class="layui-code" lay-encode="true">
-								layui.use(['drawer'], function() {
-									var drawer = layui.drawer;
+								layui.use(['pearDrawer'], function() {
+									var drawer = layui.pearDrawer;
 
 								    $(".drawer-auto-close").click(function() {
 								        dom = drawer.open({
@@ -145,8 +145,8 @@
 						<h2 class="layui-colla-title">显示代码</h2>
 						<div class="layui-colla-content">
 							<pre class="layui-code" lay-encode="true">
-								layui.use(['drawer'], function() {
-									var drawer = layui.drawer;
+								layui.use(['pearDrawer'], function() {
+									var drawer = layui.pearDrawer;
 
 								    $(".drawer-auto-close").click(function() {
 								        dom = drawer.open({
@@ -191,8 +191,8 @@
 						<h2 class="layui-colla-title">显示代码</h2>
 						<div class="layui-colla-content">
 							<pre class="layui-code" lay-encode="true">
-									layui.use(['drawer'], function() {
-									  var drawer = layui.drawer;
+									layui.use(['pearDrawer'], function() {
+									  var drawer = layui.pearDrawer;
 									    $("#targetDemo").click(function () {
 									      drawer.open({
 									      // 指定挂载节点
@@ -300,7 +300,7 @@
 
 											$("#layerDrawerParent").click(function () {
 
-											  var index = parent.layui.drawer.open({
+											  var index = parent.layui.pearDrawer.open({
 												    legacy: false,
 												    title: ['标题', 'font-size:16px;color:#2d8cf0'],
 												    maxmin: true,
@@ -392,10 +392,10 @@
 	<script src="../../component/layui/layui.js"></script>
 	<script src="../../component/pear/pear.js"></script>
 	<script>
-		layui.use(['element', 'jquery', 'drawer', 'layer', 'code'], function() {
+		layui.use(['element', 'jquery', 'pearDrawer', 'layer', 'code'], function() {
 			var element = layui.element;
 			var $ = layui.jquery;
-			var drawer = layui.drawer;
+			var drawer = layui.pearDrawer;
 			var layer = layui.layer;
 
 			layui.code();
@@ -474,7 +474,7 @@
 			})
 
 			$("#layerDrawerParent").click(function () {
-				var index = parent.layui.drawer.open({
+				var index = parent.layui.pearDrawer.open({
 					legacy: false,
 					title: ['标题', 'font-size:16px;color:#2d8cf0'],
 					maxmin: true,
@@ -483,7 +483,7 @@
 					content: "抽屉内容",
 					btn: "关闭",
 					yes: function (index, layero) {
-						parent.layui.drawer.close(index);
+						parent.layui.pearDrawer.close(index);
 						console.log(index, layero);
 					},
 					btnAlign: "l",

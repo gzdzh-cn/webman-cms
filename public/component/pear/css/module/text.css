@@ -1,0 +1,38 @@
+/** 文本链接样式 */
+.pear-text {
+	display: inline-block;
+	cursor: pointer;
+	font-size: 12px;
+	transition: all 0.3s;
+}
+
+.pear-text:hover {
+	opacity: 0.7;
+    cursor: pointer;
+}
+
+/** 文本颜色 */
+.pear-text-primary {
+	color: #409eff;
+}
+
+.pear-text-success {
+	color: #52c41a;
+}
+
+.pear-text-warning {
+	color: #faad14;
+}
+
+.pear-text-danger {
+	color: #ff4d4f;
+}
+
+.pear-text-info {
+	color: #909399;
+}
+
+.pear-text-muted {
+	color: #999;
+}
+
