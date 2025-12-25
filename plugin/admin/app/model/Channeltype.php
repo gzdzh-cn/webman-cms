@@ -30,7 +30,7 @@ class Channeltype extends Base
      *
      * @var string
      */
-    protected $table = 'wa_channeltype';
+    protected $table = 'channeltype';
 
     /**
      * The primary key associated with the table.

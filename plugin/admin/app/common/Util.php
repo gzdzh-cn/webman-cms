@@ -43,7 +43,7 @@ class Util
     public static function db(): Connection
     {
         // 注册 SQL 日志监听器（仅注册一次）
-        \app\common\SqlLogListener::register();
+        // \app\common\SqlLogListener::register();
         return Db::connection('plugin.admin.mysql');
     }
 

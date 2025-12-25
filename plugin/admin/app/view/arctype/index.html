@@ -12,46 +12,7 @@
 
 <body class="pear-container">
 
-    <!-- 顶部查询表单 -->
-    <!-- <div class="layui-card">
-            <div class="layui-card-body">
-                <form class="layui-form top-search-from">
-                    
-                    <div class="layui-form-item">
-                        <label class="layui-form-label">主键</label>
-                        <div class="layui-input-block">
-                            <input type="number" name="id" value="" class="layui-input">
-                        </div>
-                    </div>
-                    
-                    <div class="layui-form-item">
-                        <label class="layui-form-label">创建时间</label>
-                        <div class="layui-input-block">
-                            <div class="layui-input-block" id="created_at">
-                                <input type="text" autocomplete="off" name="created_at[]" id="created_at-date-start" class="layui-input inline-block" placeholder="开始时间">
-                                -
-                                <input type="text" autocomplete="off" name="created_at[]" id="created_at-date-end" class="layui-input inline-block" placeholder="结束时间">
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="layui-form-item layui-inline">
-                        <label class="layui-form-label"></label>
-                        <button class="pear-btn pear-btn-md pear-btn-primary" lay-submit lay-filter="table-query">
-                            <i class="layui-icon layui-icon-search"></i>查询
-                        </button>
-                        <button type="reset" class="pear-btn pear-btn-md" lay-submit lay-filter="table-reset">
-                            <i class="layui-icon layui-icon-refresh"></i>重置
-                        </button>
-                    </div>
-                    <div class="toggle-btn">
-                        <a class="layui-hide">展开<i class="layui-icon layui-icon-down"></i></a>
-                        <a class="layui-hide">收起<i class="layui-icon layui-icon-up"></i></a>
-                    </div>
-                </form>
-            </div>
-        </div> -->
-
+ 
     <!-- 数据表格 -->
     <div class="layui-card">
         <div class="layui-card-body">
@@ -168,8 +129,10 @@
                 {
                     title: "排序", align: "center",
                     field: "sort_order",
-                    edit: 'text',
                     width: 80,
+                    templet: function (d) {
+                        return '<span class="sort-order-cell" data-id="' + d.id + '" data-value="' + (d.sort_order || 0) + '" style="cursor:pointer;padding:5px;display:inline-block;min-width:40px;">' + (d.sort_order || 0) + '</span>';
+                    }
                 },
                 {
                     title: "操作",
@@ -220,6 +183,8 @@
                     remove(obj);
                 } else if (obj.event === "edit") {
                     edit(obj);
+                } else if (obj.event === "addSub") {
+                    addSub(obj);
                 }
             });
 
@@ -286,7 +251,7 @@
                     title: "新增",
                     shade: 0.1,
                     maxmin: true,
-                    area: [common.isModile() ? "100%" : "700px", common.isModile() ? "100%" : "700px"],
+                    area: [common.isModile() ? "100%" : "700px", common.isModile() ? "100%" : "90%"],
                     content: INSERT_URL
                 });
             }
@@ -299,8 +264,21 @@
                     title: "修改",
                     shade: 0.1,
                     maxmin: true,
-                    area: [common.isModile() ? "100%" : "700px", common.isModile() ? "100%" : "700px"],
+                    area: [common.isModile() ? "100%" : "700px", common.isModile() ? "100%" : "90%"],
                     content: UPDATE_URL + "?" + PRIMARY_KEY + "=" + value
+                });
+            }
+
+            // 增加子栏目
+            let addSub = function (obj) {
+                let parentId = obj.data[PRIMARY_KEY];
+                layer.open({
+                    type: 2,
+                    title: "增加子栏目",
+                    shade: 0.1,
+                    maxmin: true,
+                    area: [common.isModile() ? "100%" : "700px", common.isModile() ? "100%" : "90%"],
+                    content: INSERT_URL + "?parent_id=" + parentId
                 });
             }
 
@@ -323,7 +301,7 @@
             let doRemove = function (ids) {
                 let data = {};
                 data[PRIMARY_KEY] = ids;
-                layer.confirm("确定删除?", {
+                layer.confirm("确认直接删除？子栏目及文档将一起清空。", {
                     icon: 3,
                     title: "提示"
                 }, function (index) {
@@ -347,7 +325,24 @@
 
             // 刷新表格数据
             window.refreshTable = function () {
+                // 保存当前展开状态
+                var wasExpanded = isExpanded;
+                
+                // 重新加载表格
                 treetable.reload("#data-table");
+                
+                // 重新加载完成后，恢复展开状态
+                // 使用 setTimeout 确保表格渲染完成后再执行展开操作
+                setTimeout(function() {
+                    if (wasExpanded) {
+                        treetable.expandAll("#data-table");
+                        isExpanded = true;
+                        updateExpandFoldButton(true);
+                    } else {
+                        isExpanded = false;
+                        updateExpandFoldButton(false);
+                    }
+                }, 50);
             }
 
             // 更新字段到数据库
@@ -372,6 +367,52 @@
                     }
                 });
             }
+
+            // 更新排序
+            function updateSortOrder(id, sortOrder, successCallback, errorCallback) {
+                updateField(id, 'sort_order', sortOrder, function() {
+                    if (successCallback) successCallback();
+                });
+            }
+
+            // 双击编辑排序
+            $(document).on('dblclick', '.sort-order-cell', function(e) {
+                e.stopPropagation(); // 阻止事件冒泡，避免触发其他事件
+                var $this = $(this);
+                var id = $this.data('id');
+                var oldValue = $this.data('value') || 0;
+                // 保存原始样式
+                var originalStyle = $this.attr('style') || '';
+                var $input = $('<input type="number" class="layui-input" value="' + oldValue + '" style="width:80px;text-align:center;margin:0;border:1px solid #e6e6e6;height:28px;line-height:28px;padding:0 5px;">');
+                $this.html($input);
+                $input.focus().select();
+                
+                $input.on('blur', function() {
+                    var newValue = parseInt($(this).val()) || 0;
+                    updateSortOrder(id, newValue, function() {
+                        $this.data('value', newValue);
+                        // 恢复原始样式并设置新值
+                        $this.attr('style', originalStyle);
+                        $this.text(newValue);
+                        layer.msg('更新成功', { icon: 1, time: 1000 });
+                    }, function() {
+                        // 恢复原始样式和旧值
+                        $this.attr('style', originalStyle);
+                        $this.text(oldValue);
+                    });
+                });
+                
+                $input.on('keydown', function(e) {
+                    e.stopPropagation(); // 阻止事件冒泡
+                    if (e.keyCode === 13) { // Enter
+                        $(this).blur();
+                    } else if (e.keyCode === 27) { // ESC
+                        // 恢复原始样式和旧值
+                        $this.attr('style', originalStyle);
+                        $this.text(oldValue);
+                    }
+                });
+            });
 
             // 点击切换显示/隐藏状态
             $(document).on('click', '.status-badge', function () {

@@ -1463,7 +1463,7 @@ EOF;
         foreach ($tables as $table) {
             Util::schema()->drop($table);
             // 删除schema
-            Util::db()->table('wa_options')->where('name', "table_form_schema_$table")->delete();
+            Util::db()->table('options')->where('name', "table_form_schema_$table")->delete();
         }
         return $this->json(0, 'ok');
     }

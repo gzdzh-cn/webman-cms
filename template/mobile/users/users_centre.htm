@@ -1,0 +1,117 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>我的信息-{eyou:global name='web_name' /}</title>
+        <meta name="renderer" content="webkit">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport" />
+        <link href="{eyou:global name='web_cmspath'/}/favicon.ico" rel="shortcut icon" type="image/x-icon" />
+        {eyou:static file="users/skin/css/basic.css" /}
+        {eyou:static file="users/skin/css/eyoucms.css" /}
+        {eyou:static file="users/skin/css/element/index.css" /}
+        {eyou:static file="users/skin/css/e-user.css" /}
+        {eyou:include file="users/skin/css/diy_css.htm" /}
+        {eyou:static file="/public/static/common/js/jquery.min.js"/}
+        {eyou:static file="/public/plugins/layer-v3.1.0/layer.js"/}
+        {eyou:static file="/public/static/common/js/tag_global.js"/}
+        {eyou:static file="/public/static/common/js/mobile_global.js"/}
+    </head>
+
+    <body>
+        <div class="ey-header-status">
+            <div class="header-status-l"><a href="javascript:history.go(-1);"><i class="el-icon-arrow-left"></i></a></div> 
+            <div class="header-status-m">个人设置</div>
+            <div class="header-status-r"></div>
+        </div>
+        <div class="blank-big"></div>
+
+        <div class="ey-userinfo-box ey-container">
+            <div class="list_item">
+                <div class="list_left">头像</div>
+                <div class="flex-dir-row flex-y-center">
+                    <div class="face">
+                        <div class="el-upload el-upload--text" onclick="$('#uploadHeadPicClick').trigger('click');">
+                            <img id="uploadHeadPicImg" src="{$users.head_pic|get_head_pic=###}"/>
+                        </div>
+                        <input type="file" id="uploadHeadPicClick" data-max_file_size="2" onchange="uploadHeadPicFile(this);" style="display: none;">
+                    </div>
+                </div>
+            </div>
+
+            <div class="list_item">
+                <div class="list_left">用户名</div>
+                <div class="flex-dir-row flex-y-center">{$users.username}</div>
+            </div>
+
+            <div class="list_item">
+                <div class="list_left">会员等级</div>
+                <div class="flex-dir-row flex-y-center">
+                    <a href="{eyou:url link='user/Level/level_centre'/}">{$users.level_name}</a>
+                </div>
+                <span class="beta_arrow_right"></span>
+            </div>
+
+            <form name='theForm' id="theForm">
+                <input type="hidden" name="head_pic_edit" id="uploadHeadPicDdit" value="0">
+                <input type="hidden" name="head_pic" id="uploadHeadPic" value="{$users.head_pic}">
+                {eyou:empty name="$users.password"}
+                <div class="list_item">
+                    <div class="list_left">设置密码</div>
+                    <div class="flex-dir-row flex-y-center">
+                        <input type="text" name="password" id="password" class="input-text tar_z" placeholder="微信注册用户，请设置密码">
+                    </div>
+                </div>
+                {eyou:else/}
+                <div class="list_item">
+                    <div class="list_left">修改密码</div>
+                    <div class="flex-dir-row flex-y-center">
+                        <input type="text" name="password_edit" autocomplete="off" placeholder="留空时默认不修改密码" class="input-text">
+                    </div>
+                </div>
+                {/eyou:empty}
+
+                <div class="list_item">
+                    <div class="list_left">昵称</div>
+                    <div class="flex-dir-row flex-y-center">
+                        <input type="text" name="nickname" value="{$users.nickname}" class="input-text">
+                    </div>
+                </div>
+
+                <!-- 更多资料中的会员属性 -->
+                {eyou:include file="users/users_centre_field.htm" /}
+
+                <div class="h50"></div>
+                <div class="public-btn"><a href="JavaScript:void(0);" onclick="submitSaveUsers();">保存资料</a></div>
+            </form>
+        </div>
+        {eyou:static file="users/skin/js/users_centre.js"/}
+        <script type="text/javascript">
+            // 修改会员属性信息
+            function submitSaveUsers() {
+                {$pwdJsCode|default=''}
+                showLayerLoad();
+                $.ajax({
+                    url : eyou_basefile + "?m=user&c=Users&a=centre_update&_ajax=1",
+                    data: $('#theForm').serialize(),
+                    type: 'post',
+                    dataType: 'json',
+                    success: function(res) {
+                        layer.closeAll();
+                        if (1 == res.code) {
+                            showLayerMsg(res.msg, 2, function() {
+                                window.location.reload();
+                            });
+                        } else {
+                            showLayerMsg(res.msg);
+                        }
+                    },
+                    error: function(e) {
+                        layer.closeAll();
+                        showLayerAlert(e.responseText);
+                    }
+                });
+            };
+        </script>
+    </body>
+</html>

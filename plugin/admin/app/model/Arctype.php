@@ -53,7 +53,7 @@ class Arctype extends Base
      *
      * @var string
      */
-    protected $table = 'wa_arctype';
+    protected $table = 'arctype';
 
     /**
      * The primary key associated with the table.

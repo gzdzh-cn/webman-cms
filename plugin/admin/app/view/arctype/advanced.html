@@ -20,10 +20,17 @@
                 <div class="layui-form-item">
                     <label class="layui-form-label">外部链接</label>
                     <div class="layui-input-block">
-                        <input type="radio" name="is_part" value="1" title="是">
-                        <input type="radio" name="is_part" value="0" title="否" checked>
+                        <input type="radio" name="is_part" value="1" title="是" lay-filter="is_part">
+                        <input type="radio" name="is_part" value="0" title="否" checked lay-filter="is_part">
                     </div>
 
+                </div>
+
+                <div class="layui-form-item" id="typelink-item" style="display: none;">
+                    <label class="layui-form-label">链接地址</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="typelink" value="" class="layui-input" placeholder="请输入外部链接地址">
+                    </div>
                 </div>
 
 

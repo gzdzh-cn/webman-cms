@@ -35,7 +35,7 @@ class Channelfield extends Base
      *
      * @var string
      */
-    protected $table = 'wa_channelfield';
+    protected $table = 'channelfield';
 
     /**
      * The primary key associated with the table.
@@ -43,6 +43,35 @@ class Channelfield extends Base
      * @var string
      */
     protected $primaryKey = 'id';
+    
+    /**
+     * 可批量赋值的属性
+     *
+     * @var array
+     */
+    protected $fillable = [
+        'name',
+        'channel_id',
+        'title',
+        'dtype',
+        'define',
+        'maxlength',
+        'dfvalue',
+        'dfvalue_unit',
+        'remark',
+        'is_screening',
+        'is_release',
+        'ifeditable',
+        'ifrequire',
+        'ifsystem',
+        'ifmain',
+        'ifcontrol',
+        'sort_order',
+        'status',
+        'add_time',
+        'update_time',
+        'set_type',
+    ];
     
     /**
      * 关联模型

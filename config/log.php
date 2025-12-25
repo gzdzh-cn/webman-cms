@@ -151,7 +151,7 @@ $sqlLogConfig = [
     'max_files' => $getEnvInt('SQL_LOG_MAX_FILES', 7), // 日志文件保留天数
 ];
 
-// 构建 handlers
+// 构建默认日志 handlers
 $handlers = [];
 
 // 只有在启用日志时才添加处理器

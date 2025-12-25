@@ -11,7 +11,7 @@ return  [
             'password'    => getenv('DB_PASSWORD'),
             'charset'     => 'utf8mb4',
             'collation'   => 'utf8mb4_general_ci',
-            'prefix'      => '',
+            'prefix'      => 'wa_',
             'strict'      => true,
             'engine'      => null,
         ],

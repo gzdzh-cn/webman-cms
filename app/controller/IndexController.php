@@ -3,6 +3,7 @@
 namespace app\controller;
 
 use support\Request;
+use support\Db;
 
 class IndexController
 {
@@ -37,6 +38,12 @@ EOF;
     public function json(Request $request)
     {
         return json(['code' => 0, 'msg' => 'ok']);
+    }
+
+    public function test(Request $request)
+    {
+        $data = Db::table('wa_arctype')->get();
+        return json(['code' => 0, 'msg' => 'ok', 'data' => $data]);
     }
 
 }

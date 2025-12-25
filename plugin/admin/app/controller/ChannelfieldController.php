@@ -7,14 +7,27 @@ use support\Response;
 use plugin\admin\app\model\Channelfield;
 use plugin\admin\app\model\Channeltype;
 use plugin\admin\app\model\Arctype;
-use plugin\admin\app\controller\Base;
+use plugin\admin\app\controller\Crud;
 use support\exception\BusinessException;
 
 /**
  * 频道字段管理
  */
-class ChannelfieldController extends Base
+class ChannelfieldController extends Crud
 {
+    /**
+     * @var Channelfield
+     */
+    protected $model = null;
+
+    /**
+     * 构造函数
+     * @return void
+     */
+    public function __construct()
+    {
+        $this->model = new Channelfield;
+    }
     /**
      * 字段列表
      * @param Request $request
@@ -28,30 +41,34 @@ class ChannelfieldController extends Base
             $page = (int)$request->get('page', 1);
             $limit = (int)$request->get('limit', 10);
             
-            $query = Channelfield::where('ifmain', 0);
+            $query = Channelfield::where('ifcontrol', 0);
             
             // 通过 channel_id 筛选
             if ($channel_id > 0) {
                 $query = $query->where('channel_id', $channel_id);
             }
             
-            // 搜索条件
-            $keyword = $request->get('keyword', '');
-            if ($keyword) {
-                $query = $query->where(function($q) use ($keyword) {
-                    $q->where('title', 'like', "%{$keyword}%")
-                      ->orWhere('name', 'like', "%{$keyword}%");
+            // 搜索条件 - 支持 keywords 和 keyword 两种参数名（兼容原项目）
+            $keywords = trim($request->get('keywords', '') ?: $request->get('keyword', ''));
+            if ($keywords) {
+                $keywords = addslashes($keywords); // 防止SQL注入
+                $query = $query->where(function($q) use ($keywords) {
+                    $q->where('channelfield.title', 'like', "%{$keywords}%")
+                      ->orWhere('channelfield.name', 'like', "%{$keywords}%");
                 });
             }
             
             // 关联查询模型名称
-            $query = $query->leftJoin('wa_channeltype', 'wa_channelfield.channel_id', '=', 'wa_channeltype.id')
-                          ->select('wa_channelfield.*', 'wa_channeltype.title as channel_title');
+            $query = $query->leftJoin('channeltype', 'channelfield.channel_id', '=', 'channeltype.id')
+                          ->select('channelfield.*', 'channeltype.title as channel_title');
+            
+            // 排序：系统字段优先，然后按排序字段和ID排序（参考原项目：ifsystem desc, id asc）
+            $query = $query->orderBy('channelfield.ifsystem', 'desc')
+                          ->orderBy('channelfield.sort_order', 'asc')
+                          ->orderBy('channelfield.id', 'asc');
             
             // 使用 paginate 进行分页
-            $paginator = $query->orderBy('wa_channelfield.sort_order', 'asc')
-                              ->orderBy('wa_channelfield.id', 'asc')
-                              ->paginate($limit, ['*'], 'page', $page);
+            $paginator = $query->paginate($limit, ['*'], 'page', $page);
             
             $items = $paginator->items();
             $data = [];

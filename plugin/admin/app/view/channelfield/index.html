@@ -185,6 +185,7 @@
                     updateSortOrder(id, newValue, function() {
                         $this.data('value', newValue);
                         $this.text(newValue);
+                        layer.msg('更新成功', { icon: 1, time: 1000 });
                     }, function() {
                         $this.text(oldValue);
                     });
