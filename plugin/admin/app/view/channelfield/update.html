@@ -1,113 +1,1346 @@
 <!DOCTYPE html>
 <html lang="zh-cn">
+
 <head>
     <meta charset="UTF-8">
     <title>更新字段</title>
     <link rel="stylesheet" href="/app/admin/component/pear/css/pear.css" />
     <link rel="stylesheet" href="/app/admin/admin/css/reset.css" />
+    <link rel="stylesheet" href="/app/admin/admin/css/dzh.css" />
+    <style>
+        .bottom {
+            z-index: 10;
+            /* 提高层级，盖住下面的内容 */
+        }
+    </style>
 </head>
+
 <body>
-    <form class="layui-form" lay-filter="field-form" style="padding: 20px;">
-        <div class="layui-form-item">
-            <label class="layui-form-label">字段标题</label>
-            <div class="layui-input-block">
-                <input type="text" name="title" required lay-verify="required" placeholder="请输入字段标题" class="layui-input">
+    <form class="layui-form" lay-filter="field-form">
+
+        <div class="mainBox">
+            <div class="main-container">
+                <div class="layui-form-item">
+                    <label class="layui-form-label required">字段名称</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="title" required lay-verify="required" placeholder="请输入字段名称"
+                            class="layui-input">
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label required">字段标识</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="name" required lay-verify="required" placeholder="请输入字段标识（英文）"
+                            class="layui-input">
+                        <span class="text-9 ftn12">支持字母、数字和下划线，不能和别的标识值相同</span>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label required">数据类型</label>
+                    <div class="layui-input-block">
+                        {volist name="field_types" id="field_type"}
+                        <div style="width: 150px; float: left; margin-right: 10px; margin-bottom: 10px;">
+                            <input type="radio" name="dtype" value="{$field_type.name}" title="{$field_type.title}"
+                                data-ifoption="{$field_type.ifoption|default=0}" lay-filter="dtype">
+                        </div>
+                        {if condition="$i % 4 == 0"}<div style="clear: both;"></div>{/if}
+                        {/volist}
+                        <div style="clear: both;"></div>
+                    </div>
+                </div>
+                <div class="layui-form-item" id="dl_dfvalue">
+                    <label class="layui-form-label" id="label_dfvalue">默认值</label>
+                    <div class="layui-input-block">
+                        <textarea name="dfvalue" id="dfvalue" placeholder="前端将默认显示输入的默认值" class="layui-textarea"
+                            rows="3"></textarea>
+                        <div class="layui-form-mid layui-word-aux">
+                            <span id="dfvalue-tip">1、如果定义字段类型为下拉框、单选项、多选项时，默认值为必填项，不支持反斜杠 \ ，可以用斜杠 /
+                                代替。<br />2、特殊符号会被过滤掉，比如：&、=、?等<br />3、定义字段类型为多选项时，默认值最多为64项，超出则截取前64项</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-form-item" id="dl_dfvalue_unit" style="display: none;">
+                    <label class="layui-form-label">数值单位</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="dfvalue_unit" placeholder="比如：元、个、件等等" class="layui-input">
+                        <div class="layui-form-mid layui-word-aux">比如：元、个、件等等</div>
+                    </div>
+                </div>
+                <div class="layui-form-item" id="region_div" style="display: none;">
+                    <label class="layui-form-label required">区域选择</label>
+                    <div class="layui-input-block" id="region-picker">
+                        <div class="layui-input-inline" style="width: 200px;">
+                            <select name="province" id="province" class="province-selector">
+                                <option value="">请选择省</option>
+                                <option value="全国">全国</option>
+                            </select>
+                        </div>
+                        <div class="layui-input-inline" id="city-wrapper" style="width: 200px; display: none;">
+                            <select name="city" id="city" class="city-selector">
+                                <option value="">请选择市</option>
+                            </select>
+                        </div>
+                        <!-- 隐藏的区县选择框，用于 pearArea 填充数据 -->
+                        <div class="layui-input-inline" style="width: 200px; display: none;">
+                            <select name="county" id="county" class="county-selector">
+                                <option value="">请选择区县</option>
+                            </select>
+                        </div>
+                        <input type="hidden" name="region_data[region_id]" id="RegionId" value="-1">
+                        <input type="hidden" name="region_data[province_name]" id="province_name" value="">
+                        <input type="hidden" name="region_data[province_code]" id="province_code" value="">
+                        <input type="hidden" name="region_data[city_name]" id="city_name" value="">
+                        <input type="hidden" name="region_data[city_code]" id="city_code" value="">
+                    </div>
+                </div>
+                <div class="layui-form-item" id="region_names_div" style="display: none;">
+                    <label class="layui-form-label required">默认值</label>
+                    <div class="layui-input-block">
+                        <textarea name="region_data[region_names]" id="region_names" readonly="readonly"
+                            placeholder="这里会自动显示区域选择之后的下级区域列表" class="layui-textarea" rows="5"
+                            style="background-color: #f5f5f5;"></textarea>
+                        <input type="hidden" name="region_data[region_ids]" id="region_ids" value="">
+                        <div class="layui-form-mid layui-word-aux">这里会自动显示区域选择之后的下级区域列表</div>
+                    </div>
+                </div>
+                <div class="layui-form-item" id="region_set_type_div" style="display: none;">
+                    <label class="layui-form-label">区域联动</label>
+                    <div class="layui-input-block">
+                        <input type="radio" name="set_type" value="1" title="是" lay-filter="set_type">
+                        <input type="radio" name="set_type" value="0" title="否" checked lay-filter="set_type">
+
+                    </div>
+                </div>
+                <div class="layui-form-item" id="mcheck-container" style="display: none;">
+                    <label class="layui-form-label required">选项参数</label>
+                    <div class="layui-input-block">
+                        <button type="button" class="layui-btn layui-btn-sm" id="add-mcheck-item">添加选项</button>
+                        <div id="mcheck-list">
+                            <div class="mcheck-header"
+                                style="display: flex; align-items: center; gap: 10px; margin-top: 10px; padding: 8px; background-color: #f5f5f5; border-radius: 2px; font-weight: bold;">
+                                <div style="flex: 1;">默认值</div>
+                                <div style="width: 100px;">排序</div>
+                                <div style="width: 80px;">操作</div>
+                            </div>
+                        </div>
+                        <div class="layui-form-mid layui-word-aux" style="margin-top: 10px;">此选项改动或增加默认值，将不会对文档内已保存数据做改变
+                        </div>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">支持投稿</label>
+                    <div class="layui-input-block">
+                        <input type="radio" name="is_release" value="1" title="是">
+                        <input type="radio" name="is_release" value="0" title="否" checked>
+                    </div>
+                </div>
+                <div class="layui-form-item" id="IsScreening" style="display: none;">
+                    <label class="layui-form-label">支持筛选</label>
+                    <div class="layui-input-block">
+                        <input type="radio" name="is_screening" value="1" title="是" lay-filter="is_screening">
+                        <input type="radio" name="is_screening" value="0" title="否" checked lay-filter="is_screening">
+                        <input type="hidden" name="IsScreening_status" value="0" id="IsScreening_status">
+              
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label">提示文字</label>
+                    <div class="layui-input-block">
+                        <textarea name="remark" id="remark" placeholder="问号提示文字" class="layui-textarea"
+                            rows="3"></textarea>
+                        <div class="layui-form-mid layui-word-aux">问号提示文字</div>
+                    </div>
+                </div>
+                <div class="layui-form-item">
+                    <label class="layui-form-label" id="select_title">可见栏目</label>
+                    <div class="layui-input-block">
+                        <div id="typeids-tree"
+                            style="max-height: 300px; overflow-y: auto; border: 1px solid #e6e6e6; padding: 10px; border-radius: 2px;">
+                        </div>
+                        <input type="hidden" name="typeids" id="typeids-input">
+
+                    </div>
+                </div>
             </div>
         </div>
-        <div class="layui-form-item">
-            <label class="layui-form-label">字段名称</label>
-            <div class="layui-input-block">
-                <input type="text" name="name" required lay-verify="required" placeholder="请输入字段名称" class="layui-input">
+
+        <div class="bottom">
+            <div class="button-container">
+                <button type="submit" class="pear-btn pear-btn-primary pear-btn-md" lay-submit
+                    lay-filter="field-form-submit">
+                    提交
+                </button>
+                <button type="reset" class="pear-btn pear-btn-md">
+                    重置
+                </button>
             </div>
         </div>
-        <div class="layui-form-item">
-            <label class="layui-form-label">字段类型</label>
-            <div class="layui-input-block">
-                <select name="dtype" lay-verify="">
-                    <option value="text">单行文本</option>
-                    <option value="multitext">多行文本</option>
-                    <option value="radio">单选项[]</option>
-                    <option value="switch">开关</option>
-                    <option value="select">下拉框</option>
-                    <option value="img">单张图</option>
-                    <option value="int">整数类型</option>
-                    <option value="datetime">日期和时间</option>
-                    <option value="htmltext">HTML文本</option>
-                    <option value="imgs">多张图</option>
-                    <option value="decimal">金额类型</option>
-                    <option value="float">小数类型</option>
-                    <option value="region">区域类型</option>
-                    <option value="file">附件类型</option>
-                    <option value="media">多媒体类型</option>
-                    <option value="checkboxs">多选项</option>
-                    <option value="radios">单选项</option>
-                </select>
-            </div>
-        </div>
-        <div class="layui-form-item">
-            <label class="layui-form-label">排序</label>
-            <div class="layui-input-block">
-                <input type="number" name="sort_order" value="0" class="layui-input">
-            </div>
-        </div>
-        <div class="layui-form-item">
-            <div class="layui-input-block">
-                <button class="layui-btn" lay-submit lay-filter="field-form-submit">提交</button>
-                <button type="reset" class="layui-btn layui-btn-primary">重置</button>
-            </div>
-        </div>
+
+
     </form>
+
+
+
+    <!-- 字段类型数据（从后端传递） -->
+    <script type="application/json" id="field-types-data">
+        {$field_types|json_encode|raw}
+    </script>
+
+    <!-- 字段数据（从后端传递） -->
+    <script type="application/json" id="field-data">
+        {$field_data|json_encode|raw}
+    </script>
 
     <script src="/app/admin/component/layui/layui.js?v=2.13.12"></script>
     <script src="/app/admin/component/pear/pear.js"></script>
     <script>
-        const PRIMARY_KEY = "id";
-        const SELECT_API = "/app/admin/channelfield/index" + location.search;
-        const UPDATE_API = "/app/admin/channelfield/update";
+        const UPDATE_API = "/app/admin/channelfield/update" + location.search;
+        // 从隐藏的 script 标签中获取字段类型数据
+        var fieldTypesData = [];
+        try {
+            var fieldTypesScript = document.getElementById('field-types-data');
+            if (fieldTypesScript) {
+                fieldTypesData = JSON.parse(fieldTypesScript.textContent || fieldTypesScript.innerHTML);
+            }
+        } catch (e) {
+            console.error('解析字段类型数据失败:', e);
+        }
 
-        layui.use(["form", "util", "pearPopup"], function () {
-            let $ = layui.$;
+        // 从隐藏的 script 标签中获取字段数据
+        var fieldData = {};
+        try {
+            var fieldDataScript = document.getElementById('field-data');
+            if (fieldDataScript) {
+                fieldData = JSON.parse(fieldDataScript.textContent || fieldDataScript.innerHTML);
+                console.log(fieldData);
+            }
+        } catch (e) {
+            console.error('解析字段数据失败:', e);
+        }
+
+        layui.use(["form", "pearPopup", "jquery", "pearArea"], function () {
+            let $ = layui.jquery;
             let form = layui.form;
+            let pearArea = layui.pearArea;
+            // 区域选择器实例
+            var regionAreaInstance = null;
+            // 标志：是否正在回填数据（避免回填时触发更新导致闪烁）
+            var isFillingRegionData = false;
 
-            // 加载数据 - 通过 fieldSelect 接口获取单个字段数据
-            var id = new URLSearchParams(location.search).get('id');
-            $.ajax({
-                url: "/app/admin/channelfield/index?page=1&limit=1000" + (location.search ? "&" + location.search.substring(1) : ""),
-                dataType: "json",
-                success: function (res) {
-                    if (res.code) {
-                        return layui.pearPopup.failure(res.msg);
+            // 渲染表单元素，确保 radio 等组件正确初始化
+            form.render();
+
+            $('#province').val("北京市").trigger('change');
+
+            // 加载可见栏目树（自定义树形复选框组件，不再使用 layui.tree）
+            loadTypeidsTree();
+
+            // 字段类型数据映射（包含 ifoption 属性）- 从 JSON 数据构建
+            var fieldTypeMap = {};
+            if (Array.isArray(fieldTypesData)) {
+                fieldTypesData.forEach(function (fieldType) {
+                    var fieldName = fieldType.name || '';
+                    if (fieldName && fieldName !== '0' && fieldName !== '') {
+                        fieldTypeMap[fieldName] = {
+                            title: fieldType.title || '',
+                            ifoption: parseInt(fieldType.ifoption) || 0
+                        };
                     }
-                    // 从返回的数据中找到对应 id 的记录
-                    var record = {};
-                    if (res.data && res.data.length > 0) {
-                        for (var i = 0; i < res.data.length; i++) {
-                            if (res.data[i].id == id) {
-                                record = res.data[i];
-                                break;
+                });
+            }
+
+            // 页面加载完成后初始化显示和数据填充
+            setTimeout(function () {
+                fillFormData();
+            }, 200);
+
+            // 监听字段类型变化,动态显示/隐藏相关字段
+            form.on('radio(dtype)', function (data) {
+                var dtype = data.elem.value || data.value;
+
+                // 如果值为空或0，尝试从所有选中的radio获取
+                if (!dtype || dtype === '0' || dtype === 0 || dtype === '') {
+                    var $checkedRadio = $('input[name="dtype"]:checked');
+                    if ($checkedRadio.length > 0) {
+                        dtype = $checkedRadio.attr('value') || $checkedRadio.val();
+                    }
+                }
+
+                if (dtype && dtype !== '0' && dtype !== 0 && dtype !== '') {
+                    handleDtypeChange(dtype);
+                }
+            });
+
+            // 监听筛选选项变化
+            form.on('radio(is_screening)', function (data) {
+                var value = data.value;
+                if (value == 1) {
+                    $('#select_title').html('<span style="color: red;">*</span> 可见栏目');
+                } else {
+                    $('#select_title').html('可见栏目');
+                }
+            });
+
+            // 加载可见栏目树（自定义树形复选框组件，不再使用 layui.tree）
+            function loadTypeidsTree() {
+                var urlParams = new URLSearchParams(location.search);
+                var channelId = urlParams.get('channel_id') || 0;
+
+                var requestParams = { format: 'tree', limit: 2000 };
+                if (channelId > 0) {
+                    requestParams.channeltype = channelId;
+                }
+
+                $.getJSON("/app/admin/channelfield/getArctypeList", requestParams, function (res) {
+                    if (res.code !== 0 || !Array.isArray(res.data)) {
+                        return;
+                    }
+
+                    var $container = $('#typeids-tree');
+                    $container.empty();
+
+                    // 递归渲染树形结构
+                    function renderTree(nodes, $parent) {
+                        if (!Array.isArray(nodes) || nodes.length === 0) return;
+                        var $ul = $('<ul class="typeids-tree-ul" style="list-style:none;margin:0;padding-left:15px;"></ul>');
+                        nodes.forEach(function (node) {
+                            var $li = $('<li class="typeids-tree-li" style="line-height:24px;"></li>');
+                            var $label = $('<label style="cursor:pointer;"></label>');
+
+                            // 判断是否可勾选（checkable: 1=可勾选，0=不可勾选）
+                            var checkable = node.checkable !== undefined ? node.checkable : 1;
+
+                            // 使用 layui 的 primary 皮肤，保证复选框可见
+                            var $checkbox = $('<input type="checkbox" lay-skin="primary" class="typeid-checkbox" />');
+                            $checkbox.attr('data-id', node.id);
+                            $checkbox.val(node.id);
+
+                            // 如果不可勾选，禁用 checkbox 并添加样式
+                            if (checkable == 0) {
+                                $checkbox.prop('disabled', true);
+                                $checkbox.prop('checked', false);
+                                $label.css('opacity', '0.6');
+                                $label.css('cursor', 'not-allowed');
+                            }
+
+                            $label.append($checkbox).append(' ' + (node.typename || node.name || node.title || ''));
+                            $li.append($label);
+
+                            if (Array.isArray(node.children) && node.children.length > 0) {
+                                renderTree(node.children, $li);
+                            }
+
+                            $ul.append($li);
+                        });
+                        $parent.append($ul);
+                    }
+
+                    renderTree(res.data, $container);
+
+                    // 让 layui 渲染复选框样式
+                    form.render('checkbox');
+
+                    // 编辑时回填已选中的栏目
+                    if (fieldData.typeids && fieldData.typeids.length > 0) {
+                        var selectedSet = {};
+                        fieldData.typeids.forEach(function (id) {
+                            selectedSet[id] = true;
+                        });
+                        $container.find('.typeid-checkbox').each(function () {
+                            var id = $(this).attr('data-id');
+                            if (id && selectedSet[id]) {
+                                $(this).prop('checked', true);
+                            }
+                        });
+                        $('#typeids-input').val(fieldData.typeids.join(','));
+                    }
+
+                    // 绑定 change 事件：只收集用户实际勾选的 ID（排除禁用的 checkbox）
+                    function refreshTypeids() {
+                        var ids = [];
+                        $container.find('.typeid-checkbox:checked:not(:disabled)').each(function () {
+                            var id = $(this).attr('data-id');
+                            if (id) {
+                                ids.push(id);
+                            }
+                        });
+                        $('#typeids-input').val(ids.join(','));
+                    }
+
+                    $container.off('change', '.typeid-checkbox').on('change', '.typeid-checkbox', function () {
+                        refreshTypeids();
+                    });
+                }).fail(function () {
+                    // 静默失败
+                });
+            }
+
+            // 处理字段类型变化的函数（与 insert.html 相同）
+            function handleDtypeChange(dtype) {
+                if (!dtype) return;
+
+                var $dfvalueItem = $('#dl_dfvalue');
+                var $dfvalueUnitItem = $('#dl_dfvalue_unit');
+                var $mcheckItem = $('#mcheck-container');
+                var $screeningItem = $('#IsScreening');
+
+                // 从选中的 radio 获取 ifoption，如果没有则从 fieldTypeMap 获取
+                var $checkedRadio = $('input[name="dtype"]:checked');
+                var ifoption = parseInt($checkedRadio.data('ifoption')) || 0;
+                if (!ifoption) {
+                    var fieldType = fieldTypeMap[dtype] || {};
+                    ifoption = fieldType.ifoption || 0;
+                }
+
+                // 隐藏所有特殊字段
+                $('#region_div').hide();
+                $('#region_names_div').hide();
+                $('#region_set_type_div').hide();
+                $mcheckItem.hide();
+
+                // 需要隐藏默认值的类型
+                var hideDfvalueTypes = ['datetime', 'switch', 'img', 'imgs', 'file', 'files', 'media', 'checkboxs', 'radios', 'selects'];
+                if (hideDfvalueTypes.indexOf(dtype) !== -1) {
+                    $dfvalueItem.hide();
+                    clearAreaData();
+                    // checkboxs、radios、selects 显示选项参数
+                    if (['checkboxs', 'radios', 'selects'].indexOf(dtype) !== -1) {
+                        // 显示选项参数
+                        $mcheckItem.show();
+                        if ($('#mcheck-list .mcheck-item').length === 0) {
+                            initMcheckList();
+                        }
+                    }
+                } else if ('region' == dtype) {
+                    // 区域类型
+                    $dfvalueItem.hide();
+                    $('#region_div').show();
+                    $('#region_names_div').show();
+                    $('#region_set_type_div').show();
+
+                    // 准备初始区域数据
+                    var initialRegionData = null;
+                    if (fieldData.region_data) {
+                        var regionData = fieldData.region_data;
+                        if (typeof regionData === 'string') {
+                            try {
+                                regionData = JSON.parse(regionData);
+                            } catch (e) {
+                                try {
+                                    regionData = unserialize(regionData);
+                                } catch (e2) { }
+                            }
+                        }
+                        if (regionData && regionData.region_id) {
+                            initialRegionData = regionData;
+                            // 先设置隐藏字段的值
+                            $('#RegionId').val(regionData.region_id || '-1');
+                            $('#region_ids').val(regionData.region_ids || '');
+                            $('#region_names').val(regionData.region_names || '');
+                        }
+                    }
+
+                    // 初始化区域选择器，传入初始数据
+                    initRegionArea(initialRegionData);
+                } else {
+                    // 显示默认值
+                    clearAreaData();
+                    $dfvalueItem.show();
+                    // 根据 ifoption 设置标签
+                    if (ifoption == 1) {
+                        $('#label_dfvalue').html('<span style="color: red;">*</span> 默认值');
+                    } else {
+                        $('#label_dfvalue').html('默认值');
+                    }
+                    // 根据类型设置占位符
+                    if (['text', 'multitext'].indexOf(dtype) !== -1) {
+                        $('#dfvalue').attr('placeholder', '前端将默认显示输入的默认值');
+                    } else if (['checkbox', 'radio', 'select'].indexOf(dtype) !== -1) {
+                        $('#dfvalue').attr('placeholder', '此处填写被选择的项目(用","分开，如"男,女")。');
+                    } else {
+                        $('#dfvalue').attr('placeholder', '前端将默认显示输入的默认值');
+                    }
+                }
+
+                // 数值单位字段显示逻辑
+                if (['text', 'int', 'float', 'decimal'].indexOf(dtype) !== -1) {
+                    $dfvalueUnitItem.show();
+                } else {
+                    $dfvalueUnitItem.hide();
+                }
+
+                // 筛选功能显示逻辑 - 单选项和多选项（包括新旧类型）都显示筛选
+                var showScreeningTypes = ['region', 'checkbox', 'radio', 'select', 'checkboxs', 'radios', 'selects'];
+                if (showScreeningTypes.indexOf(dtype) !== -1) {
+                    $screeningItem.show();
+                    $('#IsScreening_status').val(1);
+                } else {
+                    $screeningItem.hide();
+                    $('#IsScreening_status').val(0);
+                    $('#select_title').html('可见栏目');
+                }
+            }
+
+            // 填充表单数据
+            function fillFormData() {
+                if (!fieldData || Object.keys(fieldData).length === 0) {
+                    return;
+                }
+
+                // 填充基本字段
+                form.val("field-form", {
+                    title: fieldData.title || '',
+                    name: fieldData.name || '',
+                    dtype: fieldData.dtype || '',
+                    dfvalue: fieldData.dtype === 'region' ? '' : (fieldData.dfvalue || ''),
+                    dfvalue_unit: fieldData.dfvalue_unit || '',
+                    remark: fieldData.remark || '',
+                    sort_order: fieldData.sort_order || 100,
+                    is_release: fieldData.is_release || 0,
+                    is_screening: fieldData.is_screening || 0,
+                    set_type: fieldData.set_type || 0,
+                });
+
+                // 设置筛选状态
+                if (fieldData.is_screening == 1) {
+                    $('#IsScreening_status').val(1);
+                }
+
+                // 处理 region 类型数据（在 fillFormData 中只设置隐藏字段，实际的 select 填充在 handleDtypeChange 中处理）
+                if (fieldData.dtype === 'region' && fieldData.region_data) {
+                    var regionData = fieldData.region_data;
+                    if (typeof regionData === 'string') {
+                        try {
+                            regionData = JSON.parse(regionData);
+                        } catch (e) {
+                            try {
+                                regionData = unserialize(regionData);
+                            } catch (e2) {
+                                console.error('解析 region_data 失败:', e2);
                             }
                         }
                     }
-                    form.val("field-form", record);
-                    form.render('select'); // 重新渲染下拉框，确保选中值正确显示
+                    if (regionData && typeof regionData === 'object') {
+                        $('#RegionId').val(regionData.region_id || '-1');
+                        $('#region_ids').val(regionData.region_ids || '');
+                        $('#region_names').val(regionData.region_names || '');
+                        // 填充省份和城市信息（用于回填下拉框）
+                        $('#province_name').val(regionData.province_name || '');
+                        $('#province_code').val(regionData.province_code || '');
+                        $('#city_name').val(regionData.city_name || '');
+                        $('#city_code').val(regionData.city_code || '');
+                    }
                 }
+
+                // 处理选项参数（checkboxs/radios/selects）
+                if (['checkboxs', 'radios', 'selects'].indexOf(fieldData.dtype) !== -1 && fieldData.mcheck && fieldData.mcheck.length > 0) {
+                    $('#mcheck-list .mcheck-item').remove();
+                    fieldData.mcheck.forEach(function (item, index) {
+                        addMcheckItem(item.dfvalue || '', item.sort_order || index);
+                    });
+                }
+
+                // 触发字段类型变化，显示/隐藏相关字段
+                if (fieldData.dtype) {
+                    setTimeout(function () {
+                        $('input[name="dtype"][value="' + fieldData.dtype + '"]').prop('checked', true);
+                        form.render('radio');
+                        handleDtypeChange(fieldData.dtype);
+                    }, 100);
+                }
+            }
+
+            // 判断是否为直辖市
+            function isDirectCity(provinceCode) {
+                // 直辖市代码：110000北京、120000天津、310000上海、500000重庆
+                var directCities = ['110000', '120000', '310000', '500000'];
+                return directCities.indexOf(String(provinceCode)) !== -1;
+            }
+
+            // 确保省份下拉框中有"全国"选项
+            function ensureNationalOption() {
+                var hasNational = false;
+                $('#province option').each(function () {
+                    if ($(this).val() === '全国') {
+                        hasNational = true;
+                        return false;
+                    }
+                });
+
+                // 如果没有"全国"选项，添加它
+                if (!hasNational) {
+                    var firstOption = $('#province option').first();
+                    if (firstOption.length) {
+                        firstOption.after('<option value="全国">全国</option>');
+                        form.render('select');
+                    }
+                }
+            }
+
+            // 从下拉框获取所有选项的名称和值
+            function getOptionsFromSelect(selector) {
+                var options = [];
+                $(selector + ' option').each(function () {
+                    var $option = $(this);
+                    var value = $option.val();
+                    var text = $option.text().trim();
+                    // 排除默认提示选项和"全国"
+                    if (value && text &&
+                        text !== '请选择省' && text !== '请选择市' && text !== '请选择区' &&
+                        text !== '--选择省--' && text !== '--选择市--' && text !== '--选择区--' &&
+                        text !== '全国') {
+                        options.push({
+                            name: text,
+                            value: value  // 注意：value 是名称，不是编码（pearArea 使用名称作为 value）
+                        });
+                    }
+                });
+                return options;
+            }
+
+            // 辅助函数：通过名称获取编码（用于区县）
+            // 注意：这个函数需要访问 pearArea 的内部数据，目前无法直接访问
+            // 暂时使用一个变通方案：通过 layui 模块来访问
+            function getCountyCodeByName(countyName, cityCode) {
+                // 由于无法直接访问 pearArea 内部的 areaList，我们暂时返回名称
+                // 实际应该返回编码，这需要在后端处理或修改 pearArea 模块
+                // TODO: 需要找到方法来获取区县编码
+                return countyName;
+            }
+
+            // 获取所有省份列表
+            function getAllProvinces() {
+                var provinces = [];
+                $('#province option').each(function () {
+                    var $option = $(this);
+                    var value = $option.val();
+                    var text = $option.text().trim();
+                    // 排除默认提示选项和"全国"
+                    if (value && text && text !== '请选择省' && text !== '全国') {
+                        provinces.push({
+                            name: text,
+                            value: value
+                        });
+                    }
+                });
+                return provinces;
+            }
+
+            // 智能等待函数：轮询检查条件，满足时立即执行，不满足时继续检查直到超时
+            function waitForCondition(checkFn, callback, maxWait, interval) {
+                maxWait = maxWait || 500; // 默认最多等待500ms
+                interval = interval || 10; // 默认每10ms检查一次
+                var startTime = Date.now();
+
+                function check() {
+                    if (checkFn()) {
+                        // 条件满足，立即执行
+                        callback();
+                    } else if (Date.now() - startTime < maxWait) {
+                        // 条件未满足且未超时，继续检查
+                        setTimeout(check, interval);
+                    } else {
+                        // 超时，仍然执行回调（可能数据为空）
+                        callback();
+                    }
+                }
+                check();
+            }
+
+            // 等待下拉框选项加载完成
+            function waitForOptions(selector, callback, maxWait) {
+                maxWait = maxWait || 300;
+                waitForCondition(
+                    function () {
+                        var options = getOptionsFromSelect(selector);
+                        return options.length > 0;
+                    },
+                    function () {
+                        var options = getOptionsFromSelect(selector);
+                        callback(options);
+                    },
+                    maxWait
+                );
+            }
+
+            // 初始化区域选择器（使用 pearArea 组件）
+            function initRegionArea(initialRegionData) {
+                // 如果已经初始化过，先重置
+                if (regionAreaInstance) {
+                    // pearArea 没有销毁方法，使用 reload 重置
+                    try {
+                        regionAreaInstance.reload({
+                            data: {
+                                province: '',
+                                city: '',
+                                county: '',
+                                provinceCode: 0,
+                                cityCode: 0,
+                                countyCode: 0
+                            }
+                        });
+                        // 重置显示状态
+                        $('#city-wrapper').hide();
+
+                        // 如果有初始数据，等待下拉框渲染后设置值并触发 change
+                        if (initialRegionData && initialRegionData.region_id && initialRegionData.region_id !== '-1') {
+                            setTimeout(function () {
+                                fillRegionSelects(initialRegionData);
+                            }, 500);
+
+                        }
+                        return;
+                    } catch (e) {
+                        regionAreaInstance = null;
+                    }
+                }
+
+                // 如果有初始数据，先设置 data-value 属性（pearArea 会读取这个属性）
+                // 注意：pearArea 的 data-value 应该使用名称，而不是编码
+                // 因为 pearArea 内部会将名称转换为编码
+                if (initialRegionData && initialRegionData.region_id && initialRegionData.region_id !== '-1') {
+                    var regionNames = initialRegionData.region_names ? initialRegionData.region_names.split('，') : [];
+                    var regionIds = initialRegionData.region_ids ? initialRegionData.region_ids.split(',') : [];
+                    // regionNames 第一个是省名称，第二个是市名称
+                    if (regionNames.length > 0) {
+                        $('#province').attr('data-value', regionNames[0].trim());
+                        if (regionNames.length > 1) {
+                            $('#city').attr('data-value', regionNames[1].trim());
+                        }
+                    }
+                }
+
+                // 使用 pearArea 组件渲染区域选择
+                regionAreaInstance = pearArea.render({
+                    elem: '#region-picker',
+                    change: function (res) {
+                        // 选择结果回调
+                        // res 包含: province, city, county, provinceCode, cityCode, countyCode
+                        handleRegionChange(res);
+                    }
+                });
+
+                // 如果有初始数据，等待 pearArea 初始化完成后填充并触发
+                if (initialRegionData && initialRegionData.region_id && initialRegionData.region_id !== '-1') {
+                    setTimeout(function () {
+                        fillRegionSelects(initialRegionData);
+                    }, 500);
+                }
+
+                // pearArea 初始化后会重新渲染省份下拉框，需要重新添加"全国"选项
+                // 使用智能等待，检查省份下拉框是否已渲染
+                waitForCondition(
+                    function () {
+                        return $('#province').length > 0 && $('#province option').length > 0;
+                    },
+                    function () {
+                        ensureNationalOption();
+
+                        // 使用 MutationObserver 监听省份下拉框的变化，确保"全国"选项始终存在
+                        var provinceSelect = document.getElementById('province');
+                        if (provinceSelect) {
+                            var observer = new MutationObserver(function (mutations) {
+                                ensureNationalOption();
+                            });
+
+                            // 监听子节点的变化
+                            observer.observe(provinceSelect, {
+                                childList: true,
+                                subtree: true
+                            });
+                        }
+                    },
+                    200
+                );
+
+                // 直接监听省份和城市选择变化，确保每次选择都能触发
+                // 等待 pearArea 初始化完成并添加了 lay-filter
+                waitForCondition(
+                    function () {
+                        return $('#province').attr('lay-filter') && $('#city').attr('lay-filter');
+                    },
+                    function () {
+                        var provinceFilter = $('#province').attr('lay-filter');
+                        var cityFilter = $('#city').attr('lay-filter');
+
+                        if (provinceFilter) {
+                            // 移除之前的监听（如果存在），避免重复绑定
+                            form.off('select(' + provinceFilter + ')');
+
+                            // 监听省份选择变化
+                            form.on('select(' + provinceFilter + ')', function (data) {
+                                // 使用 requestAnimationFrame 确保在下一帧执行，让 pearArea 的 change 先执行
+                                requestAnimationFrame(function () {
+                                    var selectedProvince = $('#province').val();
+                                    // 如果选择了"全国"，直接处理
+                                    if (selectedProvince === '全国') {
+                                        handleNationalSelection();
+                                        return;
+                                    }
+                                    // 如果选择了省份，确保触发赋值（即使 pearArea 的 change 没有触发）
+                                    if (selectedProvince && selectedProvince !== '全国' && selectedProvince !== '') {
+                                        // 获取当前的 res 对象
+                                        if (regionAreaInstance && regionAreaInstance.config) {
+                                            var currentData = regionAreaInstance.config.data || {};
+                                            // 如果只选择了省份，触发赋值
+                                            if (currentData.provinceCode && currentData.province) {
+                                                // 清除城市和区县的选择，确保只处理省份
+                                                var res = {
+                                                    province: currentData.province,
+                                                    provinceCode: currentData.provinceCode,
+                                                    city: '',
+                                                    cityCode: 0,
+                                                    county: '',
+                                                    countyCode: 0
+                                                };
+                                                handleRegionChange(res);
+                                            }
+                                        }
+                                    }
+                                });
+                            });
+                        }
+
+                        if (cityFilter) {
+                            // 移除之前的监听（如果存在），避免重复绑定
+                            // form.off('select(' + cityFilter + ')');
+                            form.set({
+                                autocomplete: 'off' // 阻止 input 框默认的自动输入完成功能
+                            });
+                            // 监听城市选择变化
+                            form.on('select(' + cityFilter + ')', function (data) {
+                                // 使用 requestAnimationFrame 确保在下一帧执行，让 pearArea 的 change 先执行
+                                requestAnimationFrame(function () {
+                                    var selectedCity = $('#city').val();
+                                    var selectedProvince = $('#province').val();
+
+                                    // 如果选择了城市，确保触发赋值
+                                    if (selectedCity && selectedCity !== '' && selectedProvince && selectedProvince !== '全国') {
+                                        // 直接复用 pearArea 当前的数据，避免重复计算 code
+                                        if (regionAreaInstance && regionAreaInstance.config) {
+                                            var currentData = regionAreaInstance.config.data || {};
+                                            if (currentData.cityCode && currentData.city && currentData.provinceCode) {
+                                                var res = {
+                                                    province: currentData.province,
+                                                    provinceCode: currentData.provinceCode,
+                                                    city: currentData.city,
+                                                    cityCode: currentData.cityCode,
+                                                    county: '',
+                                                    countyCode: 0
+                                                };
+                                                handleRegionChange(res);
+                                            }
+                                        }
+                                    }
+                                });
+                            });
+                        }
+                    },
+                    300
+                );
+            }
+
+            // 辅助函数：触发select的点击事件
+            function triggerSelectClick(selector, value) {
+                var $selectWrap = $(selector).next('.layui-form-select');
+                if ($selectWrap.length) {
+                    var $dd = $selectWrap.find('dl dd[lay-value="' + value + '"]');
+                    if ($dd.length) {
+                        $dd.click();
+                        return true;
+                    } else {
+                        $(selector).trigger('change');
+                        return false;
+                    }
+                }
+                return false;
+            }
+
+            // 填充区域选择器的省和市下拉框（编辑时回填数据）
+            function fillRegionSelects(regionData) {
+                if (!regionData || !regionData.region_id || regionData.region_id === '-1') {
+                    return;
+                }
+
+                // 设置回填标志，避免触发更新导致闪烁
+                isFillingRegionData = true;
+
+                var regionIds = regionData.region_ids ? regionData.region_ids.split(',') : [];
+                var regionNames = regionData.region_names ? regionData.region_names.split('，') : [];
+                var regionId = regionData.region_id;
+                var provinceName = regionData.province_name || '';
+                var cityName = regionData.city_name || '';
+
+                // 先填充隐藏字段和region_id（不触发change事件）
+                if (regionIds.length > 0) {
+                    $('#region_ids').val(regionIds.join(','));
+                    $('#RegionId').val(regionId);
+                }
+
+                // 保存省份和城市信息
+                $('#province_name').val(regionData.province_name || '');
+                $('#province_code').val(regionData.province_code || '');
+                $('#city_name').val(regionData.city_name || '');
+                $('#city_code').val(regionData.city_code || '');
+
+                // 等待省份下拉框加载完成，然后填充select的值
+                waitForOptions('#province', function (provinceOptions) {
+                    if (provinceOptions.length === 0) {
+                        setTimeout(function () {
+                            fillRegionSelects(regionData);
+                        }, 200);
+                        return;
+                    }
+
+                    if (provinceName) {
+                        // 设置省份选择（使用名称，因为 pearArea 使用名称作为 value）
+                        $('#province').val(provinceName);
+                        form.render('select');
+                        $('#city-wrapper').show();
+                        form.render('select');
+
+                        // 触发省份选择，让 pearArea 加载城市下拉框
+                        setTimeout(function () {
+                            triggerSelectClick('#province', provinceName);
+
+                            // 等待城市下拉框加载完成后，设置城市值
+                            setTimeout(function () {
+                                if (cityName) {
+                                    waitForOptions('#city', function (cityOptions) {
+                                        // 查找匹配的城市
+                                        for (var i = 0; i < cityOptions.length; i++) {
+                                            var option = cityOptions[i];
+                                            if (option.value === cityName || option.name === cityName) {
+                                                $('#city').val(option.value || option.name);
+                                                form.render('select');
+
+                                                // 触发城市选择，让 pearArea 加载区县列表
+                                                setTimeout(function () {
+                                                    triggerSelectClick('#city', option.value || option.name);
+                                                    // 所有select都填充完成后，最后填充region_names输入框，避免闪烁
+                                                    setTimeout(function () {
+                                                        if (regionNames.length > 0) {
+                                                            $('#region_names').val(regionNames.join('，'));
+                                                        }
+                                                        // 取消回填标志
+                                                        isFillingRegionData = false;
+                                                    }, 200);
+                                                }, 100);
+                                                return;
+                                            }
+                                        }
+                                        // 如果没找到匹配的城市，也要填充region_names
+                                        if (regionNames.length > 0) {
+                                            $('#region_names').val(regionNames.join('，'));
+                                        }
+                                        // 取消回填标志
+                                        isFillingRegionData = false;
+                                    }, 300);
+                                } else {
+                                    // 如果没有城市名称，也要填充region_names
+                                    setTimeout(function () {
+                                        if (regionNames.length > 0) {
+                                            $('#region_names').val(regionNames.join('，'));
+                                        }
+                                        // 取消回填标志
+                                        isFillingRegionData = false;
+                                    }, 200);
+                                }
+                            }, 300);
+                        }, 200);
+                    } else {
+                        // 如果没有省份名称，直接填充region_names
+                        if (regionNames.length > 0) {
+                            $('#region_names').val(regionNames.join('，'));
+                        }
+                        // 取消回填标志
+                        isFillingRegionData = false;
+                    }
+                }, 300);
+            }
+
+            // 处理区域选择变化
+            function handleRegionChange(res) {
+                var regionNames = [];
+                var regionIds = [];
+                var regionId = '-1';
+
+                // 检查是否选择了"全国"
+                var selectedProvince = $('#province').val();
+                if (selectedProvince === '全国') {
+                    handleNationalSelection();
+                    return;
+                }
+
+                // 使用 requestAnimationFrame 确保 DOM 更新完成
+                requestAnimationFrame(function () {
+                    // 判断当前选择状态：如果选择了省份但没有选择城市和区县
+                    var hasProvince = res.provinceCode && res.province;
+                    var hasCity = res.cityCode && res.city;
+                    var hasCounty = res.countyCode && res.county;
+
+                    // 如果只选择了省份（没有选择城市和区县）
+                    if (hasProvince && !hasCity && !hasCounty) {
+                        // 选择了省份，判断是否为直辖市
+                        var isDirect = isDirectCity(res.provinceCode);
+
+                        if (isDirect) {
+                            // 直辖市：自动选择该直辖市下的第一个城市，
+                            // 然后复用「选择城市」的逻辑来获取所有区县
+                            waitForOptions('#city', function (cityOptions) {
+                                if (cityOptions.length > 0) {
+                                    var firstCityVal = cityOptions[0].value;
+                                    // 设置原始 select 的值
+                                    $('#city').val(firstCityVal);
+                                    form.render('select');
+
+                                    // 通过模拟点击 Layui 下拉面板中的选项来触发 select 事件，
+                                    // 让 pearArea 去渲染区县下拉框，并触发我们监听的城市逻辑
+                                    requestAnimationFrame(function () {
+                                        var $selectWrap = $('#city').next('.layui-form-select');
+                                        var $dd = $selectWrap.find('dl dd[lay-value="' + firstCityVal + '"]');
+                                        if ($dd.length) {
+                                            $dd.click();
+                                        }
+                                    });
+                                } else {
+                                    // 如果没有城市选项，尝试获取区县信息
+                                    // 对于直辖市，可能直接显示区县，需要获取区县列表
+                                    waitForOptions('#county', function (countyOptions) {
+                                        if (countyOptions.length > 0) {
+                                            // 如果有区县选项，使用区县信息
+                                            processCityCounties(countyOptions, res, res.provinceCode);
+                                        } else {
+                                            // 如果也没有区县选项，使用省份信息作为备选
+                                            regionId = res.provinceCode;
+                                            regionNames.push(res.province);
+                                            regionIds.push(res.provinceCode);
+                                            updateRegionData(regionNames, regionIds, regionId, res.province, res.provinceCode, '', '');
+                                        }
+                                    }, 300);
+                                }
+
+                                // 直辖市场景下，对用户只展示一个下拉
+                                $('#city-wrapper').hide();
+                            }, 200);
+
+                            return;
+                        } else {
+                            // 非直辖市：显示城市选择框，获取该省份下的所有城市
+                            $('#city-wrapper').show();
+                            form.render('select');
+
+                            // 等待城市选项加载完成
+                            waitForOptions('#city', function (cityOptions) {
+                                regionId = res.provinceCode;
+
+                                // regionNames 只包含当前级别的数据（城市名称），不包含上级（省份）
+                                cityOptions.forEach(function (item) {
+                                    regionNames.push(item.name);
+                                    // 注意：item.value 是名称，我们需要编码
+                                    // 由于无法直接获取编码，暂时使用名称，但实际应该使用编码
+                                    // 这个问题需要从 pearArea 获取编码，暂时先使用名称
+                                    regionIds.push(item.value || item.name);
+                                });
+
+                                // 更新区域名称和ID，同时保存省份信息
+                                updateRegionData(regionNames, regionIds, regionId, res.province, res.provinceCode, '', '');
+                            }, 200);
+                            return;
+                        }
+                    } else if (res.cityCode && !res.countyCode) {
+                        // 选择了城市，获取该城市下的所有区县（但不显示区县选择框）
+                        // 等待区县选项加载完成
+                        waitForOptions('#county', function (countyOptions) {
+                            regionId = res.cityCode;
+                            processCityCounties(countyOptions, res, regionId);
+                        }, 300);
+                        return;
+                    }
+
+                    // 更新区域名称和ID（如果没有省份和城市信息，传递空值）
+                    updateRegionData(regionNames, regionIds, regionId, res.province || '', res.provinceCode || '', res.city || '', res.cityCode || '');
+                });
+            }
+
+            // 处理城市的区县数据
+            function processCityCounties(countyOptions, res, regionId) {
+                var regionNames = [];
+                var regionIds = [];
+
+                // regionNames 只包含当前级别的数据（区县名称），不包含上级（省和市）
+                if (countyOptions.length > 0) {
+                    countyOptions.forEach(function (item) {
+                        regionNames.push(item.name);
+                        // 注意：item.value 是名称，我们需要编码
+                        // 由于 getCode 函数在 pearArea 内部，我们暂时使用名称
+                        // 但实际应该使用编码，这需要从 regionAreaInstance 获取
+                        // 暂时先使用名称，后续通过其他方式获取编码
+                        regionIds.push(item.value || item.name);
+                    });
+                } else {
+                    // 如果没有区县数据，使用城市信息作为备选
+                    if (res.city && res.cityCode) {
+                        regionNames.push(res.city);
+                        regionIds.push(res.cityCode);
+                    }
+                }
+
+                // 更新区域名称和ID，同时保存省份和城市信息
+                updateRegionData(regionNames, regionIds, regionId, res.province, res.provinceCode, res.city, res.cityCode);
+            }
+
+            // 处理"全国"选择
+            function handleNationalSelection() {
+                // 选择"全国"：显示所有省份到输入框，隐藏城市选择框
+                $('#city-wrapper').hide();
+                form.render('select');
+
+                setTimeout(function () {
+                    var regionId = '0'; // 使用0表示全国
+                    var regionNames = [];
+                    var regionIds = [];
+                    var provinces = getAllProvinces();
+
+                    provinces.forEach(function (item) {
+                        regionNames.push(item.name);
+                        // 尝试从选项的value获取code，如果没有则使用名称
+                        if (item.value && item.value !== item.name) {
+                            regionIds.push(item.value);
+                        } else {
+                            regionIds.push(item.name);
+                        }
+                    });
+
+                    // 更新区域名称和ID（全国选择，没有具体的省份和城市）
+                    updateRegionData(regionNames, regionIds, regionId, '', '', '', '');
+                }, 100);
+            }
+
+            // 更新区域数据
+            function updateRegionData(regionNames, regionIds, regionId, provinceName, provinceCode, cityName, cityCode, skipRegionNames) {
+                // 如果正在回填数据且未明确要求更新，则跳过region_names的更新
+                if (isFillingRegionData && !skipRegionNames) {
+                    // 只更新其他字段，不更新region_names（避免闪烁）
+                    if (regionIds.length > 0) {
+                        $('#region_ids').val(regionIds.join(','));
+                        $('#RegionId').val(regionId);
+                    }
+                    if (provinceName) {
+                        $('#province_name').val(provinceName);
+                    }
+                    if (provinceCode) {
+                        $('#province_code').val(provinceCode);
+                    }
+                    if (cityName) {
+                        $('#city_name').val(cityName);
+                    }
+                    if (cityCode) {
+                        $('#city_code').val(cityCode);
+                    }
+                    return;
+                }
+
+                // 更新区域名称（用中文逗号分隔）
+                if (regionNames.length > 0) {
+                    $('#region_names').val(regionNames.join('，'));
+                } else {
+                    $('#region_names').val('');
+                }
+
+                // 更新区域ID（用英文逗号分隔）
+                if (regionIds.length > 0) {
+                    $('#region_ids').val(regionIds.join(','));
+                    $('#RegionId').val(regionId);
+                } else {
+                    $('#region_ids').val('');
+                    $('#RegionId').val(regionId !== '-1' ? regionId : '-1');
+                }
+
+                // 保存省份和城市信息（用于编辑时回填）
+                if (provinceName) {
+                    $('#province_name').val(provinceName);
+                }
+                if (provinceCode) {
+                    $('#province_code').val(provinceCode);
+                }
+                if (cityName) {
+                    $('#city_name').val(cityName);
+                }
+                if (cityCode) {
+                    $('#city_code').val(cityCode);
+                }
+            }
+
+            // 清空区域数据
+            function clearAreaData() {
+                $('#region_div').hide();
+                $('#region_names_div').hide();
+                $('#region_set_type_div').hide();
+                $('#RegionId').val('-1');
+                $('#region_names').val('');
+                $('#region_ids').val('');
+                // 重置显示状态
+                $('#city-wrapper').hide();
+                // 重置区域选择器
+                if (regionAreaInstance) {
+                    regionAreaInstance.reload({
+                        data: {
+                            province: '',
+                            city: '',
+                            county: '',
+                            provinceCode: 0,
+                            cityCode: 0,
+                            countyCode: 0
+                        }
+                    });
+                }
+            }
+
+            // 初始化选项参数列表
+            function initMcheckList() {
+                var $list = $('#mcheck-list');
+                // 保留表头，清空其他内容
+                $list.find('.mcheck-item').remove();
+                addMcheckItem();
+            }
+
+            // 添加选项参数项
+            function addMcheckItem(dfvalue, sortOrder) {
+                var $list = $('#mcheck-list');
+                // 排除表头，计算实际选项数量
+                var index = $list.find('.mcheck-item').length;
+                dfvalue = dfvalue || '';
+                sortOrder = sortOrder !== undefined ? sortOrder : index;
+                var html = '<div class="mcheck-item" style="margin-bottom: 10px; padding: 10px; border: 1px solid #e6e6e6; border-radius: 2px;">' +
+                    '<div style="display: flex; align-items: center; gap: 10px;">' +
+                    '<input type="text" name="mcheck[' + index + '][dfvalue]" placeholder="选项值" class="layui-input" style="flex: 1;" value="' + (dfvalue || '') + '">' +
+                    '<input type="number" name="mcheck[' + index + '][sort_order]" value="' + sortOrder + '" placeholder="排序" class="layui-input" style="width: 100px;">' +
+                    '<button type="button" class="layui-btn layui-btn-danger layui-btn-sm remove-mcheck-item">删除</button>' +
+                    '</div></div>';
+                $list.append(html);
+            }
+
+            // 添加选项按钮事件
+            $(document).on('click', '#add-mcheck-item', function () {
+                addMcheckItem();
+            });
+
+            // 删除选项按钮事件
+            $(document).on('click', '.remove-mcheck-item', function () {
+                $(this).closest('.mcheck-item').remove();
+                // 重新索引
+                $('#mcheck-list .mcheck-item').each(function (index) {
+                    $(this).find('input').each(function () {
+                        var name = $(this).attr('name');
+                        if (name) {
+                            name = name.replace(/\[(\d+)\]/, '[' + index + ']');
+                            $(this).attr('name', name);
+                        }
+                    });
+                });
             });
 
             // 提交表单
             form.on("submit(field-form-submit)", function (data) {
-                var field = data.field;
-                field.id = new URLSearchParams(location.search).get('id');
-                
+                // 获取 id 参数
+                var urlParams = new URLSearchParams(location.search);
+                var id = urlParams.get('id') || 0;
+
+                var formData = data.field;
+                formData.id = id;
+
+                // 处理可见栏目
+                var typeids = $('#typeids-input').val();
+                if (!typeids) {
+                    return layui.pearPopup.failure('请选择可见栏目！');
+                }
+                formData.typeids = typeids.split(',').filter(function (id) {
+                    return id && parseInt(id) > 0;
+                });
+
+                // 如果启用筛选，必须选择至少一个栏目
+                var isScreening = formData.is_screening == 1 || $('#IsScreening_status').val() == 1;
+                if (isScreening && formData.typeids.length === 0) {
+                    return layui.pearPopup.failure('字段支持筛选时，栏目必须指定一个或多个！');
+                }
+
+                // 验证区域类型
+                var dtype = formData.dtype;
+                if ('region' == dtype) {
+                    var regionId = $('#RegionId').val();
+                    var regionNames = $('#region_names').val();
+                    if (!regionId || regionId === '-1' || regionId === '' || regionId === '0') {
+                        return layui.pearPopup.failure('请选择区域范围！');
+                    }
+                    if (!regionNames || regionNames.trim() === '') {
+                        return layui.pearPopup.failure('请选择区域范围！');
+                    }
+                }
+
+                // 验证默认值
+                var fieldType = fieldTypeMap[dtype] || {};
+                var ifoption = fieldType.ifoption || 0;
+
+                // 如果字段类型需要选项且不是 checkboxs/radios/selects 且不是 region
+                if (ifoption == 1 && ['checkboxs', 'radios', 'selects', 'region'].indexOf(dtype) === -1) {
+                    var dfvalue = $.trim($('#dfvalue').val());
+                    if (!dfvalue) {
+                        return layui.pearPopup.failure('默认值不能为空！');
+                    }
+                    if (dfvalue.indexOf('|') !== -1) {
+                        return layui.pearPopup.failure('默认值不能输入 | 符号！');
+                    }
+                }
+
+                // 处理选项参数(checkboxs/radios/selects)
+                if (['checkboxs', 'radios', 'selects'].indexOf(dtype) !== -1) {
+                    var mcheck = [];
+                    $('#mcheck-list .mcheck-item').each(function () {
+                        var dfvalue = $(this).find('input[name*="[dfvalue]"]').val();
+                        var sort_order = $(this).find('input[name*="[sort_order]"]').val();
+                        if (dfvalue) {
+                            mcheck.push({
+                                dfvalue: dfvalue,
+                                sort_order: parseInt(sort_order) || 0
+                            });
+                        }
+                    });
+                    if (mcheck.length === 0) {
+                        return layui.pearPopup.failure('选项参数至少填一项');
+                    }
+                    formData.mcheck = mcheck;
+                } else if (['radio', 'checkbox', 'select'].indexOf(dtype) !== -1) {
+                    // 验证默认值格式
+                    var dfvalue = $.trim($('#dfvalue').val());
+                    if (dfvalue.indexOf('\\') !== -1) {
+                        return layui.pearPopup.failure('默认值不支持反斜杠 \\ ，可用斜杠 / 代替');
+                    }
+                    // 检查是否有重复值
+                    var dfvalueArr = dfvalue.split(',');
+                    for (var i = 0; i < dfvalueArr.length; i++) {
+                        for (var j = i + 1; j < dfvalueArr.length; j++) {
+                            if ($.trim(dfvalueArr[i]) == $.trim(dfvalueArr[j])) {
+                                return layui.pearPopup.failure('默认值不能含有相同的值！');
+                            }
+                        }
+                    }
+                    // checkbox 最多64项
+                    if (dtype == 'checkbox' && dfvalueArr.length > 64) {
+                        return layui.pearPopup.failure('默认值最多填写64项！');
+                    }
+                }
+
                 $.ajax({
                     url: UPDATE_API,
-                    data: field,
+                    data: formData,
                     dataType: "json",
                     type: "post",
                     success: function (res) {
                         if (res.code) {
                             return layui.pearPopup.failure(res.msg);
                         }
-                        layui.pearPopup.success("操作成功", function() {
+                        layui.pearPopup.success("操作成功", function () {
                             var index = parent.layer.getFrameIndex(window.name);
                             parent.layer.close(index);
                             if (parent.refreshTable) {
@@ -121,5 +1354,5 @@
         });
     </script>
 </body>
-</html>
 
+</html>

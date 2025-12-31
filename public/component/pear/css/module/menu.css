@@ -1,19 +1,27 @@
 .pear-nav-tree {
-	width: 230px;
+	width: 180px;
 	border-radius: 0px;
 	background-color: #001529;
 }
 
+.pear-nav-tree .layui-nav-item {
+	width: 100%;
+	max-width: 180px;
+}
 .pear-nav-tree .layui-nav-item>a {
 	height: 56px;
 	line-height: 56px;
 	padding-top: 0px;
 	padding-bottom: 0px;
+	width: 100%;
+	box-sizing: border-box;
 }
 
 .pear-nav-tree .layui-nav-item dd a {
 	height: 48px;
 	line-height: 48px;
+	width: 100%;
+	box-sizing: border-box;
 }
 
 .pear-nav-tree  .layui-nav-item>a .layui-nav-more {
@@ -25,7 +33,7 @@
 	height: 0px;
 }
 .pear-side-scroll{
-	width: 230px;
+	width: 180px;
 }
 
 .pear-nav-tree .layui-nav-child dd.layui-this,

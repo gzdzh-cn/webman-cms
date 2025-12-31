@@ -108,8 +108,12 @@
                     width: 150,
                 }, {
                     title: "字段类型", align: "center",
-                    field: "dtype",
+                    field: "dtitle",
                     width: 120,
+                    templet: function (d) {
+                        // 优先显示 wa_field_type.title（dtitle），没有时回退显示 dtype
+                        return d.dtitle || d.dtype || '';
+                    }
                 }, {
                     title: "创建时间", align: "center",
                     field: "add_time",
@@ -237,7 +241,7 @@
                     title: "新增字段",
                     shade: 0.1,
                     maxmin: true,
-                    area: [common.isModile() ? "100%" : "800px", common.isModile() ? "100%" : "600px"],
+                    area: [common.isModile() ? "100%" : "800px", common.isModile() ? "100%" : "80%"],
                     content: INSERT_URL
                 });
             }
@@ -251,7 +255,7 @@
                     title: "修改字段",
                     shade: 0.1,
                     maxmin: true,
-                    area: [common.isModile() ? "100%" : "800px", common.isModile() ? "100%" : "600px"],
+                    area: [common.isModile() ? "100%" : "800px", common.isModile() ? "100%" : "80%"],
                     content: UPDATE_URL + "?" + PRIMARY_KEY + "=" + value + (channelId ? "&channel_id=" + channelId : "")
                 });
             }

@@ -57,6 +57,15 @@ class Util
     }
 
     /**
+     * 获取表前缀
+     * @return string
+     */
+    public static function getTablePrefix(): string
+    {
+        return config('plugin.admin.database.connections.mysql.prefix', 'wa_');
+    }
+
+    /**
      * 获取语义化时间
      * @param $time
      * @return false|string

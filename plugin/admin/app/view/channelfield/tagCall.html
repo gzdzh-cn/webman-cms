@@ -62,11 +62,15 @@
         var urlParams = new URLSearchParams(location.search);
         var fieldName = urlParams.get('field_name') || '';
         
-        // 内容页标签格式
-        var tagCodeContent = '{$eyou.field.' + fieldName + '}';
+        // 内容页标签格式（使用字符串拼接避免模板引擎解析）
+        var dollarSign = '$';
+        var eyouPrefix = '{' + dollarSign + 'eyou.field.';
+        var tagCodeContent = eyouPrefix + fieldName + '}';
         
         // 标签 arclist / list 内调用格式
-        var tagCodeList = '{eyou:field aid=\'$field.aid\' addfields=\'' + fieldName + '|html_msubstr=###,0,150,true\' /}';
+        var fieldVar = dollarSign + 'field.aid';
+        var eyouTagPrefix = '{eyou:field aid=\'' + fieldVar + '\' addfields=\'';
+        var tagCodeList = eyouTagPrefix + fieldName + '|html_msubstr=###,0,150,true\' /}';
         
         // 设置文本域内容
         document.getElementById('tag-code-content').value = tagCodeContent;

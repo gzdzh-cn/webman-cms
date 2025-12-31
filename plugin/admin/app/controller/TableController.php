@@ -79,8 +79,12 @@ class TableController extends Base
         if ($tables) {
             $table_names = array_column($tables, 'TABLE_NAME');
             $table_rows_count = [];
+            $db = Util::db();
             foreach ($table_names as $table_name) {
-                $table_rows_count[$table_name] = Util::db()->table($table_name)->count();
+                // 从 information_schema 查询出来的表名已经包含前缀（如 wa_admins）
+                // 使用原始 SQL 查询，避免 table() 方法自动添加前缀导致重复（wa_wa_admins）
+                $result = $db->select("SELECT COUNT(*) as count FROM `{$table_name}`");
+                $table_rows_count[$table_name] = $result[0]->count ?? 0;
             }
             foreach ($tables as $key => $table) {
                 $tables[$key]->TABLE_ROWS = $table_rows_count[$table->TABLE_NAME] ?? $table->TABLE_ROWS;
@@ -397,7 +401,7 @@ class TableController extends Base
     {
         $table_name = $request->input('table');
         Util::checkTableName($table_name);
-        $prefix = 'wa_';
+        $prefix = Util::getTablePrefix();
         $table_basename = strpos($table_name, $prefix) === 0 ? substr($table_name, strlen($prefix)) : $table_name;
         $inflector = InflectorFactory::create()->build();
         $model_class = $inflector->classify($inflector->singularize($table_basename));
@@ -560,7 +564,10 @@ class TableController extends Base
     protected function createModel($class, $namespace, $file, $table)
     {
         $this->mkdir($file);
-        $table_val = "'$table'";
+        // 去掉表前缀，因为 Base 模型已经配置了表前缀
+        $prefix = Util::getTablePrefix();
+        $table_without_prefix = strpos($table, $prefix) === 0 ? substr($table, strlen($prefix)) : $table;
+        $table_val = "'$table_without_prefix'";
         $pk = 'id';
         $properties = '';
         $timestamps = '';
@@ -1455,7 +1462,7 @@ EOF;
         if (!$tables) {
             return $this->json(0, 'not found');
         }
-        $prefix = 'wa_';
+        $prefix = Util::getTablePrefix();
         $table_not_allow_drop = ["{$prefix}admins", "{$prefix}users", "{$prefix}options", "{$prefix}roles", "{$prefix}rules", "{$prefix}admin_roles", "{$prefix}uploads"];
         if ($found = array_intersect($tables, $table_not_allow_drop)) {
             return $this->json(400, implode(',', $found) . '不允许删除');

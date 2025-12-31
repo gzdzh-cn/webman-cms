@@ -43,7 +43,7 @@ use plugin\admin\app\model\Base;
  * @property integer $nofollow 防抓取
  * @property integer $typearcrank 阅读权限：0=开放浏览，-1=待审核稿件
  * @property integer $empty_logic 空内容逻辑
- * @property string $page_limit 限制页面 1-栏目页面 0-文档页面
+ * @property string $page_limit 限制页面 1-栏目页面 2-文档页面
  * @property integer $total_arc 栏目下文档数量
  */
 class Arctype extends Base

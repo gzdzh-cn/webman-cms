@@ -89,6 +89,8 @@ layui.define(['pearMessage', 'table', 'jquery', 'element', 'pearYaml', 'form', '
 					accordion: param.menu.accordion,
 					url: param.menu.data,
 					data: param.menu.data,
+					sortField: 'weight', // 排序字段
+					sortOrder: 'asc', // 排序方向：asc 升序，desc 降序
 					parseData: false,
 					change: function() {
 						compatible();

@@ -11,7 +11,7 @@ return  [
             'password'    => getenv('DB_PASSWORD'),
             'charset'     => 'utf8mb4',
             'collation'   => 'utf8mb4_general_ci',
-            'prefix'      => 'wa_',
+            'prefix'      => getenv('DB_PREFIX'), // 从 .env 读取表前缀，默认 'wa_'
             'strict'      => true,
             'engine'      => null,
         ],

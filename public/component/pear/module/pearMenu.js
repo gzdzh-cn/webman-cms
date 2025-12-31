@@ -26,6 +26,8 @@ layui.define(['table', 'jquery', 'element'], function (exports) {
 			height: opt.height,
 			theme: opt.theme,
 			data: opt.data ? opt.data : [],
+			sortField: opt.sortField || 'weight', // 排序字段，默认为 'weight'
+			sortOrder: opt.sortOrder || 'asc', // 排序方向，'asc' 或 'desc'，默认为 'asc'
 			change: opt.change ? opt.change : function () { },
 			done: opt.done ? opt.done : function () { }
 		}
@@ -270,6 +272,12 @@ layui.define(['table', 'jquery', 'element'], function (exports) {
 		if (option.parseData != false) {
 			option.parseData(option.data);
 		}
+		
+		// 对菜单数据进行排序
+		if (option.data && option.data.length > 0) {
+			sortMenuData(option.data, option.sortField, option.sortOrder);
+		}
+		
 		if (option.data.length > 0) {
 			if (option.control != false) {
 				createMenuAndControl(option);
@@ -280,6 +288,61 @@ layui.define(['table', 'jquery', 'element'], function (exports) {
 		element.init();
 		downShow(option);
 		option.done();
+	}
+	
+	// 递归排序菜单数据
+	function sortMenuData(data, sortField, sortOrder) {
+		if (!data || !Array.isArray(data)) {
+			return;
+		}
+		
+		// 对当前层级排序
+		data.sort(function(a, b) {
+			var valueA = a[sortField];
+			var valueB = b[sortField];
+			
+			// 处理数字类型
+			if (typeof valueA === 'number' || !isNaN(parseFloat(valueA))) {
+				valueA = parseFloat(valueA) || 0;
+			}
+			if (typeof valueB === 'number' || !isNaN(parseFloat(valueB))) {
+				valueB = parseFloat(valueB) || 0;
+			}
+			
+			// 处理字符串类型
+			if (typeof valueA === 'string') {
+				valueA = valueA.toLowerCase();
+			}
+			if (typeof valueB === 'string') {
+				valueB = valueB.toLowerCase();
+			}
+			
+			// 处理 null 或 undefined
+			if (valueA == null) valueA = '';
+			if (valueB == null) valueB = '';
+			
+			var result = 0;
+			if (valueA < valueB) {
+				result = -1;
+			} else if (valueA > valueB) {
+				result = 1;
+			} else {
+				// 如果排序字段值相同，则按 id 排序
+				var idA = parseFloat(a.id) || 0;
+				var idB = parseFloat(b.id) || 0;
+				result = idA - idB;
+			}
+			
+			// 根据排序方向返回结果
+			return sortOrder === 'desc' ? -result : result;
+		});
+		
+		// 递归排序子节点
+		for (var i = 0; i < data.length; i++) {
+			if (data[i].children && Array.isArray(data[i].children) && data[i].children.length > 0) {
+				sortMenuData(data[i].children, sortField, sortOrder);
+			}
+		}
 	}
 
 	function createMenu(option) {

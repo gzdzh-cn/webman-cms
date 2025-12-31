@@ -203,10 +203,10 @@ class RuleController extends Crud
         if ($types && is_string($types)) {
             $where['type'] = ['in', explode(',', $types)];
         }
-        // 默认weight排序
+        // 默认weight排序（从小到大）
         if (!$field) {
             $field = 'weight';
-            $order = 'desc';
+            $order = 'asc';
         }
         return [$where, $format, $limit, $field, $order];
     }

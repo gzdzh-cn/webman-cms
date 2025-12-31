@@ -7,6 +7,7 @@ use support\Response;
 use plugin\admin\app\model\Arctype;
 use plugin\admin\app\model\Channeltype;
 use plugin\admin\app\controller\Crud;
+use plugin\admin\app\common\Tree;
 use plugin\admin\app\logic\ArctypeLogic;
 use support\exception\BusinessException;
 use support\Log;
@@ -76,9 +77,70 @@ class ArctypeController extends Crud
     public function update(Request $request): Response
     {
         if ($request->method() === 'POST') {
-            return parent::update($request);
+            // 在 inputFilter 之前获取 inherit_option（因为这不是数据库字段，会被过滤）
+            $inheritOption = $request->post('inherit_option', 0);
+            $inheritOption = ($inheritOption == 1 || $inheritOption === '1') ? 1 : 0;
+            
+            [$id, $data] = $this->updateInput($request);
+            
+            // 如果勾选了继承选项，保存需要继承的字段值
+            $inheritFields = [];
+            if ($inheritOption == 1) {
+                // 获取当前更新的 typearcrank 和 page_limit 值
+                // 从 $data 中获取，如果不存在则从数据库记录中获取
+                $currentArctype = Arctype::find($id);
+                $inheritFields['typearcrank'] = $data['typearcrank'] ?? ($currentArctype->typearcrank ?? 0);
+                $inheritFields['page_limit'] = $data['page_limit'] ?? ($currentArctype->page_limit ?? 0);
+            }
+            
+            // 执行更新
+            $this->doUpdate($id, $data);
+            
+            // 如果勾选了继承选项，更新所有下级栏目
+            if ($inheritOption == 1 && !empty($inheritFields)) {
+                $this->updateChildrenInheritFields($id, $inheritFields);
+            }
+            
+            return $this->json(0);
         }
         return view('arctype/update');
+    }
+    
+    /**
+     * 更新所有下级栏目的继承字段
+     * @param int $parentId 父栏目ID
+     * @param array $inheritFields 需要继承的字段（typearcrank, page_limit）
+     * @return void
+     */
+    protected function updateChildrenInheritFields(int $parentId, array $inheritFields): void
+    {
+        // 获取所有下级栏目ID
+        $childrenIds = $this->getAllChildrenIds($parentId);
+        
+        if (empty($childrenIds)) {
+            return;
+        }
+        
+        // 构建更新数据
+        $updateData = [
+            'update_time' => time(),
+        ];
+        
+        // 只更新传入的字段
+        if (isset($inheritFields['typearcrank'])) {
+            $updateData['typearcrank'] = $inheritFields['typearcrank'];
+        }
+        
+        if (isset($inheritFields['page_limit'])) {
+            $updateData['page_limit'] = $inheritFields['page_limit'];
+        }
+        
+        // 批量更新所有下级栏目
+        if (!empty($updateData)) {
+            Arctype::whereIn('id', $childrenIds)
+                ->where('is_del', 0)
+                ->update($updateData);
+        }
     }
 
     /**
@@ -132,21 +194,6 @@ class ArctypeController extends Crud
     }
 
     /**
-     * 过滤所有字段的文本，去掉前后空格
-     * @param array $data
-     * @return array
-     */
-    protected function trimFields(array $data): array
-    {
-        foreach ($data as $key => $value) {
-            if (is_string($value)) {
-                $data[$key] = trim($value);
-            }
-        }
-        return $data;
-    }
-
-    /**
      * 插入前置方法（重写父类方法）
      * @param Request $request
      * @return array
@@ -155,10 +202,18 @@ class ArctypeController extends Crud
     protected function insertInput(Request $request): array
     {
         $data = parent::insertInput($request);
-        $data = $this->trimFields($data);
         
         // 验证数据
         $arctypeLogic = new ArctypeLogic();
+        
+        // 过滤字段文本，去掉前后空格
+        $data = $arctypeLogic->trimFields($data);
+        
+        // 确保 page_limit 字段存在（即使为空也要保留）
+        if (!isset($data['page_limit'])) {
+            $data['page_limit'] = '';
+        }
+        
         $arctypeLogic->validateArctypeData($data);
         
         // 问答模型只能存在一个
@@ -218,6 +273,7 @@ class ArctypeController extends Crud
             'grade' => $grade, // 栏目等级
             'seo_keywords' => $data['seo_keywords'] ?? '',
             'seo_description' => $data['seo_description'] ?? '',
+            'page_limit' => $data['page_limit'] ?? '', // 限制页面（已通过 processArctypeData 处理为逗号分隔字符串）
             'admin_id' => admin_id(),
             'empty_logic' => (isset($data['current_channel']) && $data['current_channel'] == 6) ? 0 : 1,
             'sort_order' => 100,
@@ -240,10 +296,17 @@ class ArctypeController extends Crud
     protected function updateInput(Request $request): array
     {
         [$id, $data] = parent::updateInput($request);
-        $data = $this->trimFields($data);
-        
         // 验证数据
         $arctypeLogic = new ArctypeLogic();
+        
+        // 过滤字段文本，去掉前后空格
+        $data = $arctypeLogic->trimFields($data);
+        
+        // 确保 page_limit 字段存在（即使为空也要保留）
+        if (!isset($data['page_limit'])) {
+            $data['page_limit'] = '';
+        }
+        
         $arctypeLogic->validateArctypeData($data);
         
         // 处理公共数据
@@ -312,6 +375,8 @@ class ArctypeController extends Crud
             'grade' => $grade,
             'seo_keywords' => $data['seo_keywords'] ?? '',
             'seo_description' => $data['seo_description'] ?? '',
+            'typearcrank' => $data['typearcrank'] ?? $currentArctype->typearcrank ?? 0, // 访问权限
+            'page_limit' => $data['page_limit'] ?? '', // 限制页面（已通过 processArctypeData 处理为逗号分隔字符串）
             'update_time' => time(),
         ];
         
@@ -364,7 +429,6 @@ class ArctypeController extends Crud
      */
     protected function doSelect(array $where, ?string $field = null, string $order = 'desc')
     {
-        Log::info('log test');
         $model = $this->model;
         
         // 处理 where 条件，明确指定表名避免字段歧义
@@ -430,12 +494,79 @@ class ArctypeController extends Crud
             $item->pid = $item->parent_id;
             // 提供通用的名称字段给树选择接口
             $item->name = $item->typename;
+            // 兼容 pearDtree 组件的字段名
+            $item->parentId = $item->parent_id;
+            $item->title = $item->typename;
             // 如果没有关联到模型，显示空字符串
             if (empty($item->channel_name)) {
                 $item->channel_name = '';
             }
         }
         return $items;
+    }
+
+    /**
+     * 格式化树 - 重写父类方法，转换为 pearDtree 期望的格式
+     * @param $items
+     * @param $total
+     * @return Response
+     */
+    protected function formatTree($items, $total = 0): Response
+    {
+        if (empty($items)) {
+            return $this->json(0, 'ok', []);
+        }
+        
+        $format_items = [];
+        $primary_key = $this->model->getKeyName();
+        foreach ($items as $item) {
+            // 确保所有必要的字段都存在
+            $parentId = $item->pid ?? $item->parentId ?? $item->parent_id ?? 0;
+            $title = $item->title ?? $item->typename ?? $item->name ?? (string)$item->$primary_key;
+            
+            $format_items[] = [
+                'id' => (int)$item->$primary_key,
+                'parentId' => (int)$parentId,
+                'title' => (string)$title,
+            ];
+        }
+        
+        if (empty($format_items)) {
+            return $this->json(0, 'ok', []);
+        }
+        
+        $tree = new Tree($format_items, 'parentId');
+        $treeData = $tree->getTree();
+        
+        // 递归转换字段名，确保所有节点都符合 pearDtree 格式
+        $convertTree = function($nodes) use (&$convertTree) {
+            if (empty($nodes) || !is_array($nodes)) {
+                return [];
+            }
+            $result = [];
+            foreach ($nodes as $node) {
+                if (!is_array($node)) {
+                    continue;
+                }
+                // 确保 id 和 parentId 是字符串或数字（pearDtree 可能期望字符串）
+                $converted = [
+                    'id' => isset($node['id']) ? (string)$node['id'] : '0',
+                    'parentId' => isset($node['parentId']) ? (string)$node['parentId'] : '0',
+                    'title' => isset($node['title']) ? (string)$node['title'] : (isset($node['name']) ? (string)$node['name'] : ''),
+                ];
+                // 递归处理子节点
+                if (isset($node['children']) && is_array($node['children'])) {
+                    if (!empty($node['children'])) {
+                        $converted['children'] = $convertTree($node['children']);
+                    }
+                }
+                $result[] = $converted;
+            }
+            return $result;
+        };
+        
+        $treeData = $convertTree($treeData);
+        return $this->json(0, 'ok', $treeData);
     }
 
 

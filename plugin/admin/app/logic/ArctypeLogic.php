@@ -200,9 +200,34 @@ class ArctypeLogic
         $data['target'] = !empty($data['target']) ? 1 : 0;
         $data['nofollow'] = !empty($data['nofollow']) ? 1 : 0;
         
-        // 处理分页限制
-        if (isset($data['page_limit']) && is_array($data['page_limit'])) {
-            $data['page_limit'] = empty($data['page_limit']) ? '' : implode(',', $data['page_limit']);
+        // 处理分页限制（page_limit）
+        // 注意：inputFilter 已经将数组转换为逗号分隔的字符串，这里只需要清理和去重
+        if (isset($data['page_limit'])) {
+            if (is_array($data['page_limit'])) {
+                // 如果仍然是数组（inputFilter 可能未处理），转换为字符串并去重
+                $pageLimitArray = array_filter($data['page_limit'], function($value) {
+                    return !empty(trim($value));
+                });
+                $data['page_limit'] = empty($pageLimitArray) ? '' : implode(',', array_unique($pageLimitArray));
+            } else {
+                // 如果是字符串（inputFilter 已经转换），清理并去重
+                $data['page_limit'] = trim($data['page_limit']);
+                if ($data['page_limit'] !== '') {
+                    // 分割、去重、重新组合，避免重复值（如 "1,2,1,2" -> "1,2"）
+                    $pageLimitArray = array_filter(explode(',', $data['page_limit']), function($value) {
+                        $trimmed = trim($value);
+                        return $trimmed !== '';
+                    });
+                    // 去重并保持顺序
+                    $pageLimitArray = array_values(array_unique($pageLimitArray));
+                    $data['page_limit'] = empty($pageLimitArray) ? '' : implode(',', $pageLimitArray);
+                } else {
+                    $data['page_limit'] = '';
+                }
+            }
+        } else {
+            // 如果未设置，默认为空字符串
+            $data['page_limit'] = '';
         }
         
         // 处理封面图（本地/远程）
@@ -359,6 +384,21 @@ class ArctypeLogic
             'dirpath' => $parentInfo->dirpath ?? '',
             'diy_dirpath' => $parentInfo->diy_dirpath ?? '',
         ];
+    }
+
+    /**
+     * 过滤所有字段的文本，去掉前后空格
+     * @param array $data
+     * @return array
+     */
+    public function trimFields(array $data): array
+    {
+        foreach ($data as $key => $value) {
+            if (is_string($value)) {
+                $data[$key] = trim($value);
+            }
+        }
+        return $data;
     }
 }
 

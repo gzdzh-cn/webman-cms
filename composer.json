@@ -30,7 +30,8 @@
     "webman/admin": "~2.0",
     "webman/console": "^2.1",
     "vlucas/phpdotenv": "^5.6",
-    "overtrue/pinyin": "^6.0"
+    "overtrue/pinyin": "^6.0",
+    "topthink/think-template": "^3.0"
   },
   "suggest": {
     "ext-event": "For better performance. "

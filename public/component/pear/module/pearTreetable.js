@@ -81,6 +81,11 @@ layui.define(['layer', 'table'], function (exports) {
             var mData = [];
             var doneCallback = param.done;
             var tNodes = data;
+            
+            // 获取排序参数
+            var sortField = param.treeSortField || 'weight'; // 排序字段，默认为 'weight'
+            var sortOrder = param.treeSortOrder || 'asc'; // 排序方向，'asc' 或 'desc'，默认为 'asc'
+            
             for (var i = 0; i < tNodes.length; i++) {
                 var tt = tNodes[i];
                 if (!tt.id) {
@@ -126,17 +131,84 @@ layui.define(['layer', 'table'], function (exports) {
                     tree.push(map[l]);
                 }
             }
+            
+            // 递归排序函数
+            function sortTreeNodes(nodes) {
+                if (!nodes || !Array.isArray(nodes)) {
+                    return;
+                }
+                // 对当前层级排序
+                nodes.sort(function(a, b) {
+                    var valueA = a[sortField];
+                    var valueB = b[sortField];
+                    
+                    // 处理数字类型
+                    if (typeof valueA === 'number' || !isNaN(parseFloat(valueA))) {
+                        valueA = parseFloat(valueA) || 0;
+                    }
+                    if (typeof valueB === 'number' || !isNaN(parseFloat(valueB))) {
+                        valueB = parseFloat(valueB) || 0;
+                    }
+                    
+                    // 处理字符串类型
+                    if (typeof valueA === 'string') {
+                        valueA = valueA.toLowerCase();
+                    }
+                    if (typeof valueB === 'string') {
+                        valueB = valueB.toLowerCase();
+                    }
+                    
+                    // 处理 null 或 undefined
+                    if (valueA == null) valueA = '';
+                    if (valueB == null) valueB = '';
+                    
+                    var result = 0;
+                    if (valueA < valueB) {
+                        result = -1;
+                    } else if (valueA > valueB) {
+                        result = 1;
+                    } else {
+                        // 如果排序字段值相同，则按 id 排序
+                        var idA = parseFloat(a.id) || 0;
+                        var idB = parseFloat(b.id) || 0;
+                        result = idA - idB;
+                    }
+                    
+                    // 根据排序方向返回结果
+                    return sortOrder === 'desc' ? -result : result;
+                });
+                
+                // 递归排序子节点
+                for (var i = 0; i < nodes.length; i++) {
+                    if (nodes[i].children && Array.isArray(nodes[i].children) && nodes[i].children.length > 0) {
+                        sortTreeNodes(nodes[i].children);
+                    }
+                }
+            }
+            
+            // 对根节点排序
+            sortTreeNodes(tree);
+            
+            // 对每个节点的 children 排序
+            for (var nodeId in map) {
+                if (map[nodeId].children && Array.isArray(map[nodeId].children) && map[nodeId].children.length > 0) {
+                    sortTreeNodes(map[nodeId].children);
+                }
+            }
+            
             function travel(item)
             {
                 mData.push(item);
                 if (item.children) {
-                    for (var g in item.children) {
-                        travel(item.children[g]);
+                    // 使用数组索引遍历，确保顺序
+                    for (var i = 0; i < item.children.length; i++) {
+                        travel(item.children[i]);
                     }
                 }
             }
-            for (var h in tree) {
-                travel(tree[h]);
+            // 使用数组索引遍历，确保顺序
+            for (var i = 0; i < tree.length; i++) {
+                travel(tree[i]);
             }
 
             param.prevUrl = param.url;

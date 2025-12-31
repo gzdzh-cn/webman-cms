@@ -18,11 +18,14 @@
 
         <!-- 表格顶部工具栏 -->
         <script type="text/html" id="table-toolbar">
-            <button class="pear-btn pear-btn-primary pear-btn-md" lay-event="add" permission="app.admin.rule.insert">
+            <button class="pear-btn pear-btn-primary pear-btn-xs" lay-event="add" permission="app.admin.rule.insert">
                 <i class="layui-icon layui-icon-add-1"></i>新增
             </button>
-            <button class="pear-btn pear-btn-danger pear-btn-md" lay-event="batchRemove" permission="app.admin.rule.delete">
+            <button class="pear-btn pear-btn-danger pear-btn-xs" lay-event="batchRemove" permission="app.admin.rule.delete">
                 <i class="layui-icon layui-icon-delete"></i>删除
+            </button>
+            <button class="pear-btn pear-btn-normal pear-btn-xs" lay-event="expandFold" id="expand-fold-btn">
+                <i class="layui-icon layui-icon-spread-left"></i><span class="btn-text">展开</span>
             </button>
         </script>
 
@@ -55,6 +58,24 @@
                 let common = layui.pearCommon;
                 let treeTable = layui.pearTreetable;
                 let util = layui.util;
+                
+                // 树形表格展开/折叠状态（true=展开，false=折叠）
+                let isExpanded = false; // 初始状态为折叠（因为 treeDefaultClose: true）
+                
+                // 更新展开/折叠按钮显示
+                function updateExpandFoldButton(expanded) {
+                    var $btn = $('#expand-fold-btn');
+                    var $icon = $btn.find('i');
+                    var $text = $btn.find('.btn-text');
+                    if (expanded) {
+                        $icon.removeClass('layui-icon-spread-left').addClass('layui-icon-shrink-right');
+                        $text.text('折叠');
+                    } else {
+                        $icon.removeClass('layui-icon-shrink-right').addClass('layui-icon-spread-left');
+                        $text.text('展开');
+                    }
+                }
+                
 
                 // 表格头部列数据
                 let cols = [
@@ -134,6 +155,8 @@
                         treeIdName: "id",
                         treePidName: "pid",
                         treeDefaultClose: true,
+                        treeSortField: "weight", // 排序字段
+                        treeSortOrder: "asc", // 排序方向：asc 升序，desc 降序
                         cols: [cols],
                         skin: "line",
                         size: "lg",
@@ -142,7 +165,8 @@
                             title: "刷新",
                             layEvent: "refresh",
                             icon: "layui-icon-refresh",
-                        }, "filter", "print", "exports"]
+                        }, "filter", "print", "exports"],
+                    
                     });
                 }
 
@@ -201,6 +225,17 @@
                         refreshTable();
                     } else if (obj.event === "batchRemove") {
                         batchRemove(obj);
+                    } else if (obj.event === "expandFold") {
+                        // 切换展开/折叠状态
+                        if (isExpanded) {
+                            treeTable.foldAll("#data-table");
+                            isExpanded = false;
+                            updateExpandFoldButton(false);
+                        } else {
+                            treeTable.expandAll("#data-table");
+                            isExpanded = true;
+                            updateExpandFoldButton(true);
+                        }
                     }
                 });
 
@@ -272,7 +307,24 @@
 
                 // 刷新表格
                 window.refreshTable = function() {
+                    // 保存当前展开状态
+                    var wasExpanded = isExpanded;
+                    
+                    // 重新加载表格
                     treeTable.reload("#data-table");
+                    
+                    // 重新加载完成后，恢复展开状态
+                    // 使用 setTimeout 确保表格渲染完成后再执行展开操作
+                    setTimeout(function() {
+                        if (wasExpanded) {
+                            treeTable.expandAll("#data-table");
+                            isExpanded = true;
+                            updateExpandFoldButton(true);
+                        } else {
+                            isExpanded = false;
+                            updateExpandFoldButton(false);
+                        }
+                    }, 50);
                 }
             })
 

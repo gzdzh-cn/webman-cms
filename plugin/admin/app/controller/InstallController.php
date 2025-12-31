@@ -44,6 +44,7 @@ class InstallController extends Base
         $host = $request->post('host');
         $port = (int)$request->post('port') ?: 3306;
         $overwrite = $request->post('overwrite');
+        $table_prefix = $request->post('table_prefix', 'wa_'); // 从请求中读取表前缀，默认 'wa_'
 
         try {
             $db = $this->getPdo($host, $user, $password, $port);
@@ -67,14 +68,15 @@ class InstallController extends Base
             throw $e;
         }
 
+        // 使用动态表前缀构建要安装的表名
         $tables_to_install = [
-            'wa_admins',
-            'wa_admin_roles',
-            'wa_roles',
-            'wa_rules',
-            'wa_options',
-            'wa_users',
-            'wa_uploads',
+            $table_prefix . 'admins',
+            $table_prefix . 'admin_roles',
+            $table_prefix . 'roles',
+            $table_prefix . 'rules',
+            $table_prefix . 'options',
+            $table_prefix . 'users',
+            $table_prefix . 'uploads',
         ];
 
         $tables_exist = [];
@@ -98,6 +100,9 @@ class InstallController extends Base
         }
 
         $sql_query = file_get_contents($sql_file);
+        // 替换 SQL 中的表前缀：将 'wa_' 替换为实际配置的前缀
+        $sql_query = str_replace('`wa_', '`' . $table_prefix, $sql_query);
+        $sql_query = str_replace("'wa_", "'" . $table_prefix, $sql_query);
         $sql_query = $this->removeComments($sql_query);
         $sql_query = $this->splitSqlFile($sql_query, ';');
         foreach ($sql_query as $sql) {
@@ -109,6 +114,7 @@ class InstallController extends Base
         // 安装过程中没有数据库配置，无法使用api\Menu::import()方法
         $this->importMenu($menus, $db);
 
+        $table_prefix_escaped = addslashes($table_prefix);
         $config_content = <<<EOF
 <?php
 return  [
@@ -123,7 +129,7 @@ return  [
             'password'    => '$password',
             'charset'     => 'utf8mb4',
             'collation'   => 'utf8mb4_general_ci',
-            'prefix'      => '',
+            'prefix'      => getenv('DB_PREFIX') ?: '$table_prefix_escaped', // 从 .env 读取表前缀，默认使用安装时设置的前缀
             'strict'      => true,
             'engine'      => null,
         ],
@@ -159,7 +165,7 @@ return [
             // 数据库编码默认采用utf8
             'charset' => 'utf8mb4',
             // 数据库表前缀
-            'prefix' => '',
+            'prefix' => getenv('ADMIN_TABLE_PREFIX') ?: '$table_prefix_escaped',
             // 断线重连
             'break_reconnect' => true,
             // 关闭SQL监听日志

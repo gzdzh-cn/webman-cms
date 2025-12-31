@@ -47,7 +47,7 @@ class IndexController
             $name = 'system_config';
             $config = Option::where('name', $name)->value('value');
             $config = json_decode($config, true);
-            $title = $config['logo']['title'] ?? 'webman admin';
+            $title = $config['logo']['title'] ?? 'webman cms';
             $logo = $config['logo']['image'] ?? '/app/admin/admin/images/logo.png';
             return raw_view('account/login',['logo'=>$logo,'title'=>$title]);
         }
