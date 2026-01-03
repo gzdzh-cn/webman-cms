@@ -39,59 +39,165 @@ class ChannelfieldController extends Crud
      */
     public function index(Request $request): Response
     {
-        // 如果是数据请求（有 page 或 limit 参数），返回 JSON 数据
-        if ($request->get('page') || $request->get('limit')) {
-            $channel_id = (int)$request->get('channel_id', 0);
-            $page = (int)$request->get('page', 1);
-            $limit = (int)$request->get('limit', 10);
-            
-            $query = Channelfield::where('ifcontrol', 0);
-            
-            // 通过 channel_id 筛选
-            if ($channel_id > 0) {
-                $query = $query->where('channel_id', $channel_id);
+        return view('channelfield/index', ['channel_id' => $request->get('channel_id', 0)]);
+    }
+
+    /**
+     * 查询前置方法（重写父类方法）
+     * @param Request $request
+     * @return array
+     * @throws BusinessException
+     */
+    protected function selectInput(Request $request): array
+    {
+        [$where, $format, $limit, $field, $order, $page] = parent::selectInput($request);
+        
+        // 添加默认条件：ifcontrol = 0
+        $where['ifcontrol'] = 0;
+        
+        return [$where, $format, $limit, $field, $order, $page];
+    }
+
+    /**
+     * 指定查询where条件,并没有真正的查询数据库操作
+     * 重写父类方法，添加联查模型表
+     * @param array $where
+     * @param string|null $field
+     * @param string $order
+     * @return \Illuminate\Database\Eloquent\Builder|\Illuminate\Database\Query\Builder|\support\Model
+     */
+    protected function doSelect(array $where, ?string $field = null, string $order = 'desc')
+    {
+        $model = $this->model;
+        
+        // 处理 where 条件，明确指定表名避免字段歧义
+        foreach ($where as $column => $value) {
+            // 如果字段名不包含表名，添加表名前缀
+            if (strpos($column, '.') === false) {
+                $column = 'channelfield.' . $column;
             }
             
-            // 搜索条件 - 支持 keywords 和 keyword 两种参数名（兼容原项目）
-            $keywords = trim($request->get('keywords', '') ?: $request->get('keyword', ''));
-            if ($keywords) {
-                $keywords = addslashes($keywords); // 防止SQL注入
-                $query = $query->where(function($q) use ($keywords) {
-                    $q->where('channelfield.title', 'like', "%{$keywords}%")
-                      ->orWhere('channelfield.name', 'like', "%{$keywords}%");
-                });
+            // 特殊处理 is_release 和 ifsystem 的复杂条件
+            if ($column === 'channelfield.is_release' && $value !== null) {
+                // 移除 is_release 条件，稍后单独处理
+                continue;
             }
             
-            // 关联查询模型名称和字段类型标题
-            $query = $query
-                ->leftJoin('channeltype', 'channelfield.channel_id', '=', 'channeltype.id')
-                ->leftJoin('field_type', 'channelfield.dtype', '=', 'field_type.name')
-                ->select('channelfield.*', 'channeltype.title as channel_title', 'field_type.title as dtitle');
-            
-            // 排序：系统字段优先，然后按排序字段和ID排序（参考原项目：ifsystem desc, id asc）
-            $query = $query->orderBy('channelfield.ifsystem', 'desc')
-                          ->orderBy('channelfield.sort_order', 'asc')
-                          ->orderBy('channelfield.id', 'asc');
-            
-            // 使用 paginate 进行分页
-            $paginator = $query->paginate($limit, ['*'], 'page', $page);
-            
-            $items = $paginator->items();
-            $data = [];
-            foreach ($items as $item) {
-                $row = is_array($item) ? $item : $item->toArray();
-                // 如果没有关联到模型，显示"通用"或空
-                if (empty($row['channel_title'])) {
-                    $row['channel_title'] = $row['channel_id'] == 0 ? '通用' : '';
+            if (is_array($value)) {
+                if ($value[0] === 'like' || $value[0] === 'not like') {
+                    $model = $model->where($column, $value[0], "%$value[1]%");
+                } elseif (in_array($value[0], ['>', '=', '<', '<>'])) {
+                    $model = $model->where($column, $value[0], $value[1]);
+                } elseif ($value[0] == 'in' && !empty($value[1])) {
+                    $valArr = $value[1];
+                    if (is_string($value[1])) {
+                        $valArr = explode(",", trim($value[1]));
+                    }
+                    $model = $model->whereIn($column, $valArr);
+                } elseif ($value[0] == 'not in' && !empty($value[1])) {
+                    $valArr = $value[1];
+                    if (is_string($value[1])) {
+                        $valArr = explode(",", trim($value[1]));
+                    }
+                    $model = $model->whereNotIn($column, $valArr);
+                } elseif ($value[0] == 'null') {
+                    $model = $model->whereNull($column);
+                } elseif ($value[0] == 'not null') {
+                    $model = $model->whereNotNull($column);
+                } elseif ($value[0] !== '' || $value[1] !== '') {
+                    $model = $model->whereBetween($column, $value);
                 }
-                $data[] = $row;
+            } else {
+                $model = $model->where($column, $value);
             }
-            
-            return json(['code' => 0, 'msg' => 'ok', 'count' => $paginator->total(), 'data' => $data]);
         }
         
-        // 否则返回视图
-        return view('channelfield/index', ['channel_id' => $request->get('channel_id', 0)]);
+        // 处理 is_release 和 ifsystem 的复杂条件
+        // 条件：(is_release=1 AND ifsystem=1) OR (is_release=0 AND ifsystem=0)
+        if (isset($where['is_release']) && $where['is_release'] !== null) {
+            $model = $model->where(function($q) {
+                $q->where(function($subQ) {
+                    $subQ->where('channelfield.is_release', 1)
+                         ->where('channelfield.ifsystem', 1);
+                })->orWhere(function($subQ) {
+                    $subQ->where('channelfield.is_release', 0)
+                         ->where('channelfield.ifsystem', 0);
+                });
+            });
+        }
+        
+        // 处理搜索条件 - 支持 keywords 和 keyword 两种参数名（兼容原项目）
+        $request = request();
+        $keywords = trim($request->get('keywords', '') ?: $request->get('keyword', ''));
+        if ($keywords) {
+            $keywords = addslashes($keywords); // 防止SQL注入
+            $model = $model->where(function($q) use ($keywords) {
+                $q->where('channelfield.title', 'like', "%{$keywords}%")
+                  ->orWhere('channelfield.name', 'like', "%{$keywords}%");
+            });
+        }
+        
+        // 处理排序字段，明确指定表名
+        if ($field) {
+            if (strpos($field, '.') === false) {
+                $field = 'channelfield.' . $field;
+            }
+            $model = $model->orderBy($field, $order);
+        } else {
+            // 默认排序：系统字段优先，然后按排序字段和ID排序
+            $model = $model->orderBy('channelfield.ifsystem', 'desc')
+                          ->orderBy('channelfield.sort_order', 'asc')
+                          ->orderBy('channelfield.id', 'asc');
+        }
+        
+        // 处理 typeid 参数：如果提供了 typeid，根据绑定关系过滤字段
+        // 规则：系统字段（ifsystem=1）始终显示，非系统字段（ifsystem=0）只显示绑定到该栏目的字段
+        $request = request();
+        $typeid = (int)$request->get('typeid', 0);
+        if ($typeid > 0) {
+            // 使用 left join 连接 channelfield_bind 表，以便判断是否有绑定关系
+            $model = $model->leftJoin('channelfield_bind', function($join) use ($typeid) {
+                $join->on('channelfield.id', '=', 'channelfield_bind.field_id')
+                     ->where('channelfield_bind.typeid', '=', $typeid);
+            });
+            
+            // 添加过滤条件：系统字段（ifsystem=1）始终显示，非系统字段（ifsystem=0）只显示绑定的
+            $model = $model->where(function($q) {
+                $q->where('channelfield.ifsystem', '=', 1)  // 系统字段始终显示
+                  ->orWhere(function($subQ) {
+                      $subQ->where('channelfield.ifsystem', '=', 0)  // 非系统字段
+                           ->whereNotNull('channelfield_bind.typeid');  // 必须有绑定关系
+                  });
+            });
+        }
+        
+        // 联查模型表，获取模型名称和字段类型标题
+        $model = $model->leftJoin('channeltype', 'channelfield.channel_id', '=', 'channeltype.id')
+                      ->leftJoin('field_type', 'channelfield.dtype', '=', 'field_type.name')
+                      ->select('channelfield.*', 'channeltype.title as channel_title', 'field_type.title as dtitle');
+        
+        // 如果有 typeid 过滤，需要去重（因为 join 可能会产生重复记录）
+        if ($typeid > 0) {
+            $model = $model->distinct();
+        }
+        
+        return $model;
+    }
+
+    /**
+     * 查询后置处理：补充栏目名称等字段
+     * @param mixed $items
+     * @return mixed
+     */
+    protected function afterQuery($items)
+    {
+        foreach ($items as $item) {
+            // 如果没有关联到模型，显示"通用"或空
+            if (empty($item->channel_title)) {
+                $item->channel_title = $item->channel_id == 0 ? '通用' : '';
+            }
+        }
+        return $items;
     }
 
     /**
@@ -356,6 +462,22 @@ class ChannelfieldController extends Crud
         $channel_id = $channelfield->channel_id;
         $post = $request->post();
         
+        // 如果只传了 id 和 ifeditable，只更新 ifeditable 字段（用于隐藏/显示功能）
+        if (isset($post['ifeditable']) && count($post) <= 2) {
+            $channelfield->ifeditable = (int)$post['ifeditable'];
+            $channelfield->update_time = time();
+            $channelfield->save();
+            return $this->json(0, 'ok', ['id' => $id]);
+        }
+        
+        // 如果只传了 id 和 sort_order，只更新 sort_order 字段（用于双击修改排序）
+        if (isset($post['sort_order']) && count($post) <= 2) {
+            $channelfield->sort_order = (int)$post['sort_order'];
+            $channelfield->update_time = time();
+            $channelfield->save();
+            return $this->json(0, 'ok', ['id' => $id]);
+        }
+        
         // 使用共享逻辑处理字段数据（更新时排除旧字段名）
         $fieldLogic = new FieldLogic();
         $oldFieldName = $channelfield->name; // 获取旧字段名
@@ -406,6 +528,7 @@ class ChannelfieldController extends Crud
             'remark' => $post['remark'] ?? '',
             'dfvalue_unit' => $post['dfvalue_unit'] ?? '',
             'set_type' => (int)($post['set_type'] ?? 0),
+            'ifeditable' => isset($post['ifeditable']) ? (int)$post['ifeditable'] : $channelfield->ifeditable,
         ]);
         $channelfield->save();
         

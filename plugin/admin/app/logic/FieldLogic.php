@@ -648,5 +648,121 @@ class FieldLogic
             ]
         ];
     }
+
+    /**
+     * 处理动态字段的值（用于 insert 和 update）
+     * 根据字段类型转换和验证字段值
+     * @param array $dataExt 字段数据
+     * @param int $channel_id 模型ID
+     * @return array 处理后的字段数据
+     */
+    public function handleAddonField($channel_id, $dataExt)
+    {
+        $nowDataExt = [];
+        if (!empty($dataExt) && !empty($channel_id)) {
+            // 获取字段类型列表
+            $fieldTypeList = Channelfield::where('channel_id', $channel_id)
+                ->pluck('dtype', 'name')
+                ->toArray();
+            
+            foreach ($dataExt as $key => $val) {
+                // 处理远程/本地图片字段的后缀
+                $key = preg_replace('/^(.*)(_eyou_is_remote|_eyou_remote|_eyou_local)$/', '$1', $key);
+                
+                $dtype = !empty($fieldTypeList[$key]) ? $fieldTypeList[$key] : '';
+                
+                switch ($dtype) {
+                    case 'checkbox':
+                    case 'checkboxs':
+                        // 复选框：将数组转换为逗号分隔的字符串
+                        if (is_array($val)) {
+                            $val = implode(',', array_filter($val));
+                        }
+                        break;
+
+                    case 'switch':
+                    case 'int':
+                        // 开关/整数：转换为整数
+                        $val = intval($val);
+                        break;
+
+                    case 'img':
+                        // 单图：处理远程/本地图片
+                        $is_remote = !empty($dataExt[$key.'_eyou_is_remote']) ? $dataExt[$key.'_eyou_is_remote'] : 0;
+                        if (1 == $is_remote) {
+                            $val = $dataExt[$key.'_eyou_remote'] ?? '';
+                        } else {
+                            $val = $dataExt[$key.'_eyou_local'] ?? '';
+                        }
+                        break;
+
+                    case 'imgs':
+                        // 多图：序列化为数组格式
+                        if (is_array($val)) {
+                            $imgData = [];
+                            $imgsIntroArr = !empty($dataExt[$key.'_eyou_intro']) ? $dataExt[$key.'_eyou_intro'] : [];
+                            foreach ($val as $k2 => $v2) {
+                                $v2 = trim($v2);
+                                if (!empty($v2)) {
+                                    $imgData[] = [
+                                        'image_url' => $v2,
+                                        'intro' => !empty($imgsIntroArr[$k2]) ? $imgsIntroArr[$k2] : '',
+                                    ];
+                                }
+                            }
+                            $val = serialize($imgData);
+                        }
+                        break;
+
+                    case 'files':
+                        // 文件：将数组转换为逗号分隔的字符串
+                        if (is_array($val)) {
+                            foreach ($val as $k2 => $v2) {
+                                if (empty($v2)) {
+                                    unset($val[$k2]);
+                                    continue;
+                                }
+                                $val[$k2] = trim($v2);
+                            }
+                            $val = implode(',', $val);
+                        }
+                        break;
+
+                    case 'datetime':
+                        // 日期时间：转换为时间戳
+                        $val = !empty($val) ? strtotime($val) : time();
+                        break;
+
+                    case 'decimal':
+                        // 小数：保留两位小数
+                        $moneyArr = explode('.', $val);
+                        $money1 = !empty($moneyArr[0]) ? intval($moneyArr[0]) : '0';
+                        $money2 = !empty($moneyArr[1]) ? substr($moneyArr[1], 0, 2) : '00';
+                        $val = $money1.'.'.$money2;
+                        break;
+                    
+                    default:
+                        // 其他类型：去除空格，数组转换为逗号分隔字符串
+                        if (is_array($val)) {
+                            $new_val = [];
+                            foreach ($val as $_k => $_v) {
+                                $_v = trim($_v);
+                                if (!empty($_v)) {
+                                    $new_val[] = $_v;
+                                }
+                            }
+                            $val = $new_val;
+                        } else {
+                            $val = trim($val);
+                        }
+                        break;
+                }
+                
+                $nowDataExt[$key] = $val;
+            }
+        }
+
+        return $nowDataExt;
+    }
 }
 

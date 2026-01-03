@@ -28,17 +28,17 @@
         <button class="pear-btn pear-btn-danger pear-btn-xs" lay-event="batchRemove" permission="app.admin.arctype.delete">
             <i class="layui-icon layui-icon-delete"></i>删除
         </button>
-        <button class="pear-btn pear-btn-success pear-btn-xs" id="expand-fold-btn" lay-event="expandFold">
+        <button class="pear-btn pear-btn-normal pear-btn-xs" id="expand-fold-btn" lay-event="expandFold">
             <i class="layui-icon layui-icon-spread-left"></i><span class="btn-text">展开</span>
         </button>
     </script>
 
     <!-- 表格行工具栏 -->
     <script type="text/html" id="table-bar">
-        <span class="pear-text pear-text-primary" lay-event="content" permission="app.admin.arctype.delete">内容 |</span>
+        <!-- <span class="pear-text pear-text-primary" lay-event="content" permission="app.admin.arctype.delete">内容 |</span> -->
         <span class="pear-text pear-text-primary" lay-event="edit" permission="app.admin.arctype.update">编辑 |</span>
         <span class="pear-text pear-text-primary" lay-event="addSub" permission="app.admin.arctype.insert">增加子栏目 |</span>
-        <span class="pear-text pear-text-primary" lay-event="preview" permission="app.admin.arctype.preview">预览 |</span>
+        <!-- <span class="pear-text pear-text-primary" lay-event="preview" permission="app.admin.arctype.preview">预览 |</span> -->
         <span class="pear-text pear-text-danger" lay-event="remove" permission="app.admin.arctype.delete">删除</span>
     </script>
 
@@ -78,6 +78,60 @@
             
             // 树形表格展开/折叠状态（true=展开，false=折叠）
             let isExpanded = false; // 初始状态为折叠（因为 treeDefaultClose: true）
+            
+            // 保存展开的节点 ID 集合（用于刷新后恢复部分展开状态）
+            let expandedNodeIds = new Set();
+            
+            // 获取当前所有展开的节点 ID
+            function getExpandedNodeIds() {
+                var ids = new Set();
+                var $table = $('#data-table').next('.treeTable');
+                if ($table.length > 0) {
+                    var openIcons = $table.find('.treeTable-icon.open');
+                    openIcons.each(function() {
+                        var nodeId = $(this).attr('lay-tid');
+                        if (nodeId) {
+                            ids.add(nodeId);
+                        }
+                    });
+                }
+                return ids;
+            }
+            
+            // 展开指定的节点
+            function expandNodes(nodeIds) {
+                if (!nodeIds || nodeIds.size === 0) {
+                    return;
+                }
+                var $table = $('#data-table').next('.treeTable');
+                if ($table.length === 0) {
+                    return;
+                }
+                
+                // 需要多次尝试，因为节点可能还没有完全渲染
+                var attempts = 0;
+                var maxAttempts = 10;
+                var expandInterval = setInterval(function() {
+                    attempts++;
+                    var expanded = 0;
+                    $table.find('.treeTable-icon').each(function() {
+                        var $icon = $(this);
+                        var nodeId = $icon.attr('lay-tid');
+                        var ttype = $icon.attr('lay-ttype');
+                        var isOpen = $icon.hasClass('open');
+                        
+                        if (nodeId && nodeIds.has(nodeId) && ttype === 'dir' && !isOpen) {
+                            $icon.trigger('click');
+                            expanded++;
+                        }
+                    });
+                    
+                    // 如果所有节点都已展开，或者达到最大尝试次数，停止
+                    if (expanded === 0 || attempts >= maxAttempts) {
+                        clearInterval(expandInterval);
+                    }
+                }, 50);
+            }
             
             // 更新展开/折叠按钮显示
             function updateExpandFoldButton(expanded) {
@@ -201,10 +255,12 @@
                     if (isExpanded) {
                         treetable.foldAll("#data-table");
                         isExpanded = false;
+                        expandedNodeIds.clear(); // 清空展开节点集合
                         updateExpandFoldButton(false);
                     } else {
                         treetable.expandAll("#data-table");
                         isExpanded = true;
+                        expandedNodeIds.clear(); // 全部展开时清空，因为所有节点都展开了
                         updateExpandFoldButton(true);
                     }
                 }
@@ -251,7 +307,7 @@
                     title: "新增",
                     shade: 0.1,
                     maxmin: true,
-                    area: [common.isModile() ? "100%" : "700px", common.isModile() ? "100%" : "60%"],
+                    area: [common.isModile() ? "100%" : "60%", common.isModile() ? "100%" : "80%"],
                     content: INSERT_URL
                 });
             }
@@ -264,7 +320,7 @@
                     title: "修改",
                     shade: 0.1,
                     maxmin: true,
-                    area: [common.isModile() ? "100%" : "700px", common.isModile() ? "100%" : "90%"],
+                    area: [common.isModile() ? "100%" : "60%", common.isModile() ? "100%" : "80%"],
                     content: UPDATE_URL + "?" + PRIMARY_KEY + "=" + value
                 });
             }
@@ -277,7 +333,7 @@
                     title: "增加子栏目",
                     shade: 0.1,
                     maxmin: true,
-                    area: [common.isModile() ? "100%" : "700px", common.isModile() ? "100%" : "90%"],
+                    area: [common.isModile() ? "100%" : "60%", common.isModile() ? "100%" : "80%"],
                     content: INSERT_URL + "?parent_id=" + parentId
                 });
             }
@@ -327,6 +383,8 @@
             window.refreshTable = function () {
                 // 保存当前展开状态
                 var wasExpanded = isExpanded;
+                // 保存当前展开的节点 ID（在 reload 之前保存，因为 reload 会重新渲染）
+                var savedExpandedNodeIds = getExpandedNodeIds();
                 
                 // 重新加载表格
                 treetable.reload("#data-table");
@@ -335,15 +393,65 @@
                 // 使用 setTimeout 确保表格渲染完成后再执行展开操作
                 setTimeout(function() {
                     if (wasExpanded) {
+                        // 如果之前是全部展开，则展开所有
                         treetable.expandAll("#data-table");
                         isExpanded = true;
+                        expandedNodeIds.clear(); // 全部展开时清空节点集合
                         updateExpandFoldButton(true);
+                    } else if (savedExpandedNodeIds.size > 0) {
+                        // 如果之前是部分展开，则恢复部分展开的节点
+                        expandedNodeIds = savedExpandedNodeIds;
+                        expandNodes(expandedNodeIds);
+                        // 部分展开时，按钮状态根据实际展开的节点数量决定
+                        setTimeout(function() {
+                            var $table = $('#data-table').next('.treeTable');
+                            if ($table.length > 0) {
+                                var totalDirs = $table.find('.treeTable-icon[lay-ttype="dir"]').length;
+                                var openDirs = $table.find('.treeTable-icon[lay-ttype="dir"].open').length;
+                                // 只有当所有节点都展开时，才认为是全部展开
+                                isExpanded = (totalDirs > 0 && openDirs === totalDirs);
+                                // 如果所有节点都展开了，清空节点集合（因为已经是全部展开状态）
+                                if (isExpanded) {
+                                    expandedNodeIds.clear();
+                                }
+                                updateExpandFoldButton(isExpanded);
+                            }
+                        }, 200);
                     } else {
                         isExpanded = false;
+                        expandedNodeIds.clear();
                         updateExpandFoldButton(false);
                     }
                 }, 50);
             }
+            
+            // 监听节点展开/折叠事件，更新展开节点集合
+            $(document).on('click', '.treeTable .treeTable-icon', function() {
+                // 延迟执行，确保 DOM 状态已更新
+                setTimeout(function() {
+                    var $table = $('#data-table').next('.treeTable');
+                    if ($table.length > 0) {
+                        var totalDirs = $table.find('.treeTable-icon[lay-ttype="dir"]').length;
+                        var openDirs = $table.find('.treeTable-icon[lay-ttype="dir"].open').length;
+                        
+                        // 更新展开节点集合
+                        expandedNodeIds = getExpandedNodeIds();
+                        
+                        // 只有当所有节点都展开时，才认为是全部展开
+                        var allExpanded = (totalDirs > 0 && openDirs === totalDirs);
+                        if (allExpanded) {
+                            // 如果所有节点都展开了，清空节点集合（因为已经是全部展开状态）
+                            expandedNodeIds.clear();
+                            isExpanded = true;
+                        } else {
+                            // 部分展开时，保持 isExpanded 为 false（除非之前是全部展开状态）
+                            // 这里不改变 isExpanded，只根据实际展开的节点更新按钮显示
+                            isExpanded = false;
+                        }
+                        updateExpandFoldButton(isExpanded);
+                    }
+                }, 50);
+            });
 
             // 更新字段到数据库
             function updateField(id, field, value, callback) {

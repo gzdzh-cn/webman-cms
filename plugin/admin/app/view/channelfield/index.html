@@ -46,12 +46,12 @@
     <!-- 表格行工具栏 -->
     <script type="text/html" id="table-bar">
         {{#  if(d.ifsystem == 1){ }}
-            <button class="pear-btn pear-btn-xs tool-btn pear-text" >隐藏</button>
+            <button class="pear-btn pear-btn-xs tool-btn pear-text" lay-event="hide" permission="app.admin.channelfield.update">{{#  if(d.ifeditable == 0){ }}显示{{#  } else { }}隐藏{{#  } }}</button>
             <button class="pear-btn pear-btn-xs tool-btn system-disabled" disabled>编辑</button>
             <button class="pear-btn pear-btn-xs tool-btn system-disabled" disabled>删除</button>
             <button class="pear-btn pear-btn-xs tool-btn pear-text" lay-event="tagCall" permission="app.admin.channelfield.tagCall">标签调用</button>
         {{#  } else { }}
-            <button class="pear-btn pear-btn-xs tool-btn pear-text" lay-event="hide" permission="app.admin.channelfield.update">隐藏</button>
+            <button class="pear-btn pear-btn-xs tool-btn pear-text" lay-event="hide" permission="app.admin.channelfield.update">{{#  if(d.ifeditable == 0){ }}显示{{#  } else { }}隐藏{{#  } }}</button>
             <button class="pear-btn pear-btn-xs tool-btn pear-text" lay-event="edit" permission="app.admin.channelfield.update">编辑</button>
             <button class="pear-btn pear-btn-xs tool-btn pear-text" lay-event="remove" permission="app.admin.channelfield.delete">删除</button>
             <button class="pear-btn pear-btn-xs tool-btn pear-text" lay-event="tagCall" permission="app.admin.channelfield.tagCall">标签调用</button>
@@ -67,7 +67,7 @@
 
         // 相关常量
         const PRIMARY_KEY = "id";
-        const SELECT_API = "/app/admin/channelfield/index" + location.search;
+        const SELECT_API = "/app/admin/channelfield/select" + location.search;
         const DELETE_API = "/app/admin/channelfield/delete";
         const UPDATE_API = "/app/admin/channelfield/update";
         const INSERT_URL = "/app/admin/channelfield/insert" + location.search;
@@ -263,23 +263,59 @@
             // 隐藏/显示字段
             let hide = function (obj) {
                 var id = obj.data[PRIMARY_KEY];
-                var status = obj.data.status || 0;
-                var newStatus = status == 1 ? 0 : 1;
-                var statusText = newStatus == 1 ? '显示' : '隐藏';
+                if (!id) {
+                    layui.pearPopup.failure("ID不能为空");
+                    return;
+                }
+                var ifeditable = obj.data.ifeditable || 0;
+                var newIfeditable = ifeditable == 1 ? 0 : 1;
+                var newText = newIfeditable == 0 ? '显示' : '隐藏';
                 
+                // 立即更新表格数据
+                obj.data.ifeditable = newIfeditable;
+                obj.update({
+                    ifeditable: newIfeditable
+                });
+                
+                // 立即更新按钮文字（直接操作 DOM）
+                var $btn = $(obj.tr).find('button[lay-event="hide"]');
+                if ($btn.length > 0) {
+                    $btn.text(newText);
+                }
+                
+                var loadingIndex = layer.load();
                 $.ajax({
                     url: UPDATE_API,
                     data: {
                         id: id,
-                        status: newStatus
+                        ifeditable: newIfeditable
                     },
                     dataType: "json",
                     type: "post",
                     success: function (res) {
+                        layer.close(loadingIndex);
                         if (res.code) {
+                            // 请求失败，恢复原来的状态
+                            obj.data.ifeditable = ifeditable;
+                            obj.update({
+                                ifeditable: ifeditable
+                            });
+                            var oldText = ifeditable == 0 ? '显示' : '隐藏';
+                            $btn.text(oldText);
                             return layui.pearPopup.failure(res.msg);
                         }
-                        layui.pearPopup.success("操作成功", refreshTable);
+                        layui.pearPopup.success("操作成功");
+                    },
+                    error: function(xhr, status, error) {
+                        layer.close(loadingIndex);
+                        // 请求失败，恢复原来的状态
+                        obj.data.ifeditable = ifeditable;
+                        obj.update({
+                            ifeditable: ifeditable
+                        });
+                        var oldText = ifeditable == 0 ? '显示' : '隐藏';
+                        $btn.text(oldText);
+                        layui.pearPopup.failure("请求失败: " + error);
                     }
                 });
             }

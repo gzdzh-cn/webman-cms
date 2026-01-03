@@ -77,6 +77,25 @@ class ArctypeController extends Crud
     public function update(Request $request): Response
     {
         if ($request->method() === 'POST') {
+            $id = (int)($request->post('id', 0) ?: $request->get('id', 0));
+            if (!$id) {
+                return $this->json(1, 'ID不能为空');
+            }
+            
+            $post = $request->post();
+            
+            // 如果只传了 id 和 sort_order，只更新 sort_order 字段（用于双击修改排序）
+            if (isset($post['sort_order']) && count($post) <= 2) {
+                $arctype = Arctype::find($id);
+                if (!$arctype) {
+                    return $this->json(1, '记录不存在');
+                }
+                $arctype->sort_order = (int)$post['sort_order'];
+                $arctype->update_time = time();
+                $arctype->save();
+                return $this->json(0, 'ok', ['id' => $id]);
+            }
+            
             // 在 inputFilter 之前获取 inherit_option（因为这不是数据库字段，会被过滤）
             $inheritOption = $request->post('inherit_option', 0);
             $inheritOption = ($inheritOption == 1 || $inheritOption === '1') ? 1 : 0;
@@ -105,6 +124,7 @@ class ArctypeController extends Crud
         }
         return view('arctype/update');
     }
+
     
     /**
      * 更新所有下级栏目的继承字段

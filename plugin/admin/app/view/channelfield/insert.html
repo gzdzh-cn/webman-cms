@@ -235,6 +235,34 @@
                     var $container = $('#typeids-tree');
                     $container.empty();
 
+                    // 递归获取所有栏目的ID（用于"全部栏目"选项）
+                    function getAllTypeIds(nodes) {
+                        var ids = [];
+                        if (!Array.isArray(nodes)) return ids;
+                        nodes.forEach(function (node) {
+                            // 判断是否可勾选（checkable: 1=可勾选，0=不可勾选）
+                            var checkable = node.checkable !== undefined ? node.checkable : 1;
+                            if (checkable == 1 && node.id) {
+                                ids.push(node.id);
+                            }
+                            if (Array.isArray(node.children) && node.children.length > 0) {
+                                ids = ids.concat(getAllTypeIds(node.children));
+                            }
+                        });
+                        return ids;
+                    }
+
+                    // 获取所有栏目的ID
+                    var allTypeIds = getAllTypeIds(res.data);
+
+                    // 在最上面添加"全部栏目"选项
+                    var $allItem = $('<li class="typeids-tree-li" style="line-height:24px; margin-bottom: 5px; padding-bottom: 5px; border-bottom: 1px solid #e6e6e6;"></li>');
+                    var $allLabel = $('<label style="cursor:pointer; font-weight: bold;"></label>');
+                    var $allCheckbox = $('<input type="checkbox" lay-skin="primary" class="typeid-checkbox typeid-checkbox-all" data-id="all" value="all" />');
+                    $allLabel.append($allCheckbox).append(' 全部栏目');
+                    $allItem.append($allLabel);
+                    $container.append($allItem);
+
                     // 递归渲染树形结构
                     function renderTree(nodes, $parent) {
                         if (!Array.isArray(nodes) || nodes.length === 0) return;
@@ -279,16 +307,71 @@
                     // 绑定 change 事件：只收集用户实际勾选的 ID（排除禁用的 checkbox）
                     function refreshTypeids() {
                         var ids = [];
-                        $container.find('.typeid-checkbox:checked:not(:disabled)').each(function () {
-                            var id = $(this).attr('data-id');
-                            if (id) {
-                                ids.push(id);
-                            }
-                        });
+                        var isAllChecked = $container.find('.typeid-checkbox-all:checked').length > 0;
+                        
+                        if (isAllChecked) {
+                            // 如果选中了"全部栏目"，使用所有栏目的ID
+                            ids = allTypeIds.slice(); // 复制数组
+                        } else {
+                            // 否则只收集实际勾选的ID
+                            $container.find('.typeid-checkbox:checked:not(:disabled)').each(function () {
+                                var id = $(this).attr('data-id');
+                                if (id && id !== 'all') {
+                                    ids.push(id);
+                                }
+                            });
+                        }
                         $('#typeids-input').val(ids.join(','));
                     }
 
-                    $container.off('change', '.typeid-checkbox').on('change', '.typeid-checkbox', function () {
+                    // 默认选中"全部栏目"
+                    var $allCheckbox = $container.find('.typeid-checkbox-all');
+                    if ($allCheckbox.length > 0) {
+                        // 选中"全部栏目"复选框
+                        $allCheckbox.prop('checked', true);
+                        // 自动勾选所有其他栏目
+                        $container.find('.typeid-checkbox:not(.typeid-checkbox-all):not(:disabled)').each(function () {
+                            $(this).prop('checked', true);
+                        });
+                        // 重新渲染复选框样式
+                        form.render('checkbox');
+                        // 刷新栏目ID
+                        refreshTypeids();
+                    }
+
+                    // 监听"全部栏目"选项的变化
+                    $container.off('change', '.typeid-checkbox-all').on('change', '.typeid-checkbox-all', function () {
+                        var isChecked = $(this).prop('checked');
+                        // 如果选中"全部栏目"，自动勾选所有其他栏目
+                        if (isChecked) {
+                            $container.find('.typeid-checkbox:not(.typeid-checkbox-all):not(:disabled)').each(function () {
+                                $(this).prop('checked', true);
+                                form.render('checkbox');
+                            });
+                        } else {
+                            // 如果取消"全部栏目"，取消勾选所有其他栏目
+                            $container.find('.typeid-checkbox:not(.typeid-checkbox-all):not(:disabled)').each(function () {
+                                $(this).prop('checked', false);
+                                form.render('checkbox');
+                            });
+                        }
+                        refreshTypeids();
+                    });
+
+                    // 监听其他栏目选项的变化
+                    $container.off('change', '.typeid-checkbox:not(.typeid-checkbox-all)').on('change', '.typeid-checkbox:not(.typeid-checkbox-all)', function () {
+                        // 如果取消任何一个栏目，自动取消"全部栏目"
+                        var checkedCount = $container.find('.typeid-checkbox:not(.typeid-checkbox-all):checked:not(:disabled)').length;
+                        var totalCount = $container.find('.typeid-checkbox:not(.typeid-checkbox-all):not(:disabled)').length;
+                        var $allCheckbox = $container.find('.typeid-checkbox-all');
+                        if (checkedCount < totalCount) {
+                            $allCheckbox.prop('checked', false);
+                            form.render('checkbox');
+                        } else if (checkedCount === totalCount && totalCount > 0) {
+                            // 如果所有栏目都被选中，自动选中"全部栏目"
+                            $allCheckbox.prop('checked', true);
+                            form.render('checkbox');
+                        }
                         refreshTypeids();
                     });
                 }).fail(function () {
@@ -1124,17 +1207,34 @@
 
                 // 处理可见栏目
                 var typeids = $('#typeids-input').val();
-                if (!typeids) {
-                    return layui.pearPopup.failure('请选择可见栏目！');
+                
+                // 验证：检查是否有选中的可见栏目
+                var $container = $('#typeids-tree');
+                // 检查"全部栏目"是否选中
+                var hasAllChecked = $container.find('.typeid-checkbox-all:checked').length > 0;
+                // 检查其他栏目（排除"全部栏目"）是否选中
+                var checkedOtherCount = $container.find('.typeid-checkbox:not(.typeid-checkbox-all):checked:not(:disabled)').length;
+                
+                // 如果没有选中"全部栏目"且没有选中任何其他栏目，提示错误
+                if (!hasAllChecked && checkedOtherCount === 0) {
+                    layui.pearPopup.failure('请至少选择一项可见栏目！');
+                    return false;
                 }
+                
+                // 如果 typeids-input 为空，也提示错误
+                if (!typeids || typeids.trim() === '') {
+                    layui.pearPopup.failure('请至少选择一项可见栏目！');
+                    return false;
+                }
+                
                 formData.typeids = typeids.split(',').filter(function (id) {
                     return id && parseInt(id) > 0;
                 });
 
-                // 如果启用筛选，必须选择至少一个栏目
-                var isScreening = formData.is_screening == 1 || $('#IsScreening_status').val() == 1;
-                if (isScreening && formData.typeids.length === 0) {
-                    return layui.pearPopup.failure('字段支持筛选时，栏目必须指定一个或多个！');
+                // 验证：至少选中一项可见栏目（双重验证，确保数据有效性）
+                if (formData.typeids.length === 0) {
+                    layui.pearPopup.failure('请至少选择一项可见栏目！');
+                    return false;
                 }
 
                 // 验证区域类型

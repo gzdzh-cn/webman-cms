@@ -1,611 +1,1349 @@
 <!DOCTYPE html>
 <html lang="zh-cn">
-    <head>
-        <meta charset="UTF-8">
-        <title>更新页面</title>
-        <link rel="stylesheet" href="/app/admin/component/pear/css/pear.css" />
-        <link rel="stylesheet" href="/app/admin/component/jsoneditor/css/jsoneditor.css" />
-        <link rel="stylesheet" href="/app/admin/admin/css/reset.css" />
-        
-    </head>
-    <body>
 
-        <form class="layui-form">
+<head>
+    <meta charset="UTF-8">
+    <title>更新页面</title>
+    <link rel="stylesheet" href="/app/admin/component/pear/css/pear.css" />
+    <link rel="stylesheet" href="/app/admin/component/jsoneditor/css/jsoneditor.css" />
+    <link rel="stylesheet" href="/app/admin/admin/css/reset.css" />
+    <style>
+        .mainBox {
+            height: 100%;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
 
-            <div class="mainBox">
-                <div class="main-container mr-5">
-                    
-                    <div class="layui-form-item">
-                        <label class="layui-form-label">当前栏目</label>
-                        <div class="layui-input-block">
-                            <input type="number" name="typeid" value="" class="layui-input">
+        .main-container {
+            flex: 1;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 让 tabs 区域固定高度，内容滚动，但标题不滚动，且标题层级最高，避免被内容遮挡 */
+        .layui-tabs {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            position: relative;
+        }
+
+        .layui-tabs .layui-tabs-header {
+            flex-shrink: 0;
+            position: relative;
+            z-index: 10;
+            background-color: #fff;
+        }
+
+        .layui-tabs .layui-tabs-body {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            min-height: 0;
+            padding: 10px 15px 80px;
+            box-sizing: border-box;
+            position: relative;
+            z-index: 1;
+        }
+
+        .layui-tabs .layui-tabs-body .mainBox {
+            height: auto;
+            overflow: visible;
+        }
+
+        .layui-tabs .layui-tabs-body .main-container {
+            height: auto;
+            overflow: visible;
+        }
+
+        html,
+        body {
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .bottom {
+            flex-shrink: 0;
+            background: #fff;
+            padding: 8px 40px 8px 0px;
+            border-top: 1px solid #e6e6e6;
+            z-index: 100;
+            box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .bottom .layui-input-block {
+            display: flex;
+            justify-content: flex-start;
+            padding-right: 25%;
+        }
+
+        /* 内容编辑器样式调整，左侧对齐标签 */
+        #content-editor-wrapper {
+            margin-top: 20px;
+        }
+
+        #content-editor-wrapper .layui-form-item {
+            margin-bottom: 15px;
+        }
+
+        #content-editor-wrapper .layui-input-block {
+            margin-left: 0;
+            width: 100%;
+        }
+
+        #content-editor-wrapper #content-editor-tabs {
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        #content-editor-wrapper .layui-tabs {
+            margin: 0;
+        }
+
+        #content-editor-wrapper .layui-tabs-body {
+            padding: 15px 0;
+        }
+    </style>
+</head>
+
+<body>
+
+    <form class="layui-form">
+
+        <div class="mainBox">
+            <div class="main-container">
+                <!-- Tabs 静态 HTML 结构 -->
+                <div class="layui-tabs layui-tabs-card" lay-filter="archive-tabs" lay-options="{index: 0}">
+                    <ul class="layui-tabs-header">
+                        <li lay-id="base">基础内容</li>
+                        <li lay-id="seo">SEO优化</li>
+                        <li lay-id="more">更多设置</li>
+                    </ul>
+                    <div class="layui-tabs-body">
+                        <div class="layui-tabs-item" id="tab-base">
+                            <div class="mainBox">
+                                <div class="main-container mr-5 pb-6">
+                                    <!-- 固定字段：基础内容 -->
+                                    <div class="layui-form-item">
+                                        <label class="layui-form-label required">文档标题</label>
+                                        <div class="layui-input-block"
+                                            style="display: flex; align-items: center; gap: 15px;">
+                                            <div style="flex: 3;">
+                                                <input type="text" name="title" lay-verify="required"
+                                                    placeholder="请输入文档标题" class="layui-input" maxlength="200">
+                                            </div>
+                                            <div style="flex: 2; display: flex; align-items: center;">
+                                                <span style="margin-right: 10px; white-space: nowrap;">副标题：</span>
+                                                <input type="text" name="subtitle" placeholder="请输入副标题"
+                                                    class="layui-input">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="layui-form-item">
+                                        <label class="layui-form-label required">栏目分类</label>
+                                        <div class="layui-input-block">
+                                            <select name="typeid" id="typeid-select" lay-verify="required"
+                                                lay-filter="typeid">
+                                                <option value="">请选择栏目</option>
+                                            </select>
+                                            <div class="layui-form-mid layui-word-aux">
+                                                谨慎切换，自定义字段的内容会随着栏目切换而清空，在保存之前不受影响！</div>
+                                        </div>
+                                    </div>
+                                    <div class="layui-form-item">
+                                        <label class="layui-form-label">文档属性</label>
+                                        <div class="layui-input-block">
+                                            <input type="checkbox" name="is_head" value="1" title="头条">
+                                            <input type="checkbox" name="is_recom" value="1" title="推荐">
+                                            <input type="checkbox" name="is_litpic" value="1" title="有图">
+                                            <input type="checkbox" name="is_jump" value="1" title="外链">
+                                        </div>
+                                    </div>
+                                    <div class="layui-form-item">
+                                        <label class="layui-form-label">封面图片</label>
+                                        <div class="layui-input-block">
+                                            <div class="layui-upload">
+                                                <button type="button" class="layui-btn layui-btn-normal"
+                                                    id="upload-litpic">选择图片</button>
+                                                <div class="layui-upload-list" style="margin-top: 10px;">
+                                                    <img class="layui-upload-img" id="preview-litpic" src=""
+                                                        style="max-width: 200px; max-height: 200px; display: none;">
+                                                    <input type="hidden" name="litpic" id="input-litpic" value="">
+                                                    <p id="text-litpic" style="margin-top: 10px;"></p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="layui-form-item">
+                                        <label class="layui-form-label">文档标签</label>
+                                        <div class="layui-input-block">
+                                            <input type="text" name="tags" placeholder="多个标签之间以逗号隔开"
+                                                class="layui-input">
+                                        </div>
+                                    </div>
+                                    <!-- 动态字段将追加到这里 -->
+                                    <div id="dynamic-fields-container-1"></div>
+
+                                    <!-- 内容编辑器标签页（如果存在 content 或 content_ey_m 字段） -->
+                                    <div id="content-editor-wrapper">
+                                        <div class="layui-form-item">
+                                            <label class="layui-form-label">内容详情</label>
+                                            <div class="layui-input-block">
+                                                <div id="content-editor-tabs">
+                                                    <div class="layui-tabs layui-tabs-card" lay-filter="content-tabs">
+                                                        <ul class="layui-tabs-header">
+                                                            <li class="layui-this" lay-id="pc">电脑端</li>
+                                                            <li lay-id="mobile">移动端</li>
+                                                        </ul>
+                                                        <div class="layui-tabs-body">
+                                                            <div class="layui-tabs-item layui-show" id="tab-pc">
+                                                                <textarea id="editor-content" name="content" cols="30"
+                                                                    rows="10"></textarea>
+                                                            </div>
+                                                            <div class="layui-tabs-item" id="tab-mobile">
+                                                                <textarea id="editor-content-ey-m" name="content_ey_m"
+                                                                    cols="30" rows="10"></textarea>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="layui-tabs-item" id="tab-seo">
+                            <div class="mainBox">
+                                <div class="main-container mr-5 pb-6">
+                                    <!-- 固定字段：SEO优化 -->
+                                    <div class="layui-form-item">
+                                        <label class="layui-form-label">SEO标题</label>
+                                        <div class="layui-input-block">
+                                            <input type="text" name="seo_title" placeholder="建议80个字符以内"
+                                                class="layui-input">
+                                            <div class="layui-form-mid layui-word-aux">建议80个字符以内，不填写则使用默认标题在前端展示</div>
+                                        </div>
+                                    </div>
+                                    <div class="layui-form-item">
+                                        <label class="layui-form-label">SEO关键词</label>
+                                        <div class="layui-input-block">
+                                            <textarea name="seo_keywords" placeholder="多个关键词请用英文逗号（,）隔开"
+                                                class="layui-textarea" rows="3"></textarea>
+                                            <div class="layui-form-mid layui-word-aux">
+                                                一般不超过100个字符，多个关键词请用英文逗号（,）隔开，建议3到5个关键词。</div>
+                                        </div>
+                                    </div>
+                                    <div class="layui-form-item">
+                                        <label class="layui-form-label">SEO描述</label>
+                                        <div class="layui-input-block">
+                                            <textarea name="seo_description" placeholder="请输入SEO描述"
+                                                class="layui-textarea" rows="3"></textarea>
+                                            <div class="layui-form-mid layui-word-aux">一般不超过200个字符，不填写时系统自动提取正文的前200个字符
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- 动态字段将追加到这里 -->
+                                    <div id="dynamic-fields-container-2"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="layui-tabs-item" id="tab-more">
+                            <div class="mainBox">
+                                <div class="main-container mr-5 pb-6">
+                                    <!-- 固定字段：更多设置 -->
+                                    <div class="layui-form-item">
+                                        <label class="layui-form-label">作者</label>
+                                        <div class="layui-input-block">
+                                            <input type="text" name="author" value="小编" placeholder="请输入作者"
+                                                class="layui-input">
+                                        </div>
+                                    </div>
+                                    <div class="layui-form-item">
+                                        <label class="layui-form-label">来源</label>
+                                        <div class="layui-input-block">
+                                            <input type="text" name="origin" placeholder="为空时默认'网络'"
+                                                class="layui-input">
+                                        </div>
+                                    </div>
+                                    <div class="layui-form-item">
+                                        <label class="layui-form-label">点击数</label>
+                                        <div class="layui-input-block">
+                                            <input type="number" name="click" value="0" placeholder="请输入点击数"
+                                                class="layui-input">
+                                        </div>
+                                    </div>
+                                    <div class="layui-form-item">
+                                        <label class="layui-form-label">阅读权限</label>
+                                        <div class="layui-input-block">
+                                            <select name="arcrank">
+                                                <option value="0">开放浏览</option>
+                                                <option value="-1">待审核稿件</option>
+                                                <option value="1">注册会员</option>
+                                                <option value="2">中级会员</option>
+                                                <option value="3">高级会员</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="layui-form-item">
+                                        <label class="layui-form-label">发布时间</label>
+                                        <div class="layui-input-block">
+                                            <input type="text" name="add_time" id="add-time" placeholder="请选择发布时间"
+                                                class="layui-input">
+                                        </div>
+                                    </div>
+                                    <div class="layui-form-item">
+                                        <label class="layui-form-label">文档模板</label>
+                                        <div class="layui-input-block">
+                                            <select name="tempview">
+                                                <option value="">默认模板</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="layui-form-item">
+                                        <label class="layui-form-label">自定义文件名</label>
+                                        <div class="layui-input-block">
+                                            <input type="text" name="htmlfilename" placeholder="自定义文件名"
+                                                class="layui-input">
+                                            <div class="layui-form-mid layui-word-aux">
+                                                自定义文件名可由字母、数字、下划线(_)、连接符(-)等符号组成，除此之外其他字符将自动转为连接符(-)</div>
+                                        </div>
+                                    </div>
+                                    <!-- 动态字段将追加到这里 -->
+                                    <div id="dynamic-fields-container-3"></div>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    
-                    <div class="layui-form-item">
-                        <label class="layui-form-label">副栏目ID集合</label>
-                        <div class="layui-input-block">
-                            <input type="text" name="stypeid" value="" class="layui-input">
-                        </div>
-                    </div>
-                    
-                    <div class="layui-form-item">
-                        <label class="layui-form-label">模型ID</label>
-                        <div class="layui-input-block">
-                            <input type="number" name="channel" value="" class="layui-input">
-                        </div>
-                    </div>
-                    
-                    <div class="layui-form-item">
-                        <label class="layui-form-label">加粗</label>
-                        <div class="layui-input-block">
-                            <input type="number" name="is_b" value="" class="layui-input">
-                        </div>
-                    </div>
-                    
-                    <div class="layui-form-item">
-                        <label class="layui-form-label">文档标题</label>
-                        <div class="layui-input-block">
-                            <input type="text" name="title" value="" class="layui-input">
-                        </div>
-                    </div>
-                    
-                    <div class="layui-form-item">
-                        <label class="layui-form-label">副标题</label>
-                        <div class="layui-input-block">
-                            <input type="text" name="subtitle" value="" class="layui-input">
-                        </div>
-                    </div>
-                    
-                    <div class="layui-form-item">
-                        <label class="layui-form-label">促销语</label>
-                        <div class="layui-input-block">
-                            <input type="text" name="introduction" value="" class="layui-input">
-                        </div>
-                    </div>
-                    
-                    <div class="layui-form-item">
-                        <label class="layui-form-label">封面图片</label>
-                        <div class="layui-input-block">
-                            <input type="text" name="litpic" value="" class="layui-input">
-                        </div>
-                    </div>
-                    
-                    <div class="layui-form-item">
-                        <label class="layui-form-label">头条（0=否，1=是）</label>
-                        <div class="layui-input-block">
-                            <input type="number" name="is_head" value="" class="layui-input">
-                        </div>
-                    </div>
-                    
-                    <div class="layui-form-item">
-                        <label class="layui-form-label">特荐（0=否，1=是）</label>
-                        <div class="layui-input-block">
-                            <input type="number" name="is_special" value="" class="layui-input">
-                        </div>
-                    </div>
-                    
-                    <div class="layui-form-item">
-                        <label class="layui-form-label">置顶（0=否，1=是）</label>
-                        <div class="layui-input-block">
-                            <input type="number" name="is_top" value="" class="layui-input">
-                        </div>
-                    </div>
-                    
-                    <div class="layui-form-item">
-                        <label class="layui-form-label">推荐（0=否，1=是）</label>
-                        <div class="layui-input-block">
-                            <input type="number" name="is_recom" value="" class="layui-input">
-                        </div>
-                    </div>
-                    
-                    <div class="layui-form-item">
-                        <label class="layui-form-label">跳转链接（0=否，1=是）</label>
-                        <div class="layui-input-block">
-                            <input type="number" name="is_jump" value="" class="layui-input">
-                        </div>
-                    </div>
-                    
-                    <div class="layui-form-item">
-                        <label class="layui-form-label">图片（0=否，1=是）</label>
-                        <div class="layui-input-block">
-                            <input type="number" name="is_litpic" value="" class="layui-input">
-                        </div>
-                    </div>
-                    
-                    <div class="layui-form-item">
-                        <label class="layui-form-label">滚动（0=否，1=是）</label>
-                        <div class="layui-input-block">
-                            <input type="number" name="is_roll" value="" class="layui-input">
-                        </div>
-                    </div>
-                    
-                    <div class="layui-form-item">
-                        <label class="layui-form-label">幻灯（0=否，1=是）</label>
-                        <div class="layui-input-block">
-                            <input type="number" name="is_slide" value="" class="layui-input">
-                        </div>
-                    </div>
-                    
-                    <div class="layui-form-item">
-                        <label class="layui-form-label">自定义（0=否，1=是）</label>
-                        <div class="layui-input-block">
-                            <input type="number" name="is_diyattr" value="" class="layui-input">
-                        </div>
-                    </div>
-                    
-                    <div class="layui-form-item">
-                        <label class="layui-form-label">来源</label>
-                        <div class="layui-input-block">
-                            <input type="text" name="origin" value="" class="layui-input">
-                        </div>
-                    </div>
-                    
-                    <div class="layui-form-item">
-                        <label class="layui-form-label">作者</label>
-                        <div class="layui-input-block">
-                            <input type="text" name="author" value="" class="layui-input">
-                        </div>
-                    </div>
-                    
-                    <div class="layui-form-item">
-                        <label class="layui-form-label">点击数</label>
-                        <div class="layui-input-block">
-                            <input type="number" name="click" value="" class="layui-input">
-                        </div>
-                    </div>
-                    
-                    <div class="layui-form-item">
-                        <label class="layui-form-label">阅读权限：0=开放浏览，-1=待审核稿件</label>
-                        <div class="layui-input-block">
-                            <input type="number" name="arcrank" value="" class="layui-input">
-                        </div>
-                    </div>
-                    
-                    <div class="layui-form-item">
-                        <label class="layui-form-label">跳转网址</label>
-                        <div class="layui-input-block">
-                            <input type="text" name="jumplinks" value="" class="layui-input">
-                        </div>
-                    </div>
-                    
-                    <div class="layui-form-item">
-                        <label class="layui-form-label">是否静态页面（0=动态，1=静态）</label>
-                        <div class="layui-input-block">
-                            <input type="number" name="ismake" value="" class="layui-input">
-                        </div>
-                    </div>
-                    
-                    <div class="layui-form-item">
-                        <label class="layui-form-label">SEO标题</label>
-                        <div class="layui-input-block">
-                            <input type="text" name="seo_title" value="" class="layui-input">
-                        </div>
-                    </div>
-                    
-                    <div class="layui-form-item">
-                        <label class="layui-form-label">SEO关键词</label>
-                        <div class="layui-input-block">
-                            <input type="text" name="seo_keywords" value="" class="layui-input">
-                        </div>
-                    </div>
-                    
-                    <div class="layui-form-item">
-                        <label class="layui-form-label">SEO描述</label>
-                        <div class="layui-input-block">
-                            <textarea name="seo_description" class="layui-textarea"></textarea>
-                        </div>
-                    </div>
-                    
-                    <div class="layui-form-item">
-                        <label class="layui-form-label">参数列表ID</label>
-                        <div class="layui-input-block">
-                            <input type="number" name="attrlist_id" value="" class="layui-input">
-                        </div>
-                    </div>
-                    
-                    <div class="layui-form-item">
-                        <label class="layui-form-label">多商家ID</label>
-                        <div class="layui-input-block">
-                            <input type="number" name="merchant_id" value="" class="layui-input">
-                        </div>
-                    </div>
-                    
-                    <div class="layui-form-item">
-                        <label class="layui-form-label">商品是否包邮(1包邮(免运费)  0跟随系统)</label>
-                        <div class="layui-input-block">
-                            <input type="number" name="free_shipping" value="" class="layui-input">
-                        </div>
-                    </div>
-                    
-                    <div class="layui-form-item">
-                        <label class="layui-form-label">会员价</label>
-                        <div class="layui-input-block">
-                            <input type="text" name="users_price" value="" class="layui-input">
-                        </div>
-                    </div>
-                    
-                    <div class="layui-form-item">
-                        <label class="layui-form-label">商品划线价</label>
-                        <div class="layui-input-block">
-                            <input type="text" name="crossed_price" value="" class="layui-input">
-                        </div>
-                    </div>
-                    
-                    <div class="layui-form-item">
-                        <label class="layui-form-label">产品会员折扣类型(0:系统默认折扣; 1:指定会员级别; 2:不参与折扣;)</label>
-                        <div class="layui-input-block">
-                            <input type="number" name="users_discount_type" value="" class="layui-input">
-                        </div>
-                    </div>
-                    
-                    <div class="layui-form-item">
-                        <label class="layui-form-label">是否会员免费，默认0不免费，1为免费</label>
-                        <div class="layui-input-block">
-                            <input type="number" name="users_free" value="" class="layui-input">
-                        </div>
-                    </div>
-                    
-                    <div class="layui-form-item">
-                        <label class="layui-form-label">产品旧价</label>
-                        <div class="layui-input-block">
-                            <input type="text" name="old_price" value="" class="layui-input">
-                        </div>
-                    </div>
-                    
-                    <div class="layui-form-item">
-                        <label class="layui-form-label">总销售量</label>
-                        <div class="layui-input-block">
-                            <input type="number" name="sales_num" value="" class="layui-input">
-                        </div>
-                    </div>
-                    
-                    <div class="layui-form-item">
-                        <label class="layui-form-label">商品虚拟销售量</label>
-                        <div class="layui-input-block">
-                            <input type="number" name="virtual_sales" value="" class="layui-input">
-                        </div>
-                    </div>
-                    
-                    <div class="layui-form-item">
-                        <label class="layui-form-label">虚拟总销量</label>
-                        <div class="layui-input-block">
-                            <input type="number" name="sales_all" value="" class="layui-input">
-                        </div>
-                    </div>
-                    
-                    <div class="layui-form-item">
-                        <label class="layui-form-label">商品库存量</label>
-                        <div class="layui-input-block">
-                            <input type="number" name="stock_count" value="" class="layui-input">
-                        </div>
-                    </div>
-                    
-                    <div class="layui-form-item">
-                        <label class="layui-form-label">商品库存在产品详情页是否显示，1为显示，0为不显示</label>
-                        <div class="layui-input-block">
-                            <input type="number" name="stock_show" value="" class="layui-input">
-                        </div>
-                    </div>
-                    
-                    <div class="layui-form-item">
-                        <label class="layui-form-label">产品类型：0=普通产品，1=虚拟(默认手动发货)，2=虚拟(网盘)，3=虚拟(自定义文本) 4-核销</label>
-                        <div class="layui-input-block">
-                            <input type="number" name="prom_type" value="" class="layui-input">
-                        </div>
-                    </div>
-                    
-                    <div class="layui-form-item">
-                        <label class="layui-form-label">商品物流支持类型(1: 物流配送; 2: 到店核销)</label>
-                        <div class="layui-input-block">
-                            <input type="text" name="logistics_type" value="" class="layui-input">
-                        </div>
-                    </div>
-                    
-                    <div class="layui-form-item">
-                        <label class="layui-form-label">文档模板</label>
-                        <div class="layui-input-block">
-                            <input type="text" name="tempview" value="" class="layui-input">
-                        </div>
-                    </div>
-                    
-                    <div class="layui-form-item">
-                        <label class="layui-form-label">状态(0=屏蔽，1=正常)</label>
-                        <div class="layui-input-block">
-                            <input type="number" name="status" value="" class="layui-input">
-                        </div>
-                    </div>
-                    
-                    <div class="layui-form-item">
-                        <label class="layui-form-label">排序号</label>
-                        <div class="layui-input-block">
-                            <input type="number" name="sort_order" value="" class="layui-input">
-                        </div>
-                    </div>
-                    
-                    <div class="layui-form-item">
-                        <label class="layui-form-label">语言标识</label>
-                        <div class="layui-input-block">
-                            <input type="text" name="lang" value="" class="layui-input">
-                        </div>
-                    </div>
-                    
-                    <div class="layui-form-item">
-                        <label class="layui-form-label">管理员ID</label>
-                        <div class="layui-input-block">
-                            <input type="number" name="admin_id" value="" class="layui-input">
-                        </div>
-                    </div>
-                    
-                    <div class="layui-form-item">
-                        <label class="layui-form-label">会员ID</label>
-                        <div class="layui-input-block">
-                            <input type="number" name="users_id" value="" class="layui-input">
-                        </div>
-                    </div>
-                    
-                    <div class="layui-form-item">
-                        <label class="layui-form-label">文档会员权限ID</label>
-                        <div class="layui-input-block">
-                            <input type="number" name="arc_level_id" value="" class="layui-input">
-                        </div>
-                    </div>
-                    
-                    <div class="layui-form-item">
-                        <label class="layui-form-label">限制模式，0=免费，1=付费，2=会员专享，3=会员付费，4=会员积分购买</label>
-                        <div class="layui-input-block">
-                            <input type="number" name="restric_type" value="" class="layui-input">
-                        </div>
-                    </div>
-                    
-                    <div class="layui-form-item">
-                        <label class="layui-form-label">restric_type=4时，会员可使用积分进行文章订单支付购买</label>
-                        <div class="layui-input-block">
-                            <input type="text" name="users_score" value="" class="layui-input">
-                        </div>
-                    </div>
-                    
-                    <div class="layui-form-item">
-                        <label class="layui-form-label">伪删除，1=是，0=否</label>
-                        <div class="layui-input-block">
-                            <input type="number" name="is_del" value="" class="layui-input">
-                        </div>
-                    </div>
-                    
-                    <div class="layui-form-item">
-                        <label class="layui-form-label">伪删除状态，1为主动删除，2为跟随上级栏目被动删除</label>
-                        <div class="layui-input-block">
-                            <input type="number" name="del_method" value="" class="layui-input">
-                        </div>
-                    </div>
-                    
-                    <div class="layui-form-item">
-                        <label class="layui-form-label">关联文档ID</label>
-                        <div class="layui-input-block">
-                            <input type="number" name="joinaid" value="" class="layui-input">
-                        </div>
-                    </div>
-                    
-                    <div class="layui-form-item">
-                        <label class="layui-form-label">下载次数</label>
-                        <div class="layui-input-block">
-                            <input type="number" name="downcount" value="" class="layui-input">
-                        </div>
-                    </div>
-                    
-                    <div class="layui-form-item">
-                        <label class="layui-form-label">评价数</label>
-                        <div class="layui-input-block">
-                            <input type="number" name="appraise" value="" class="layui-input">
-                        </div>
-                    </div>
-                    
-                    <div class="layui-form-item">
-                        <label class="layui-form-label">收藏数</label>
-                        <div class="layui-input-block">
-                            <input type="number" name="collection" value="" class="layui-input">
-                        </div>
-                    </div>
-                    
-                    <div class="layui-form-item">
-                        <label class="layui-form-label">自定义文件名</label>
-                        <div class="layui-input-block">
-                            <input type="text" name="htmlfilename" value="" class="layui-input">
-                        </div>
-                    </div>
-                    
-                    <div class="layui-form-item">
-                        <label class="layui-form-label">省份</label>
-                        <div class="layui-input-block">
-                            <input type="number" name="province_id" value="" class="layui-input">
-                        </div>
-                    </div>
-                    
-                    <div class="layui-form-item">
-                        <label class="layui-form-label">所在城市</label>
-                        <div class="layui-input-block">
-                            <input type="number" name="city_id" value="" class="layui-input">
-                        </div>
-                    </div>
-                    
-                    <div class="layui-form-item">
-                        <label class="layui-form-label">所在区域</label>
-                        <div class="layui-input-block">
-                            <input type="number" name="area_id" value="" class="layui-input">
-                        </div>
-                    </div>
-                    
-                    <div class="layui-form-item">
-                        <label class="layui-form-label">新增时间</label>
-                        <div class="layui-input-block">
-                            <input type="number" name="add_time" value="" class="layui-input">
-                        </div>
-                    </div>
-                    
-                    <div class="layui-form-item">
-                        <label class="layui-form-label">更新时间</label>
-                        <div class="layui-input-block">
-                            <input type="number" name="update_time" value="" class="layui-input">
-                        </div>
-                    </div>
-                    
-                    <div class="layui-form-item">
-                        <label class="layui-form-label">下架时间（用于自动下架，配合定时发布插件的下架功能）</label>
-                        <div class="layui-input-block">
-                            <input type="number" name="removal_time" value="" class="layui-input">
-                        </div>
-                    </div>
-                    
-                    <div class="layui-form-item">
-                        <label class="layui-form-label">restric_type = 2 时,会员专享,非会员可付费使用,0-关闭,1-开启</label>
-                        <div class="layui-input-block">
-                            <input type="number" name="no_vip_pay" value="" class="layui-input">
-                        </div>
-                    </div>
-                    
-                    <div class="layui-form-item">
-                        <label class="layui-form-label">远程图片本地化</label>
-                        <div class="layui-input-block">
-                            <input type="number" name="editor_remote_img_local" value="" class="layui-input">
-                        </div>
-                    </div>
-                    
-                    <div class="layui-form-item">
-                        <label class="layui-form-label">清除非本站链接</label>
-                        <div class="layui-input-block">
-                            <input type="number" name="editor_img_clear_link" value="" class="layui-input">
-                        </div>
-                    </div>
-                    
-                    <div class="layui-form-item">
-                        <label class="layui-form-label">AI创作声明</label>
-                        <div class="layui-input-block">
-                            <input type="number" name="editor_ai_create" value="" class="layui-input">
-                        </div>
-                    </div>
-                    
-                    <div class="layui-form-item">
-                        <label class="layui-form-label">退回原因</label>
-                        <div class="layui-input-block">
-                            <textarea name="reason" class="layui-textarea"></textarea>
-                        </div>
-                    </div>
-                    
-                    <div class="layui-form-item">
-                        <label class="layui-form-label">商品编码</label>
-                        <div class="layui-input-block">
-                            <input type="text" name="stock_code" value="" class="layui-input">
-                        </div>
-                    </div>
-                    
                 </div>
             </div>
-
             <div class="bottom">
-                <div class="button-container">
-                    <button type="submit" class="pear-btn pear-btn-primary pear-btn-md" lay-submit="" lay-filter="save">
-                        提交
-                    </button>
-                    <button type="reset" class="pear-btn pear-btn-md">
-                        重置
-                    </button>
+                <div class="layui-form-item" style="margin-bottom: 0;">
+                    <div class="layui-input-block">
+                        <button type="submit" class="pear-btn pear-btn-primary pear-btn-xs" lay-submit=""
+                            lay-filter="save">
+                            提交
+                        </button>
+                        <button type="button" class="pear-btn pear-btn-xs" id="btn-reset">
+                            重置
+                        </button>
+                        <button type="button" class="pear-btn pear-btn-xs" id="btn-back">
+                            返回
+                        </button>
+                    </div>
                 </div>
             </div>
-            
-        </form>
+        </div>
+        </div>
 
-        <script src="/app/admin/component/layui/layui.js?v=2.13.12"></script>
-        <script src="/app/admin/component/pear/pear.js"></script>
-        <script src="/app/admin/component/jsoneditor/jsoneditor.js"></script>
-        <script src="/app/admin/admin/js/permission.js"></script>
-        
-        <script>
+    </form>
 
-            // 相关接口
-            const PRIMARY_KEY = "aid";
-            const SELECT_API = "/app/admin/archive/select" + location.search;
-            const UPDATE_API = "/app/admin/archive/update";
-            // 获取数据库记录
-            layui.use(["form", "util", "pearPopup"], function () {
-                let $ = layui.$;
+    <script src="/app/admin/component/layui/layui.js?v=2.13.12"></script>
+    <script src="/app/admin/component/pear/pear.js"></script>
+    <script src="/app/admin/component/jsoneditor/jsoneditor.js"></script>
+    <script src="/app/admin/admin/js/permission.js"></script>
+
+    <script>
+
+        // 相关接口
+        const PRIMARY_KEY = "aid";
+        const SELECT_API = "/app/admin/archive/select" + location.search;
+        const UPDATE_API = "/app/admin/archive/update";
+
+        console.log("search:", location.search);
+
+
+        var editors = {}; // 存储编辑器实例
+        var archiveData = {}; // 存储文档数据
+
+
+        // 获取数据库记录
+        layui.use(["form", "util", "pearPopup", "upload", "element", "laydate", "tinymce"], function () {
+            var form = layui.form;
+            var upload = layui.upload;
+            var element = layui.element;
+            var laydate = layui.laydate;
+            var tinymce = layui.tinymce;
+            var $ = layui.$;
+
+            // 初始化 tabs（Layui 会自动处理切换逻辑）
+            element.render('tabs', 'archive-tabs');
+
+            // 初始化日期选择器
+            laydate.render({
+                elem: '#add-time',
+                type: 'datetime'
+            });
+
+
+
+            // 初始化封面图片上传
+            upload.render({
+                elem: '#upload-litpic',
+                url: '/app/admin/upload/image',
+                accept: 'images',
+                done: function (res) {
+                    if (res.code === 0) {
+                        $('#preview-litpic').attr('src', res.data.url).show();
+                        $('#input-litpic').val(res.data.url);
+                        $('#text-litpic').html('');
+                    } else {
+                        $('#text-litpic').html('<span style="color: red;">上传失败：' + (res.msg || '未知错误') + '</span>');
+                    }
+                }
+            });
+
+            // 监听栏目选择变化
+            form.on('select(typeid)', function (data) {
+                var typeid = data.value;
+                if (typeid && typeid > 0) {
+                    loadChannelfields(typeid, 0, 0);
+                } else {
+                    // 清空动态字段
+                    $('#dynamic-fields-container-1').empty();
+                    $('#dynamic-fields-container-2').empty();
+                    $('#dynamic-fields-container-3').empty();
+                    form.render();
+                }
+            });
+
+            // 页面加载时初始化栏目下拉
+            loadArctypeOptions();
+
+            // 返回按钮点击事件
+            $(document).on('click', '#btn-back', function () {
+                if (parent && parent.refreshTable) {
+                    parent.refreshTable();
+                }
+            });
+
+            // 重置按钮点击事件 - 重新加载数据库数据
+            $(document).on('click', '#btn-reset', function () {
+                reloadFormData();
+            });
+
+
+            // 页面加载时初始化数据
+            reloadFormData();
+
+
+            // 字段验证允许为空
+            form.verify({
+                phone: [/(^$)|^1\d{10}$/, "请输入正确的手机号"],
+                email: [/(^$)|^([a-zA-Z0-9_\.\-])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$/, "邮箱格式不正确"],
+                url: [/(^$)|(^#)|(^http(s*):\/\/[^\s]+\.[^\s]+)/, "链接格式不正确"],
+                number: [/(^$)|^\d+$/, '只能填写数字'],
+                date: [/(^$)|^(\d{4})[-\/](\d{1}|0\d{1}|1[0-2])([-\/](\d{1}|0\d{1}|[1-2][0-9]|3[0-1]))*$/, "日期格式不正确"],
+                identity: [/(^$)|(^\d{15}$)|(^\d{17}(x|X|\d)$)/, "请输入正确的身份证号"]
+            });
+
+            form.on("submit(save)", function (data) {
+                var formData = data.field;
+                formData[PRIMARY_KEY] = layui.url().search[PRIMARY_KEY];
+
+                // 获取所有文本编辑器的内容
+                // 处理content字段
+                if (editors['content'] && typeof editors['content'].getContent === 'function') {
+                    formData['content'] = editors['content'].getContent() || '';
+                } else {
+                    var $content = $('#editor-content');
+                    formData['content'] = $content.length > 0 ? ($content.val() || '') : '';
+                }
+
+                // 处理content_ey_m字段
+                if (editors['content_ey_m'] && typeof editors['content_ey_m'].getContent === 'function') {
+                    formData['content_ey_m'] = editors['content_ey_m'].getContent() || '';
+                } else {
+                    var $contentEyM = $('#editor-content-ey-m');
+                    formData['content_ey_m'] = $contentEyM.length > 0 ? ($contentEyM.val() || '') : '';
+                }
+
+                // 处理其他编辑器字段
+                Object.keys(editors).forEach(function (fieldName) {
+                    if (fieldName === 'content' || fieldName === 'content_ey_m') {
+                        return; // 已经处理过了
+                    }
+                    if (editors[fieldName] && typeof editors[fieldName].getContent === 'function') {
+                        formData[fieldName] = editors[fieldName].getContent() || '';
+                    } else {
+                        var $editor = $('#editor-' + fieldName);
+                        if ($editor.length > 0) {
+                            formData[fieldName] = $editor.val() || '';
+                        }
+                    }
+                });
+
+                // 处理复选框字段（将数组转换为逗号分隔的字符串）
+                Object.keys(formData).forEach(function (key) {
+                    if (key.endsWith('[]') && Array.isArray(formData[key])) {
+                        var newKey = key.replace('[]', '');
+                        formData[newKey] = formData[key].join(',');
+                        delete formData[key];
+                    }
+                });
+
+                // 处理 switch 字段
+                $('input[type="checkbox"][lay-skin="switch"]').each(function () {
+                    var fieldName = $(this).attr('name');
+                    if (!formData[fieldName]) {
+                        formData[fieldName] = 0;
+                    } else {
+                        formData[fieldName] = 1;
+                    }
+                });
+
+                // 处理多图字段
+                $('input[type="hidden"][name$="[]"]').each(function () {
+                    var fieldName = $(this).attr('name').replace('[]', '');
+                    if (!formData[fieldName] || !Array.isArray(formData[fieldName])) {
+                        formData[fieldName] = [];
+                    }
+                    var value = $(this).val();
+                    if (value) {
+                        formData[fieldName].push(value);
+                    }
+                });
+
+                // 处理单图字段
+                $('input[type="hidden"][id^="input-"]').each(function () {
+                    var id = $(this).attr('id');
+                    var fieldName = id.replace('input-', '');
+                    formData[fieldName] = $(this).val();
+                });
+
+                    $.ajax({
+                    url: UPDATE_API,
+                    type: "POST",
+                    dateType: "json",
+                    data: formData,
+                    success: function (res) {
+                        if (res.code) {
+                            return layui.pearPopup.failure(res.msg);
+                        }
+                        return layui.pearPopup.success("操作成功", function () {
+                            if (parent && parent.refreshTable) {
+                                parent.refreshTable();
+                            }
+                        });
+                    }
+                });
+                return false;
+            });
+
+            // 加载栏目下拉选项
+            function loadArctypeOptions() {
+                $.ajax({
+                    url: "/app/admin/arctype/select",
+                    type: 'get',
+                    dataType: 'json',
+                    data: { format: 'tree', limit: 2000 },
+                    success: function (result) {
+                        if (result.code === 0 && result.data && Array.isArray(result.data)) {
+                            var $select = $('#typeid-select');
+                            $select.empty();
+                            $select.append('<option value="">请选择栏目</option>');
+
+                            // 扁平化树形数据
+                            var options = flattenTree(result.data);
+
+                            options.forEach(function (item) {
+                                $select.append('<option value="' + item.id + '">' + item.label + '</option>');
+                            });
+                            form.render('select');
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('加载栏目数据请求失败:', error);
+                    }
+                });
+            }
+
+            // 填充固定字段数据
+            function fillFixedFields(data) {
+                if (data.title) {
+                    $('input[name="title"]').val(data.title);
+                }
+                if (data.subtitle) {
+                    $('input[name="subtitle"]').val(data.subtitle);
+                }
+                if (data.typeid) {
+                    $('#typeid-select').val(data.typeid);
+                }
+                if (data.is_head) {
+                    $('input[name="is_head"]').prop('checked', data.is_head == 1);
+                }
+                if (data.is_recom) {
+                    $('input[name="is_recom"]').prop('checked', data.is_recom == 1);
+                }
+                if (data.is_litpic) {
+                    $('input[name="is_litpic"]').prop('checked', data.is_litpic == 1);
+                }
+                if (data.is_jump) {
+                    $('input[name="is_jump"]').prop('checked', data.is_jump == 1);
+                }
+                if (data.litpic) {
+                    $('#preview-litpic').attr('src', data.litpic).show();
+                    $('#input-litpic').val(data.litpic);
+                }
+                if (data.tags) {
+                    $('input[name="tags"]').val(data.tags);
+                }
+                if (data.seo_title) {
+                    $('input[name="seo_title"]').val(data.seo_title);
+                }
+                if (data.seo_keywords) {
+                    $('textarea[name="seo_keywords"]').val(data.seo_keywords);
+                }
+                if (data.seo_description) {
+                    $('textarea[name="seo_description"]').val(data.seo_description);
+                }
+                if (data.author) {
+                    $('input[name="author"]').val(data.author);
+                }
+                if (data.origin) {
+                    $('input[name="origin"]').val(data.origin);
+                }
+                if (data.click !== undefined) {
+                    $('input[name="click"]').val(data.click);
+                }
+                if (data.arcrank !== undefined) {
+                    $('select[name="arcrank"]').val(data.arcrank);
+                }
+                if (data.add_time) {
+                    $('#add-time').val(data.add_time);
+                }
+                if (data.tempview) {
+                    $('select[name="tempview"]').val(data.tempview);
+                }
+                if (data.htmlfilename) {
+                    $('input[name="htmlfilename"]').val(data.htmlfilename);
+                }
+            }
+
+            // 重新加载数据库数据并填充表单
+            function reloadFormData() {
                 $.ajax({
                     url: SELECT_API,
                     dataType: "json",
                     success: function (res) {
-                        
-                        // 给表单初始化数据
-                        layui.each(res.data[0], function (key, value) {
-                            let obj = $('*[name="'+key+'"]');
-                            if (key === "password") {
-                                obj.attr("placeholder", "不更新密码请留空");
-                                return;
+                        if (res.code === 0 && res.data && res.data.length > 0) {
+                            archiveData = res.data[0];
+
+                            // 给表单初始化数据
+                            layui.each(archiveData, function (key, value) {
+                                let obj = $('*[name="' + key + '"]');
+                                if (key === "password") {
+                                    obj.attr("placeholder", "不更新密码请留空");
+                                    return;
+                                }
+                                if (typeof obj[0] === "undefined" || !obj[0].nodeName) return;
+                                if (obj[0].nodeName.toLowerCase() === "textarea") {
+                                    obj.val(value);
+                                } else {
+                                    obj.attr("value", value);
+                                    obj[0].value = value;
+                                }
+                            });
+
+                            // 填充固定字段数据
+                            fillFixedFields(archiveData);
+
+                            // 重新渲染表单
+                            form.render();
+
+                            // 加载动态字段
+                            var typeid = archiveData.typeid || 0;
+                            var channelId = archiveData.channel || 0;
+                            var aid = archiveData.aid || 0;
+
+                            if (typeid > 0) {
+                                loadChannelfields(typeid, channelId, aid);
                             }
-                            if (typeof obj[0] === "undefined" || !obj[0].nodeName) return;
-                            if (obj[0].nodeName.toLowerCase() === "textarea") {
-                                obj.val(value);
-                            } else {
-                                obj.attr("value", value);
-                                obj[0].value = value;
-                            }
-                            
-                            // 多图渲染
-                            if (obj[0].classList.contains('uploader-list')) {
-                                let multiple_images = value.split(",");
-                                $.each(multiple_images, function(index, value) {
-                                    $('#uploader-list-'+ key).append(
-                                        '<div class="file-iteme">' +
-                                        '<div class="handle"><i class="layui-icon layui-icon-delete"></i></div>' +
-                                        '<img src='+value +' alt="'+ value +'" >' +
-                                        '</div>'
-                                    );
-                                });
-                            }
-                        });
-                        
-                        
+                        }
+
                         // ajax返回失败
                         if (res.code) {
                             layui.pearPopup.failure(res.msg);
                         }
-                        
+                    },
+                    error: function (xhr, status, error) {
+                        layui.pearPopup.failure('加载数据失败：' + error);
                     }
                 });
-            });
+            }
 
-            //提交事件
-            layui.use(["form", "pearPopup"], function () {
-                // 字段验证允许为空
-                layui.form.verify({
-                    phone: [/(^$)|^1\d{10}$/, "请输入正确的手机号"],
-                    email: [/(^$)|^([a-zA-Z0-9_\.\-])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$/, "邮箱格式不正确"],
-                    url: [/(^$)|(^#)|(^http(s*):\/\/[^\s]+\.[^\s]+)/, "链接格式不正确"],
-                    number: [/(^$)|^\d+$/,'只能填写数字'],
-                    date: [/(^$)|^(\d{4})[-\/](\d{1}|0\d{1}|1[0-2])([-\/](\d{1}|0\d{1}|[1-2][0-9]|3[0-1]))*$/, "日期格式不正确"],
-                    identity: [/(^$)|(^\d{15}$)|(^\d{17}(x|X|\d)$)/, "请输入正确的身份证号"]
-                });
-                layui.form.on("submit(save)", function (data) {
-                    data.field[PRIMARY_KEY] = layui.url().search[PRIMARY_KEY];
-                    layui.$.ajax({
-                        url: UPDATE_API,
-                        type: "POST",
-                        dateType: "json",
-                        data: data.field,
-                        success: function (res) {
-                            if (res.code) {
-                                return layui.pearPopup.failure(res.msg);
+            // 加载模型字段
+            function loadChannelfields(typeid, channelId, aid) {
+                console.log("loadChannelfields:", typeid, channelId, aid);
+
+                // 如果 channelId 为 0，提示频道ID不存在
+                if (!channelId || channelId === 0) {
+                    layui.pearPopup.failure("频道ID不存在，无法加载动态字段");
+                    return;
+                }
+
+                var requestData = {
+                    channel_id: channelId,
+                    limit: 1000,
+                    is_release: 1,
+                    typeid: typeid
+                };
+
+                $.ajax({
+                    url: "/app/admin/channelfield/select",
+                    type: 'get',
+                    dataType: 'json',
+                    data: requestData,
+                    success: function (result) {
+                        if (result.code === 0 && result.data) {
+                            renderFields(result.data);
+
+                            // 加载附加表数据
+                            if (aid > 0) {
+                                loadContentData(aid, channelId, result.data);
                             }
-                            return layui.pearPopup.success("操作成功", function () {
-                                parent.refreshTable();
-                                parent.layer.close(parent.layer.getFrameIndex(window.name));
+                        }
+                    }
+                });
+            }
+
+            // 设置编辑器内容（支持延迟设置）
+            function setEditorContent(editorId, fieldName, content) {
+                var editorInstance = typeof tinymce !== 'undefined' && tinymce.get ? tinymce.get(editorId) : null;
+                if (editorInstance && typeof editorInstance.setContent === 'function') {
+                    editorInstance.setContent(content || '');
+                    return true;
+                } else if (editors[fieldName] && typeof editors[fieldName].setContent === 'function') {
+                    editors[fieldName].setContent(content || '');
+                    return true;
+                }
+                return false;
+            }
+
+            // 尝试设置编辑器内容，如果编辑器未初始化则等待
+            function trySetEditorContent(editorId, fieldName, content) {
+                if (!setEditorContent(editorId, fieldName, content)) {
+                    setTimeout(function () {
+                        var checkCount = 0;
+                        var checkInterval = setInterval(function () {
+                            checkCount++;
+                            if (setEditorContent(editorId, fieldName, content) || checkCount > 50) {
+                                clearInterval(checkInterval);
+                            }
+                        }, 100);
+                    }, 200);
+                }
+            }
+
+            // 填充编辑器字段内容
+            function fillEditorField(fieldName, value) {
+                var decodedValue = decodeHtmlEntities(value);
+                var editorId = '#editor-' + fieldName;
+                var $editor = $(editorId);
+                if ($editor.length > 0) {
+                    $editor.val(decodedValue);
+                    trySetEditorContent(editorId, fieldName, decodedValue);
+                }
+            }
+
+            // 填充内容编辑器字段（content 或 content_ey_m）
+            function fillContentEditorField(fieldName, value) {
+                var decodedValue = decodeHtmlEntities(value);
+                var $editor = fieldName === 'content' ? $('#editor-content') : $('#editor-content-ey-m');
+                var editorId = fieldName === 'content' ? '#editor-content' : '#editor-content-ey-m';
+                if ($editor.length > 0) {
+                    $editor.val(decodedValue);
+                    trySetEditorContent(editorId, fieldName, decodedValue);
+                }
+            }
+
+            // 填充多图字段
+            function fillMultiImageField(fieldName, value) {
+                try {
+                    var imgData = Array.isArray(value) ? value : (typeof value === 'string' ? JSON.parse(value) : []);
+                    if (Array.isArray(imgData)) {
+                        imgData.forEach(function (img) {
+                            var imgUrl = typeof img === 'string' ? img : (img.image_url || '');
+                            if (imgUrl) {
+                                var item = $('<div style="display: inline-block; margin-right: 10px; margin-bottom: 10px; position: relative;">');
+                                item.append('<img src="' + imgUrl + '" style="width: 100px; height: 100px; object-fit: cover;">');
+                                item.append('<input type="hidden" name="' + fieldName + '[]" value="' + imgUrl + '">');
+                                item.append('<button type="button" class="layui-btn layui-btn-xs layui-btn-danger" onclick="$(this).parent().remove()" style="position: absolute; top: 0; right: 0;">删除</button>');
+                                $('#list-' + fieldName).append(item);
+                            }
+                        });
+                    }
+                } catch (e) {
+                    console.error('解析多图数据失败:', e);
+                }
+            }
+
+            // 填充单图字段
+            function fillImageField(fieldName, value) {
+                $('#preview-' + fieldName).attr('src', value).show();
+                $('#input-' + fieldName).val(value);
+            }
+
+            // 填充普通表单字段
+            function fillCommonField(fieldName, fieldType, value) {
+                var $field = $('[name="' + fieldName + '"]');
+                if ($field.length > 0) {
+                    if ($field.is('textarea')) {
+                        $field.val(value);
+                    } else if ($field.is('select')) {
+                        $field.val(value);
+                    } else if ($field.is(':checkbox') || $field.is(':radio')) {
+                        if (fieldType === 'checkbox' || fieldType === 'checkboxs') {
+                            var valueArray = String(value).split(',');
+                            $field.each(function () {
+                                if (valueArray.indexOf($(this).val()) >= 0) {
+                                    $(this).prop('checked', true);
+                                }
                             });
+                        } else {
+                            $field.filter('[value="' + value + '"]').prop('checked', true);
+                        }
+                    } else {
+                        $field.val(value);
+                    }
+                }
+            }
+
+            // 加载附加表数据
+            function loadContentData(aid, channelId, fields) {
+                $.ajax({
+                    url: "/app/admin/archive/getContent",
+                    type: 'get',
+                    dataType: 'json',
+                    data: { aid: aid, channel_id: channelId },
+                    success: function (result) {
+                        if (result.code === 0 && result.data) {
+                            var contentData = result.data;
+
+                            // 填充动态字段数据
+                            fields.forEach(function (field) {
+                                if (field.ifeditable != 1) return;
+
+                                var fieldName = field.name || '';
+                                var fieldType = field.dtype || '';
+                                var value = contentData[fieldName];
+
+                                if (value !== undefined && value !== null && value !== '') {
+                                    if (fieldName === 'content' || fieldName === 'content_ey_m') {
+                                        fillContentEditorField(fieldName, value);
+                                    } else if (fieldType === 'htmltext') {
+                                        fillEditorField(fieldName, value);
+                                    } else if (fieldType === 'imgs') {
+                                        fillMultiImageField(fieldName, value);
+                                    } else if (fieldType === 'img') {
+                                        fillImageField(fieldName, value);
+                                    } else {
+                                        fillCommonField(fieldName, fieldType, value);
+                                    }
+                                }
+                            });
+
+                            // 重新渲染表单
+                            form.render();
+                        }
+                    }
+                });
+            }
+
+            // 渲染动态字段
+            function renderFields(fields) {
+                var $contentWrapper = $('#content-editor-wrapper');
+                var $contentTabs = $('#content-editor-tabs');
+                var hasContent = false;
+                var hasContentEyM = false;
+                var contentField = null;
+                var contentEyMField = null;
+
+                // 清空所有标签页的动态字段容器（保留固定字段）
+                $('#dynamic-fields-container-1').empty();
+                $('#dynamic-fields-container-2').empty();
+                $('#dynamic-fields-container-3').empty();
+
+                // 默认显示内容编辑器，检查字段的 ifeditable 状态来决定是否隐藏
+                var contentIfeditable = null;
+                var contentEyMIfeditable = null;
+
+                fields.forEach(function (field) {
+                    var fieldName = field.name || '';
+                    if (fieldName === 'content') {
+                        hasContent = true;
+                        contentField = field;
+                        contentIfeditable = field.ifeditable;
+                    } else if (fieldName === 'content_ey_m') {
+                        hasContentEyM = true;
+                        contentEyMField = field;
+                        contentEyMIfeditable = field.ifeditable;
+                    }
+                });
+
+                // 默认显示编辑器区域
+                $contentWrapper.show();
+
+                // 根据字段的 ifeditable 状态显示/隐藏对应的标签
+                if (hasContent && contentIfeditable == 0) {
+                    $contentTabs.find('li[lay-id="pc"]').hide();
+                    $contentTabs.find('#tab-pc').removeClass('layui-show');
+                    if (hasContentEyM && contentEyMIfeditable != 0) {
+                        $contentTabs.find('li[lay-id="mobile"]').addClass('layui-this');
+                        $contentTabs.find('#tab-mobile').addClass('layui-show');
+                    }
+                } else if (hasContent) {
+                    $contentTabs.find('li[lay-id="pc"]').show();
+                }
+
+                if (hasContentEyM && contentEyMIfeditable == 0) {
+                    $contentTabs.find('li[lay-id="mobile"]').hide();
+                } else if (hasContentEyM) {
+                    $contentTabs.find('li[lay-id="mobile"]').show();
+                }
+
+                // 如果两个标签都隐藏了，则隐藏整个编辑器区域
+                var pcHidden = hasContent && contentIfeditable == 0;
+                var mobileHidden = hasContentEyM && contentEyMIfeditable == 0;
+                if (pcHidden && mobileHidden) {
+                    $contentWrapper.hide();
+                } else {
+                    element.render('tabs', 'content-tabs');
+                }
+
+                // 按标签页分类字段
+                var tabFields = { 1: [], 2: [], 3: [] };
+                fields.forEach(function (field) {
+                    if (field.ifeditable != 1) {
+                        return;
+                    }
+                    var fieldName = field.name || '';
+                    if (fieldName === 'content' || fieldName === 'content_ey_m') {
+                        return;
+                    }
+                    var tabIndex = getFieldTabIndex(fieldName);
+                    tabFields[tabIndex].push(field);
+                });
+
+                // 渲染每个标签页的字段
+                [1, 2, 3].forEach(function (tabIndex) {
+                    renderTabFields(tabFields[tabIndex], tabIndex);
+                });
+
+                // 重新渲染表单
+                form.render();
+
+                // 监听 typeid 字段变化
+                var $typeidField = $('[name="typeid"]');
+                if ($typeidField.length > 0) {
+                    $typeidField.off('change').on('change', function () {
+                        var typeid = $(this).val();
+                        if (typeid && typeid > 0) {
+                            loadChannelfields(typeid, 0, 0);
                         }
                     });
-                    return false;
+                }
+
+                // 初始化编辑器和上传（在所有字段渲染完成后，立即初始化避免延迟感）
+                function initEditorsAndUploads() {
+                    // 为 content 和 content_ey_m 字段初始化编辑器（默认初始化，除非 ifeditable=0）
+                    if (hasContent && contentField && contentField.ifeditable != 0) {
+                        var $editorContent = $('#editor-content');
+                        if ($editorContent.length > 0 && typeof tinymce !== 'undefined' && !editors['content']) {
+                            var contentValue = $editorContent.val();
+                            // 解码HTML实体
+                            if (contentValue) {
+                                contentValue = decodeHtmlEntities(contentValue);
+                                $editorContent.val(contentValue);
+                            }
+                            editors['content'] = tinymce.render({
+                                elem: '#editor-content',
+                                height: 400,
+                                init_instance_callback: function (editor) {
+                                    var textareaValue = $editorContent.val();
+                                    if (textareaValue) {
+                                        var decodedValue = decodeHtmlEntities(textareaValue);
+                                        editor.setContent(decodedValue);
+                                    }
+                                }
+                            });
+                            // 使用更短的延迟来设置内容，确保编辑器已初始化
+                            if (contentValue) {
+                                setTimeout(function () {
+                                    var editorInstance = typeof tinymce !== 'undefined' && tinymce.get ? tinymce.get('#editor-content') : null;
+                                    if (editorInstance && typeof editorInstance.setContent === 'function') {
+                                        editorInstance.setContent(contentValue);
+                                    } else if (editors['content'] && typeof editors['content'].setContent === 'function') {
+                                        editors['content'].setContent(contentValue);
+                                    }
+                                }, 100);
+                            }
+                        }
+                    }
+
+                    if (hasContentEyM && contentEyMField && contentEyMField.ifeditable != 0) {
+                        var $editorContentEyM = $('#editor-content-ey-m');
+                        if ($editorContentEyM.length > 0 && typeof tinymce !== 'undefined' && !editors['content_ey_m']) {
+                            var contentEyMValue = $editorContentEyM.val();
+                            // 解码HTML实体
+                            if (contentEyMValue) {
+                                contentEyMValue = decodeHtmlEntities(contentEyMValue);
+                                $editorContentEyM.val(contentEyMValue);
+                            }
+                            editors['content_ey_m'] = tinymce.render({
+                                elem: '#editor-content-ey-m',
+                                height: 400,
+                                init_instance_callback: function (editor) {
+                                    var textareaValue = $editorContentEyM.val();
+                                    if (textareaValue) {
+                                        var decodedValue = decodeHtmlEntities(textareaValue);
+                                        editor.setContent(decodedValue);
+                                    }
+                                }
+                            });
+                            // 使用更短的延迟来设置内容
+                            if (contentEyMValue) {
+                                setTimeout(function () {
+                                    var editorInstance = typeof tinymce !== 'undefined' && tinymce.get ? tinymce.get('#editor-content-ey-m') : null;
+                                    if (editorInstance && typeof editorInstance.setContent === 'function') {
+                                        editorInstance.setContent(contentEyMValue);
+                                    } else if (editors['content_ey_m'] && typeof editors['content_ey_m'].setContent === 'function') {
+                                        editors['content_ey_m'].setContent(contentEyMValue);
+                                    }
+                                }, 100);
+                            }
+                        }
+                    }
+
+                    // 为其他 htmltext 类型的字段初始化 tinymce 编辑器
+                    fields.forEach(function (field) {
+                        if (field.ifeditable == 1 && field.dtype === 'htmltext') {
+                            var fieldName = field.name || '';
+                            if (fieldName === 'content' || fieldName === 'content_ey_m') {
+                                return;
+                            }
+                            var editorId = 'editor-' + fieldName;
+                            var $editor = $('#' + editorId);
+                            if ($editor.length > 0 && typeof tinymce !== 'undefined' && !editors[fieldName]) {
+                                var editorValue = $editor.val();
+                                // 解码HTML实体
+                                if (editorValue) {
+                                    editorValue = decodeHtmlEntities(editorValue);
+                                    $editor.val(editorValue);
+                                }
+                                editors[fieldName] = tinymce.render({
+                                    elem: '#' + editorId,
+                                    height: 400,
+                                    init_instance_callback: function (editor) {
+                                        var textareaValue = $editor.val();
+                                        if (textareaValue) {
+                                            var decodedValue = decodeHtmlEntities(textareaValue);
+                                            editor.setContent(decodedValue);
+                                        }
+                                    }
+                                });
+                                // 使用更短的延迟来设置内容
+                                if (editorValue) {
+                                    setTimeout(function () {
+                                        var editorInstance = typeof tinymce !== 'undefined' && tinymce.get ? tinymce.get('#' + editorId) : null;
+                                        if (editorInstance && typeof editorInstance.setContent === 'function') {
+                                            editorInstance.setContent(editorValue);
+                                        } else if (editors[fieldName] && typeof editors[fieldName].setContent === 'function') {
+                                            editors[fieldName].setContent(editorValue);
+                                        }
+                                    }, 100);
+                                }
+                            }
+                        }
+                    });
+
+                    // 初始化上传
+                    initUploadFields(fields);
+                }
+
+                // 使用 requestAnimationFrame 立即初始化，避免延迟感
+                if (window.requestAnimationFrame) {
+                    requestAnimationFrame(initEditorsAndUploads);
+                } else {
+                    setTimeout(initEditorsAndUploads, 0);
+                }
+            }
+
+            // 渲染指定标签页的字段
+            function renderTabFields(fields, tabIndex) {
+                var $container = $('#dynamic-fields-container-' + tabIndex);
+                fields.forEach(function (field) {
+                    $container.append(generateFieldHtml(field));
+                });
+            }
+
+            // 初始化上传字段
+            function initUploadFields(fields) {
+                fields.forEach(function (field) {
+                    if (field.ifeditable != 1) return;
+
+                    var fieldName = field.name || '';
+                    var fieldType = field.dtype || '';
+
+                    if (fieldType === 'img') {
+                        upload.render({
+                            elem: '#upload-' + fieldName,
+                            url: '/app/admin/upload/image',
+                            accept: 'images',
+                            done: function (res) {
+                                if (res.code === 0) {
+                                    $('#preview-' + fieldName).attr('src', res.data.url).show();
+                                    $('#input-' + fieldName).val(res.data.url);
+                                    $('#text-' + fieldName).html('');
+                                } else {
+                                    $('#text-' + fieldName).html('<span style="color: red;">上传失败：' + (res.msg || '未知错误') + '</span>');
+                                }
+                            }
+                        });
+                    } else if (fieldType === 'imgs') {
+                        upload.render({
+                            elem: '#upload-' + fieldName,
+                            url: '/app/admin/upload/image',
+                            accept: 'images',
+                            multiple: true,
+                            done: function (res) {
+                                if (res.code === 0) {
+                                    var item = $('<div style="display: inline-block; margin-right: 10px; margin-bottom: 10px; position: relative;">');
+                                    item.append('<img src="' + res.data.url + '" style="width: 100px; height: 100px; object-fit: cover;">');
+                                    item.append('<input type="hidden" name="' + fieldName + '[]" value="' + res.data.url + '">');
+                                    item.append('<button type="button" class="layui-btn layui-btn-xs layui-btn-danger" onclick="$(this).parent().remove()" style="position: absolute; top: 0; right: 0;">删除</button>');
+                                    $('#list-' + fieldName).append(item);
+                                }
+                            }
+                        });
+                    } else if (fieldType === 'files') {
+                        upload.render({
+                            elem: '#upload-' + fieldName,
+                            url: '/app/admin/upload/file',
+                            accept: 'file',
+                            done: function (res) {
+                                if (res.code === 0) {
+                                    var item = $('<div style="margin-bottom: 10px;">');
+                                    item.append('<span>' + res.data.name + '</span>');
+                                    item.append('<input type="hidden" name="' + fieldName + '[]" value="' + res.data.url + '">');
+                                    item.append('<button type="button" class="layui-btn layui-btn-xs layui-btn-danger" onclick="$(this).parent().remove()">删除</button>');
+                                    $('#list-' + fieldName).append(item);
+                                }
+                            }
+                        });
+                    }
+                });
+            }
+
+            
+        });
+
+
+
+
+        // ==================== 工具函数 ====================
+
+        /**
+         * HTML实体解码函数
+         */
+        function decodeHtmlEntities(html) {
+            if (!html || typeof html !== 'string') {
+                return html;
+            }
+            var txt = document.createElement('textarea');
+            txt.innerHTML = html;
+            return txt.value;
+        }
+
+        /**
+         * 将树形数据拍平成带缩进的下拉选项
+         */
+        function flattenTree(nodes, level) {
+            level = level || 0;
+            var list = [];
+            if (!nodes || !Array.isArray(nodes)) {
+                return list;
+            }
+            nodes.forEach(function (node) {
+                if (!node) return;
+                var indent = level > 0 ? '├─'.repeat(level) : '';
+                var name = node.title || node.name || node.typename || '未命名';
+                list.push({
+                    id: node.id,
+                    label: indent + name
+                });
+                if (node.children && Array.isArray(node.children) && node.children.length > 0) {
+                    list = list.concat(flattenTree(node.children, level + 1));
+                }
+            });
+            return list;
+        }
+
+        /**
+         * 获取字段所属的标签页索引
+         * @param {string} fieldName 字段名
+         * @returns {number} 1-基础内容, 2-SEO优化, 3-更多设置
+         */
+        function getFieldTabIndex(fieldName) {
+            var seoFields = ['seo_title', 'seo_keywords', 'seo_description'];
+            if (seoFields.indexOf(fieldName) >= 0) {
+                return 2;
+            }
+            var moreFields = ['author', 'origin', 'click', 'arcrank', 'add_time', 'update_time', 'tempview',
+                'status', 'sort_order', 'lang', 'admin_id', 'users_id', 'arc_level_id',
+                'restric_type', 'users_score', 'is_del', 'del_method', 'joinaid', 'downcount',
+                'appraise', 'collection', 'htmlfilename', 'province_id', 'city_id', 'area_id',
+                'removal_time', 'no_vip_pay', 'editor_remote_img_local', 'editor_img_clear_link',
+                'editor_ai_create', 'reason', 'stock_code', 'stypeid', 'channel', 'is_b',
+                'is_head', 'is_special', 'is_top', 'is_recom', 'is_jump', 'is_litpic',
+                'is_roll', 'is_slide', 'is_diyattr', 'jumplinks', 'ismake', 'attrlist_id',
+                'merchant_id', 'free_shipping', 'users_price', 'crossed_price',
+                'users_discount_type', 'users_free', 'old_price', 'sales_num',
+                'virtual_sales', 'sales_all', 'stock_count', 'stock_show', 'prom_type',
+                'logistics_type'];
+            if (moreFields.indexOf(fieldName) >= 0) {
+                return 3;
+            }
+            return 1;
+                }
+
+
+        /**
+         * 解析选项定义字符串
+         * @param {string} fieldDefine 选项定义字符串，格式：选项1|值1,选项2|值2
+         * @returns {Array} 选项数组 [{text, value}]
+         */
+        function parseFieldOptions(fieldDefine) {
+            if (!fieldDefine) return [];
+            var options = [];
+            fieldDefine.split(',').forEach(function (option) {
+                var parts = option.split('|');
+                options.push({
+                    text: parts[0].trim(),
+                    value: parts.length > 1 ? parts[1].trim() : parts[0].trim()
                 });
             });
+            return options;
+        }
 
-        </script>
+        /**
+         * 根据字段类型生成字段HTML
+         * @param {Object} field 字段对象
+         * @returns {string} 字段HTML
+         */
+        function generateFieldHtml(field) {
+            var fieldName = field.name || '';
+            var fieldTitle = field.title || fieldName;
+            var fieldType = field.dtype || 'text';
+            var fieldDefine = field.define || '';
+            var maxlength = field.maxlength || '';
+            var dfvalue = field.dfvalue || '';
+            var remark = field.remark || '';
+            var isRequired = field.ifrequire == 1;
+            var requiredAttr = isRequired ? 'lay-verify="required"' : '';
 
-    </body>
+            var fieldHtml = '<div class="layui-form-item" data-field-name="' + fieldName + '">';
+            fieldHtml += '<label class="layui-form-label">' + fieldTitle + '</label>';
+            fieldHtml += '<div class="layui-input-block">';
+
+            // 根据字段类型生成不同的控件
+            switch (fieldType) {
+                case 'htmltext':
+                    fieldHtml += '<textarea id="editor-' + fieldName + '" name="' + fieldName + '" cols="30" rows="10">' + (dfvalue || '') + '</textarea>';
+                    break;
+                case 'text':
+                case 'int':
+                case 'float':
+                case 'datetime':
+                    var inputType = fieldType === 'int' || fieldType === 'float' ? 'number' : (fieldType === 'datetime' ? 'datetime-local' : 'text');
+                    var maxlengthAttr = maxlength ? 'maxlength="' + maxlength + '"' : '';
+                    fieldHtml += '<input type="' + inputType + '" name="' + fieldName + '" value="' + (dfvalue || '') + '" class="layui-input" ' + requiredAttr + ' ' + maxlengthAttr + '>';
+                    break;
+                case 'textarea':
+                    var rows = fieldDefine ? parseInt(fieldDefine) : 3;
+                    var maxlengthAttr = maxlength ? 'maxlength="' + maxlength + '"' : '';
+                    fieldHtml += '<textarea name="' + fieldName + '" class="layui-textarea" rows="' + rows + '" ' + requiredAttr + ' ' + maxlengthAttr + '>' + (dfvalue || '') + '</textarea>';
+                    break;
+                case 'select':
+                case 'selects':
+                    fieldHtml += '<select name="' + fieldName + '" ' + requiredAttr + '>';
+                    fieldHtml += '<option value="">请选择</option>';
+                    var options = parseFieldOptions(fieldDefine);
+                    options.forEach(function (opt) {
+                        var selected = (dfvalue == opt.value) ? 'selected' : '';
+                        fieldHtml += '<option value="' + opt.value + '" ' + selected + '>' + opt.text + '</option>';
+                    });
+                    fieldHtml += '</select>';
+                    break;
+                case 'radio':
+                case 'radios':
+                    var radioOptions = parseFieldOptions(fieldDefine);
+                    radioOptions.forEach(function (opt) {
+                        var checked = (dfvalue == opt.value) ? 'checked' : '';
+                        fieldHtml += '<input type="radio" name="' + fieldName + '" value="' + opt.value + '" title="' + opt.text + '" ' + checked + '>';
+                });
+                    break;
+                case 'checkbox':
+                case 'checkboxs':
+                    var checkboxOptions = parseFieldOptions(fieldDefine);
+                    var dfvalueArray = dfvalue ? String(dfvalue).split(',') : [];
+                    checkboxOptions.forEach(function (opt) {
+                        var checked = dfvalueArray.indexOf(opt.value) >= 0 ? 'checked' : '';
+                        fieldHtml += '<input type="checkbox" name="' + fieldName + '[]" value="' + opt.value + '" title="' + opt.text + '" ' + checked + '>';
+                    });
+                    break;
+                case 'img':
+                    fieldHtml += '<div class="layui-upload">';
+                    fieldHtml += '<button type="button" class="layui-btn layui-btn-normal" id="upload-' + fieldName + '">选择图片</button>';
+                    fieldHtml += '<div class="layui-upload-list" style="margin-top: 10px;">';
+                    fieldHtml += '<img class="layui-upload-img" id="preview-' + fieldName + '" src="' + (dfvalue || '') + '" style="max-width: 200px; max-height: 200px; display: ' + (dfvalue ? 'block' : 'none') + ';">';
+                    fieldHtml += '<input type="hidden" name="' + fieldName + '" id="input-' + fieldName + '" value="' + (dfvalue || '') + '">';
+                    fieldHtml += '<p id="text-' + fieldName + '" style="margin-top: 10px;"></p>';
+                    fieldHtml += '</div></div>';
+                    break;
+                case 'imgs':
+                    fieldHtml += '<div class="layui-upload">';
+                    fieldHtml += '<button type="button" class="layui-btn layui-btn-normal" id="upload-' + fieldName + '">选择多图</button>';
+                    fieldHtml += '<div class="layui-upload-list" id="list-' + fieldName + '" style="margin-top: 10px;"></div>';
+                    fieldHtml += '</div>';
+                    break;
+                case 'files':
+                    fieldHtml += '<div class="layui-upload">';
+                    fieldHtml += '<button type="button" class="layui-btn layui-btn-normal" id="upload-' + fieldName + '">选择文件</button>';
+                    fieldHtml += '<div class="layui-upload-list" id="list-' + fieldName + '" style="margin-top: 10px;"></div>';
+                    fieldHtml += '</div>';
+                    break;
+                case 'media':
+                    fieldHtml += '<input type="text" name="' + fieldName + '" value="' + (dfvalue || '') + '" class="layui-input" placeholder="请输入视频地址" ' + requiredAttr + '>';
+                    break;
+                case 'switch':
+                    var checked = (dfvalue == 1 || dfvalue === '1') ? 'checked' : '';
+                    fieldHtml += '<input type="checkbox" name="' + fieldName + '" value="1" lay-skin="switch" lay-text="开启|关闭" ' + checked + '>';
+                    break;
+                case 'decimal':
+                    fieldHtml += '<input type="number" name="' + fieldName + '" value="' + (dfvalue || '0.00') + '" class="layui-input" step="0.01" ' + requiredAttr + '>';
+                    break;
+                case 'multitext':
+                    var rows = fieldDefine ? parseInt(fieldDefine) : 5;
+                    var maxlengthAttr = maxlength ? 'maxlength="' + maxlength + '"' : '';
+                    fieldHtml += '<textarea name="' + fieldName + '" class="layui-textarea" rows="' + rows + '" ' + requiredAttr + ' ' + maxlengthAttr + '>' + (dfvalue || '') + '</textarea>';
+                    break;
+            }
+
+            if (remark) {
+                fieldHtml += '<div class="layui-form-mid layui-word-aux">' + remark + '</div>';
+                    }
+
+            fieldHtml += '</div></div>';
+            return fieldHtml;
+        }
+    </script>
+
+</body>
 
 </html>

@@ -37,7 +37,6 @@ class IndexController
      */
     public function index(Request $request): Response
     {
- 
         clearstatcache();
         if (!is_file(base_path('plugin/admin/config/database.php'))) {
             return raw_view('index/install');

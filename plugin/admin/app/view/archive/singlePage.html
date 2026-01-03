@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+
+<head>
+    <meta charset="UTF-8">
+    <title>单页模型编辑</title>
+    <link rel="stylesheet" href="/app/admin/component/pear/css/pear.css" />
+    <link rel="stylesheet" href="/app/admin/admin/css/reset.css" />
+    <style>
+        html,
+        body {
+            height: 100%;
+            overflow: hidden;
+        }
+
+        .mainBox {
+            height: 100%;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .main-container {
+            flex: 1;
+            overflow-y: auto;
+            /* padding: 20px 80px 80px 0px;   */
+            box-sizing: border-box;
+        }
+
+        .bottom {
+            flex-shrink: 0;
+            background: #fff;
+            padding: 8px 40px 8px 0px;
+            border-top: 1px solid #e6e6e6;
+            z-index: 100;
+            box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .bottom .layui-input-block {
+            display: flex;
+            justify-content: flex-start;
+            padding-right: 25%;
+        }
+
+        #content-editor-wrapper {
+            margin-top: 20px;
+        }
+
+        #content-editor-tabs {
+            margin-bottom: 20px;
+        }
+
+        #content-editor-tabs .layui-tabs-body {
+            padding: 15px 0;
+        }
+    </style>
+</head>
+
+<body>
+
+    <form class="layui-form" action="" lay-filter="arctype-form">
+
+        <div class="mainBox">
+            <div class="main-container" id="form-container">
+                <!-- 动态字段将在这里插入（在编辑器之前） -->
+
+                <!-- 内容编辑器标签页（如果存在 content 或 content_ey_m 字段） -->
+                <div id="content-editor-wrapper" style="display: none;">
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">内容详情</label>
+                        <div class="layui-input-block">
+                            <div id="content-editor-tabs">
+                                <div class="layui-tabs layui-tabs-card" lay-filter="content-tabs">
+                                    <ul class="layui-tabs-header">
+                                        <li class="layui-this" lay-id="pc">电脑端</li>
+                                        <li lay-id="mobile">移动端</li>
+                                    </ul>
+                                    <div class="layui-tabs-body">
+                                        <div class="layui-tabs-item layui-show" id="tab-pc">
+                                            <textarea id="editor-content" name="content" cols="30" rows="10"></textarea>
+                                        </div>
+                                        <div class="layui-tabs-item" id="tab-mobile">
+                                            <textarea id="editor-content-ey-m" name="content_ey_m" cols="30"
+                                                rows="10"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="bottom">
+                <div class="layui-form-item" style="margin-bottom: 0;">
+                    <div class="layui-input-block">
+                        <button class="pear-btn pear-btn-primary pear-btn-xs" lay-submit lay-filter="save">保存</button>
+                        <button type="reset" class="pear-btn pear-btn-xs">重置</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </form>
+
+    <script src="/app/admin/component/layui/layui.js?v=2.13.12"></script>
+    <script src="/app/admin/component/pear/pear.js"></script>
+    <script src="/app/admin/admin/js/common.js"></script>
+
+    <script>
+        layui.use(['form', 'jquery', 'util', 'tinymce', 'element'], function () {
+            var form = layui.form;
+            var $ = layui.$;
+            var util = layui.util;
+            var layer = layui.layer;
+            var tinymce = layui.tinymce;
+            var element = layui.element;
+
+            const PRIMARY_KEY = "id";
+            const UPDATE_API = "/app/admin/archive/singlePage";
+
+            // 获取URL参数
+            var urlParams = new URLSearchParams(window.location.search);
+            var id = urlParams.get(PRIMARY_KEY);
+            var currentTypeId = id; // 栏目ID
+            var channelId = 0; // 模型ID
+            var editors = {}; // 存储所有文本编辑器实例，key为字段名
+
+            // 加载栏目数据，获取模型ID
+            if (currentTypeId) {
+                $.ajax({
+                    url: "/app/admin/arctype/select",
+                    type: 'get',
+                    dataType: 'json',
+                    data: { id: currentTypeId },
+                    success: function (result) {
+                        if (result.code === 0 && result.data && result.data.length > 0) {
+                            var arctypeData = result.data[0];
+                            channelId = parseInt(arctypeData.current_channel) || 0;
+
+                            // 先加载动态字段，字段加载完成后再加载内容数据
+                            if (channelId > 0) {
+                                loadChannelfields(channelId, currentTypeId, function () {
+                                    // 字段加载完成后，再加载内容数据
+                                    loadContentData(currentTypeId);
+                                });
+                            } else {
+                                // 如果没有模型ID，直接加载内容数据
+                                loadContentData(currentTypeId);
+                            }
+                        }
+                    }
+                });
+            }
+
+            // 加载内容数据（从 archives 表和附加表）
+            function loadContentData(typeId) {
+                $.ajax({
+                    url: "/app/admin/archive/select",
+                    type: 'get',
+                    dataType: 'json',
+                    data: { typeid: typeId, limit: 1 },
+                    success: function (result) {
+                        if (result.code === 0 && result.data && result.data.length > 0) {
+                            var archiveData = result.data[0];
+
+                            // 如果有 aid，尝试从附加表加载动态字段数据
+                            if (archiveData.aid && channelId > 0) {
+                                $.ajax({
+                                    url: "/app/admin/archive/getContent",
+                                    type: 'get',
+                                    dataType: 'json',
+                                    data: { aid: archiveData.aid, channel_id: channelId },
+                                    success: function (contentResult) {
+                                        if (contentResult.code === 0 && contentResult.data) {
+                                            // 合并附加表数据
+                                            Object.assign(archiveData, contentResult.data);
+                                        }
+                                        fillFormData(archiveData);
+                                    },
+                                    error: function () {
+                                        fillFormData(archiveData);
+                                    }
+                                });
+                            } else {
+                                fillFormData(archiveData);
+                            }
+                        }
+                    }
+                });
+            }
+
+            // 填充表单数据
+            function fillFormData(archiveData) {
+                // 填充表单数据（包括普通字段，但不包括编辑器字段）
+                var formData = {};
+                Object.keys(archiveData).forEach(function (key) {
+                    // 跳过编辑器字段、系统字段，稍后单独设置
+                    if (!editors[key] && !['aid', 'id', 'typeid', 'channel', 'add_time', 'update_time'].includes(key)) {
+                        formData[key] = archiveData[key];
+                    }
+                });
+                form.val('arctype-form', formData);
+
+                // 处理图片字段
+                Object.keys(archiveData).forEach(function (key) {
+                    if (archiveData[key] && $('#preview-' + key).length > 0) {
+                        $('#preview-' + key).attr('src', archiveData[key]).show();
+                        $('#input-' + key).val(archiveData[key]);
+                    }
+                });
+
+                // 处理多图字段（如果是序列化的数据，后端会先反序列化）
+                Object.keys(archiveData).forEach(function (key) {
+                    if (archiveData[key] && $('#list-' + key).length > 0) {
+                        try {
+                            var imgData = archiveData[key];
+                            // 如果是字符串，尝试解析为 JSON
+                            if (typeof imgData === 'string') {
+                                try {
+                                    imgData = JSON.parse(imgData);
+                                } catch (e) {
+                                    // 如果不是 JSON，可能是逗号分隔的字符串
+                                    if (imgData.indexOf(',') > -1) {
+                                        imgData = imgData.split(',').map(function (url) {
+                                            return { image_url: url.trim() };
+                                        });
+                                    } else {
+                                        imgData = [{ image_url: imgData }];
+                                    }
+                                }
+                            }
+                            if (Array.isArray(imgData)) {
+                                imgData.forEach(function (img) {
+                                    var imgUrl = typeof img === 'string' ? img : (img.image_url || '');
+                                    if (imgUrl) {
+                                        var item = $('<div style="display: inline-block; margin-right: 10px; margin-bottom: 10px; position: relative;">');
+                                        item.append('<img src="' + imgUrl + '" style="width: 100px; height: 100px; object-fit: cover;">');
+                                        item.append('<input type="hidden" name="' + key + '[]" value="' + imgUrl + '">');
+                                        item.append('<button type="button" class="layui-btn layui-btn-xs layui-btn-danger" onclick="$(this).parent().remove()" style="position: absolute; top: 0; right: 0;">删除</button>');
+                                        $('#list-' + key).append(item);
+                                    }
+                                });
+                            }
+                        } catch (e) {
+                            console.error('解析多图数据失败:', e);
+                        }
+                    }
+                });
+
+                // 设置文本编辑器内容（延迟执行，确保编辑器已初始化）
+                setTimeout(function () {
+                    Object.keys(editors).forEach(function (fieldName) {
+                        if (archiveData[fieldName] && editors[fieldName]) {
+                            editors[fieldName].setContent(archiveData[fieldName]);
+                        }
+                    });
+                }, 500);
+            }
+
+            // 加载模型字段
+            function loadChannelfields(channelId, typeId, callback) {
+                if (!channelId || channelId <= 0) {
+                    console.warn('频道ID无效:', channelId);
+                    if (callback) callback();
+                    return;
+                }
+
+                // 使用 select 方法，通过 channel_id 作为 where 条件筛选 wa_channelfield 表
+                // 条件：(is_release=1 AND ifsystem=1) OR (is_release=0 AND ifsystem=0)
+                // 同时通过 typeid 在 wa_channelfield_bind 表中过滤，只显示绑定到该栏目的字段
+                var requestData = {
+                    channel_id: channelId,  // 作为 where 条件，筛选 wa_channelfield 表中 channel_id = channelId 的记录
+                    limit: 1000,
+                    is_release: 1  // 传递此参数以触发复杂条件：(is_release=1 AND ifsystem=1) OR (is_release=0 AND ifsystem=0)
+                };
+
+                // 如果提供了栏目ID，传递 typeid 参数用于过滤字段
+                if (typeId && typeId > 0) {
+                    requestData.typeid = typeId;
+                }
+
+                $.ajax({
+                    url: "/app/admin/channelfield/select",
+                    type: 'get',
+                    dataType: 'json',
+                    data: requestData,
+                    success: function (result) {
+                        if (result.code === 0 && result.data) {
+                            console.log('加载字段成功，共 ' + result.data.length + ' 个字段');
+                            renderFields(result.data);
+                            // 字段渲染完成后执行回调
+                            if (callback) {
+                                setTimeout(callback, 300); // 延迟一下，确保编辑器初始化完成
+                            }
+                        } else {
+                            console.error('加载字段失败:', result);
+                            layer.msg('加载字段失败: ' + (result.msg || '未知错误'), { icon: 2 });
+                            if (callback) callback();
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('加载字段请求失败:', error, xhr);
+                        layer.msg('加载字段失败', { icon: 2 });
+                        if (callback) callback();
+                    }
+                });
+            }
+
+            // 渲染动态字段
+            function renderFields(fields) {
+                var $container = $('#form-container');
+                var $contentWrapper = $('#content-editor-wrapper');
+                var $contentTabs = $('#content-editor-tabs');
+                var hasContent = false;
+                var hasContentEyM = false;
+                var contentField = null;
+                var contentEyMField = null;
+
+                // 清空所有动态字段（保留编辑器区域）
+                $container.find('.layui-form-item').not($contentWrapper.find('.layui-form-item')).remove();
+
+                // 先检查是否有 content 和 content_ey_m 字段（只检查 ifeditable=1 的字段）
+                fields.forEach(function (field) {
+                    var fieldName = field.name || '';
+                    // 只处理 ifeditable=1 的字段
+                    if (field.ifeditable == 1) {
+                        if (fieldName === 'content') {
+                            hasContent = true;
+                            contentField = field;
+                        } else if (fieldName === 'content_ey_m') {
+                            hasContentEyM = true;
+                            contentEyMField = field;
+                        }
+                    }
+                });
+
+                // 如果有 content 或 content_ey_m 字段，显示编辑器区域
+                if (hasContent || hasContentEyM) {
+                    $contentWrapper.show();
+                    // 根据字段的 ifeditable 状态显示/隐藏对应的标签
+                    if (!hasContent) {
+                        // content 字段不存在或 ifeditable=0，隐藏电脑端标签
+                        $contentTabs.find('li[lay-id="pc"]').hide();
+                        $contentTabs.find('#tab-pc').removeClass('layui-show');
+                        // 如果移动端存在，则默认显示移动端
+                        if (hasContentEyM) {
+                            $contentTabs.find('li[lay-id="mobile"]').addClass('layui-this');
+                            $contentTabs.find('#tab-mobile').addClass('layui-show');
+                        }
+                    } else {
+                        // content 字段存在，显示电脑端标签
+                        $contentTabs.find('li[lay-id="pc"]').show();
+                    }
+
+                    if (!hasContentEyM) {
+                        // content_ey_m 字段不存在或 ifeditable=0，隐藏移动端标签
+                        $contentTabs.find('li[lay-id="mobile"]').hide();
+                    } else {
+                        // content_ey_m 字段存在，显示移动端标签
+                        $contentTabs.find('li[lay-id="mobile"]').show();
+                    }
+
+                    // 如果两个标签都隐藏了，则隐藏整个编辑器区域
+                    if (!hasContent && !hasContentEyM) {
+                        $contentWrapper.hide();
+                    } else {
+                        // 重新渲染 tabs
+                        element.render('tabs', 'content-tabs');
+                    }
+                } else {
+                    $contentWrapper.hide();
+                }
+
+                // 遍历字段，只渲染 ifeditable=1 的字段
+                fields.forEach(function (field) {
+                    // 严格检查：只渲染 ifeditable=1 的字段，ifeditable=0 或其他值都跳过
+                    if (field.ifeditable != 1) {
+                        return; // 跳过不在编辑页显示的字段（ifeditable=0 或其他值）
+                    }
+
+                    var fieldName = field.name || '';
+
+                    // 跳过 content 和 content_ey_m 字段，它们已经在标签页中处理
+                    if (fieldName === 'content' || fieldName === 'content_ey_m') {
+                        return;
+                    }
+
+                    var fieldHtml = '';
+                    var fieldTitle = field.title || fieldName;
+                    var fieldType = field.dtype || 'text';
+                    var fieldDefine = field.define || '';
+                    var maxlength = field.maxlength || '';
+                    var dfvalue = field.dfvalue || '';
+                    var remark = field.remark || '';
+                    var isRequired = field.ifrequire == 1;
+                    var requiredClass = isRequired ? 'required' : '';
+                    var requiredAttr = isRequired ? 'lay-verify="required"' : '';
+
+                    // 构建字段HTML，添加 data-ifeditable 属性以便后续检查
+                    fieldHtml += '<div class="layui-form-item" data-field-name="' + fieldName + '" data-ifeditable="' + (field.ifeditable || 0) + '">';
+                    fieldHtml += '<label class="layui-form-label ' + requiredClass + '">' + fieldTitle + '</label>';
+                    fieldHtml += '<div class="layui-input-block">';
+
+                    // 根据字段类型渲染不同的控件
+                    if (fieldType === 'htmltext') {
+                        // 富文本编辑器（tinymce）
+                        var editorId = 'editor-' + fieldName;
+                        fieldHtml += '<textarea id="' + editorId + '" name="' + fieldName + '" cols="30" rows="10">' + (dfvalue || '') + '</textarea>';
+                    } else if (fieldType === 'text' || fieldType === 'int' || fieldType === 'float' || fieldType === 'datetime') {
+                        // 文本输入框
+                        var inputType = fieldType === 'int' ? 'number' : (fieldType === 'float' ? 'number' : (fieldType === 'datetime' ? 'datetime-local' : 'text'));
+                        var maxlengthAttr = maxlength ? 'maxlength="' + maxlength + '"' : '';
+                        fieldHtml += '<input type="' + inputType + '" name="' + fieldName + '" value="' + (dfvalue || '') + '" class="layui-input" ' + requiredAttr + ' ' + maxlengthAttr + '>';
+                    } else if (fieldType === 'textarea') {
+                        // 文本域
+                        var rows = fieldDefine ? parseInt(fieldDefine) : 3;
+                        var maxlengthAttr = maxlength ? 'maxlength="' + maxlength + '"' : '';
+                        fieldHtml += '<textarea name="' + fieldName + '" class="layui-textarea" rows="' + rows + '" ' + requiredAttr + ' ' + maxlengthAttr + '>' + (dfvalue || '') + '</textarea>';
+                    } else if (fieldType === 'select' || fieldType === 'selects') {
+                        // 下拉框
+                        fieldHtml += '<select name="' + fieldName + '" ' + requiredAttr + '>';
+                        fieldHtml += '<option value="">请选择</option>';
+                        if (fieldDefine) {
+                            // define 格式通常是：选项1|值1,选项2|值2 或 选项1,选项2
+                            var options = fieldDefine.split(',');
+                            options.forEach(function (option) {
+                                var parts = option.split('|');
+                                var optionText = parts[0].trim();
+                                var optionValue = parts.length > 1 ? parts[1].trim() : optionText;
+                                var selected = (dfvalue == optionValue) ? 'selected' : '';
+                                fieldHtml += '<option value="' + optionValue + '" ' + selected + '>' + optionText + '</option>';
+                            });
+                        }
+                        fieldHtml += '</select>';
+                    } else if (fieldType === 'radio' || fieldType === 'radios') {
+                        // 单选框
+                        if (fieldDefine) {
+                            var options = fieldDefine.split(',');
+                            options.forEach(function (option) {
+                                var parts = option.split('|');
+                                var optionText = parts[0].trim();
+                                var optionValue = parts.length > 1 ? parts[1].trim() : optionText;
+                                var checked = (dfvalue == optionValue) ? 'checked' : '';
+                                fieldHtml += '<input type="radio" name="' + fieldName + '" value="' + optionValue + '" title="' + optionText + '" ' + checked + '>';
+                            });
+                        }
+                    } else if (fieldType === 'checkbox' || fieldType === 'checkboxs') {
+                        // 复选框
+                        if (fieldDefine) {
+                            var options = fieldDefine.split(',');
+                            var dfvalueArray = dfvalue ? String(dfvalue).split(',') : [];
+                            options.forEach(function (option) {
+                                var parts = option.split('|');
+                                var optionText = parts[0].trim();
+                                var optionValue = parts.length > 1 ? parts[1].trim() : optionText;
+                                var checked = dfvalueArray.indexOf(optionValue) >= 0 ? 'checked' : '';
+                                fieldHtml += '<input type="checkbox" name="' + fieldName + '[]" value="' + optionValue + '" title="' + optionText + '" ' + checked + '>';
+                            });
+                        }
+                    } else if (fieldType === 'img') {
+                        // 单图上传
+                        fieldHtml += '<div class="layui-upload">';
+                        fieldHtml += '<button type="button" class="layui-btn layui-btn-normal" id="upload-' + fieldName + '">选择图片</button>';
+                        fieldHtml += '<div class="layui-upload-list" style="margin-top: 10px;">';
+                        fieldHtml += '<img class="layui-upload-img" id="preview-' + fieldName + '" src="' + (dfvalue || '') + '" style="max-width: 200px; max-height: 200px; display: ' + (dfvalue ? 'block' : 'none') + ';">';
+                        fieldHtml += '<input type="hidden" name="' + fieldName + '_eyou_local" id="input-' + fieldName + '" value="' + (dfvalue || '') + '">';
+                        fieldHtml += '<input type="hidden" name="' + fieldName + '_eyou_is_remote" value="0">';
+                        fieldHtml += '<p id="text-' + fieldName + '" style="margin-top: 10px;"></p>';
+                        fieldHtml += '</div></div>';
+                    } else if (fieldType === 'imgs') {
+                        // 多图上传
+                        fieldHtml += '<div class="layui-upload">';
+                        fieldHtml += '<button type="button" class="layui-btn layui-btn-normal" id="upload-' + fieldName + '">选择多图</button>';
+                        fieldHtml += '<div class="layui-upload-list" id="list-' + fieldName + '" style="margin-top: 10px;"></div>';
+                        fieldHtml += '</div>';
+                    } else if (fieldType === 'files') {
+                        // 文件上传
+                        fieldHtml += '<div class="layui-upload">';
+                        fieldHtml += '<button type="button" class="layui-btn layui-btn-normal" id="upload-' + fieldName + '">选择文件</button>';
+                        fieldHtml += '<div class="layui-upload-list" id="list-' + fieldName + '" style="margin-top: 10px;"></div>';
+                        fieldHtml += '</div>';
+                    } else if (fieldType === 'media') {
+                        // 视频/媒体
+                        fieldHtml += '<input type="text" name="' + fieldName + '" value="' + (dfvalue || '') + '" class="layui-input" placeholder="请输入视频地址" ' + requiredAttr + '>';
+                    } else if (fieldType === 'switch') {
+                        // 开关
+                        var checked = (dfvalue == 1 || dfvalue === '1') ? 'checked' : '';
+                        fieldHtml += '<input type="checkbox" name="' + fieldName + '" value="1" lay-skin="switch" lay-text="开启|关闭" ' + checked + '>';
+                    } else if (fieldType === 'decimal') {
+                        // 小数
+                        fieldHtml += '<input type="number" name="' + fieldName + '" value="' + (dfvalue || '0.00') + '" class="layui-input" step="0.01" ' + requiredAttr + '>';
+                    } else if (fieldType === 'multitext') {
+                        // 多行文本
+                        var rows = fieldDefine ? parseInt(fieldDefine) : 5;
+                        var maxlengthAttr = maxlength ? 'maxlength="' + maxlength + '"' : '';
+                        fieldHtml += '<textarea name="' + fieldName + '" class="layui-textarea" rows="' + rows + '" ' + requiredAttr + ' ' + maxlengthAttr + '>' + (dfvalue || '') + '</textarea>';
+                    }
+
+                    // 添加提示说明
+                    if (remark) {
+                        fieldHtml += '<div class="layui-form-mid layui-word-aux">' + remark + '</div>';
+                    }
+
+                    fieldHtml += '</div>';
+                    fieldHtml += '</div>';
+
+                    // 插入到容器中，在编辑器之前
+                    $contentWrapper.before(fieldHtml);
+                });
+
+                // 重新渲染表单
+                form.render();
+
+                // 额外检查：确保所有 ifeditable=0 的字段都被隐藏（双重保险）
+                fields.forEach(function (field) {
+                    if (field.ifeditable == 0) {
+                        var fieldName = field.name || '';
+                        // 隐藏对应的字段元素
+                        $container.find('[data-field-name="' + fieldName + '"]').hide();
+                    }
+                });
+
+                // 为 content 和 content_ey_m 字段初始化编辑器（只初始化 ifeditable=1 的字段）
+                if (hasContent && contentField && contentField.ifeditable == 1) {
+                    var $editorContent = $('#editor-content');
+                    if ($editorContent.length > 0) {
+                        editors['content'] = tinymce.render({
+                            elem: '#editor-content',
+                            height: 400
+                        });
+                    }
+                }
+
+                if (hasContentEyM && contentEyMField && contentEyMField.ifeditable == 1) {
+                    var $editorContentEyM = $('#editor-content-ey-m');
+                    if ($editorContentEyM.length > 0) {
+                        editors['content_ey_m'] = tinymce.render({
+                            elem: '#editor-content-ey-m',
+                            height: 400
+                        });
+                    }
+                }
+
+                // 为其他 htmltext 类型的字段初始化 tinymce 编辑器
+                fields.forEach(function (field) {
+                    if (field.ifeditable == 1 && field.dtype === 'htmltext') {
+                        var fieldName = field.name || '';
+                        // 跳过 content 和 content_ey_m，已经单独处理
+                        if (fieldName === 'content' || fieldName === 'content_ey_m') {
+                            return;
+                        }
+                        var editorId = 'editor-' + fieldName;
+                        var $editor = $('#' + editorId);
+                        if ($editor.length > 0) {
+                            // 初始化 tinymce 编辑器
+                            editors[fieldName] = tinymce.render({
+                                elem: '#' + editorId,
+                                height: 400
+                            });
+                        }
+                    }
+                });
+
+                // 初始化图片和文件上传
+                initUploadFields(fields);
+            }
+
+            // 初始化上传字段
+            function initUploadFields(fields) {
+                var upload = layui.upload;
+
+                fields.forEach(function (field) {
+                    if (field.ifeditable != 1) return;
+
+                    var fieldName = field.name || '';
+                    var fieldType = field.dtype || '';
+
+                    if (fieldType === 'img') {
+                        // 单图上传
+                        upload.render({
+                            elem: '#upload-' + fieldName,
+                            url: '/app/admin/upload/image',
+                            accept: 'images',
+                            done: function (res) {
+                                if (res.code === 0) {
+                                    $('#preview-' + fieldName).attr('src', res.data.url).show();
+                                    $('#input-' + fieldName).val(res.data.url);
+                                    $('#text-' + fieldName).html('');
+                                } else {
+                                    $('#text-' + fieldName).html('<span style="color: red;">上传失败：' + (res.msg || '未知错误') + '</span>');
+                                }
+                            },
+                            error: function () {
+                                $('#text-' + fieldName).html('<span style="color: red;">上传失败</span>');
+                            }
+                        });
+                    } else if (fieldType === 'imgs') {
+                        // 多图上传
+                        var index = 0;
+                        upload.render({
+                            elem: '#upload-' + fieldName,
+                            url: '/app/admin/upload/image',
+                            accept: 'images',
+                            multiple: true,
+                            done: function (res) {
+                                if (res.code === 0) {
+                                    var item = $('<div style="display: inline-block; margin-right: 10px; margin-bottom: 10px; position: relative;">');
+                                    item.append('<img src="' + res.data.url + '" style="width: 100px; height: 100px; object-fit: cover;">');
+                                    item.append('<input type="hidden" name="' + fieldName + '[]" value="' + res.data.url + '">');
+                                    item.append('<button type="button" class="layui-btn layui-btn-xs layui-btn-danger" onclick="$(this).parent().remove()" style="position: absolute; top: 0; right: 0;">删除</button>');
+                                    $('#list-' + fieldName).append(item);
+                                }
+                            }
+                        });
+                    } else if (fieldType === 'files') {
+                        // 文件上传
+                        upload.render({
+                            elem: '#upload-' + fieldName,
+                            url: '/app/admin/upload/file',
+                            accept: 'file',
+                            done: function (res) {
+                                if (res.code === 0) {
+                                    var item = $('<div style="margin-bottom: 10px;">');
+                                    item.append('<span>' + res.data.name + '</span>');
+                                    item.append('<input type="hidden" name="' + fieldName + '[]" value="' + res.data.url + '">');
+                                    item.append('<button type="button" class="layui-btn layui-btn-xs layui-btn-danger" onclick="$(this).parent().remove()">删除</button>');
+                                    $('#list-' + fieldName).append(item);
+                                }
+                            }
+                        });
+                    }
+                });
+            }
+
+            // 表单提交
+            form.on("submit(save)", function (data) {
+                var formData = data.field;
+                formData[PRIMARY_KEY] = currentTypeId;
+
+                // 获取所有文本编辑器的内容
+                Object.keys(editors).forEach(function (fieldName) {
+                    if (editors[fieldName]) {
+                        formData[fieldName] = editors[fieldName].getContent();
+                    }
+                });
+
+                // 处理复选框字段（将数组转换为逗号分隔的字符串）
+                Object.keys(formData).forEach(function (key) {
+                    if (key.endsWith('[]') && Array.isArray(formData[key])) {
+                        var newKey = key.replace('[]', '');
+                        formData[newKey] = formData[key].join(',');
+                        delete formData[key];
+                    }
+                });
+
+                // 处理 switch 字段（未选中时为 undefined，需要转换为 0）
+                $('input[type="checkbox"][lay-skin="switch"]').each(function () {
+                    var fieldName = $(this).attr('name');
+                    if (!formData[fieldName]) {
+                        formData[fieldName] = 0;
+                    } else {
+                        formData[fieldName] = 1;
+                    }
+                });
+
+                // 处理多图字段（收集所有隐藏输入的值）
+                $('input[type="hidden"][name$="[]"]').each(function () {
+                    var fieldName = $(this).attr('name').replace('[]', '');
+                    if (!formData[fieldName] || !Array.isArray(formData[fieldName])) {
+                        formData[fieldName] = [];
+                    }
+                    var value = $(this).val();
+                    if (value) {
+                        formData[fieldName].push(value);
+                    }
+                });
+
+                // 处理单图字段（从隐藏输入获取值）
+                $('input[type="hidden"][id^="input-"]').each(function () {
+                    var id = $(this).attr('id');
+                    var fieldName = id.replace('input-', '');
+                    formData[fieldName] = $(this).val();
+                });
+
+                var loadingIndex = layer.load();
+                $.ajax({
+                    url: UPDATE_API,
+                    type: "POST",
+                    dataType: "json",
+                    data: formData,
+                    success: function (res) {
+                        layer.close(loadingIndex);
+                        if (res.code) {
+                            layui.pearPopup.failure(res.msg);
+                            return false;
+                        }
+                        return layui.pearPopup.success("操作成功", function () {
+                            // 通知父页面刷新
+                            if (parent && parent.refreshTable) {
+                                parent.refreshTable();
+                            }
+                        });
+                    },
+                    error: function () {
+                        layer.close(loadingIndex);
+                        layui.pearPopup.failure("请求失败");
+                    }
+                });
+                return false;
+            });
+        });
+
+    </script>
+
+</body>
+
+</html>

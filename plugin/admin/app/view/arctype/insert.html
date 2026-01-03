@@ -280,14 +280,19 @@
              * 将树形数据拍平成带缩进的下拉选项
              */
             function flattenTree(nodes, level = 0) {
-                let list = [];
+                var list = [];
+                if (!nodes || !Array.isArray(nodes)) {
+                    return list;
+                }
                 nodes.forEach(function (node) {
-                    const indent = level ? new Array(level).fill('　').join('') + '└ ' : '';
+                    if (!node) return;
+                    var indent = level > 0 ? '├─'.repeat(level) : '';
+                    var name = node.title || node.name || node.typename || '未命名';
                     list.push({
                         id: node.id,
-                        label: indent + node.name
+                        label: indent + name
                     });
-                    if (node.children && node.children.length) {
+                    if (node.children && Array.isArray(node.children) && node.children.length > 0) {
                         list = list.concat(flattenTree(node.children, level + 1));
                     }
                 });
