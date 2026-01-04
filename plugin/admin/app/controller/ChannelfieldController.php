@@ -77,9 +77,13 @@ class ChannelfieldController extends Crud
                 $column = 'channelfield.' . $column;
             }
             
-            // 特殊处理 is_release 和 ifsystem 的复杂条件
+            // 特殊处理 only_published 参数，稍后单独处理
+            if ($column === 'channelfield.only_published' && $value !== null) {
+                continue;
+            }
+            
+            // 如果传入了 is_release 参数，忽略它（不再支持）
             if ($column === 'channelfield.is_release' && $value !== null) {
-                // 移除 is_release 条件，稍后单独处理
                 continue;
             }
             
@@ -112,19 +116,19 @@ class ChannelfieldController extends Crud
             }
         }
         
-        // 处理 is_release 和 ifsystem 的复杂条件
+        // 处理 only_published 参数（只支持此参数，不再支持 is_release）
         // 条件：(is_release=1 AND ifsystem=1) OR (is_release=0 AND ifsystem=0)
-        if (isset($where['is_release']) && $where['is_release'] !== null) {
-            $model = $model->where(function($q) {
-                $q->where(function($subQ) {
-                    $subQ->where('channelfield.is_release', 1)
-                         ->where('channelfield.ifsystem', 1);
-                })->orWhere(function($subQ) {
-                    $subQ->where('channelfield.is_release', 0)
-                         ->where('channelfield.ifsystem', 0);
-                });
-            });
-        }
+        // if (isset($where['only_published']) && $where['only_published'] !== null) {
+        //     $model = $model->where(function($q) {
+        //         $q->where(function($subQ) {
+        //             $subQ->where('channelfield.is_release', 1)
+        //                  ->where('channelfield.ifsystem', 1);
+        //         })->orWhere(function($subQ) {
+        //             $subQ->where('channelfield.is_release', 0)
+        //                  ->where('channelfield.ifsystem', 0);
+        //         });
+        //     });
+        // }
         
         // 处理搜索条件 - 支持 keywords 和 keyword 两种参数名（兼容原项目）
         $request = request();
@@ -901,6 +905,7 @@ class ChannelfieldController extends Crud
                 'typename' => $item['typename'],
                 'name' => $item['typename'], // 兼容前端使用 name 字段
                 'checkable' => isset($item['checkable']) ? $item['checkable'] : 1, // 是否可勾选，1=可勾选，0=不可勾选
+                'current_channel' => isset($item['current_channel']) ? $item['current_channel'] : 0, // 保留 current_channel 字段
             ];
             
             // 如果有 children，递归处理

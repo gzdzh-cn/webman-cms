@@ -8,6 +8,8 @@ use plugin\admin\app\model\Archive;
 use plugin\admin\app\model\Arctype;
 use plugin\admin\app\model\Channeltype;
 use plugin\admin\app\model\Channelfield;
+use plugin\admin\app\model\Taglist;
+use plugin\admin\app\model\Tagindex;
 use plugin\admin\app\logic\FieldLogic;
 use plugin\admin\app\common\Util;
 use plugin\admin\app\common\Auth;
@@ -88,18 +90,32 @@ class ArchiveController extends Crud
             $mainData = [];
             $dynamicData = [];
             
-            // 获取该模型的所有字段定义
+            // 获取该模型的所有字段定义（包含 ifmain 信息）
             $fieldLogic = new FieldLogic();
-            $channelFields = Channelfield::where('channel_id', $channelId)
+            $channelFieldsMap = Channelfield::where('channel_id', $channelId)
                 ->where('ifeditable', 1)
-                ->pluck('name')
+                ->pluck('ifmain', 'name')
                 ->toArray();
             
             // 分离数据
             foreach ($post as $key => $value) {
+                // 优先检查是否在主表字段列表中（固定字段）
                 if (in_array($key, $mainFields)) {
                     $mainData[$key] = $value;
-                } elseif (in_array($key, $channelFields) || in_array($key, ['content', 'content_ey_m'])) {
+                } 
+                // 检查是否是动态字段
+                elseif (isset($channelFieldsMap[$key])) {
+                    // 根据 ifmain 判断是主表字段还是附加表字段
+                    if ($channelFieldsMap[$key] == 1) {
+                        // 主表字段（ifmain=1），保存到主表
+                        $mainData[$key] = $value;
+                    } else {
+                        // 附加表字段（ifmain=0），保存到附加表
+                        $dynamicData[$key] = $value;
+                    }
+                } 
+                // content、content_ey_m 和 tags 是特殊的附加表字段
+                elseif (in_array($key, ['content', 'content_ey_m', 'tags'])) {
                     $dynamicData[$key] = $value;
                 }
             }
@@ -107,10 +123,22 @@ class ArchiveController extends Crud
             // 使用父类的 inputFilter 过滤主表数据（检查字段是否存在、处理空值、处理数组等）
             $mainData = $this->inputFilter($mainData);
             
+            // 确保所有主表字段都在 mainData 中（inputFilter 可能会移除一些字段，需要重新添加）
+            foreach ($mainFields as $field) {
+                if (isset($post[$field]) && !isset($mainData[$field])) {
+                    $mainData[$field] = $post[$field];
+                }
+            }
+            
             // 处理主表数据
             $mainData['channel'] = $channelId;
             $mainData['typeid'] = $typeid;
-            $mainData['add_time'] = $mainData['add_time'] ?? time();
+            // 处理 add_time：如果是字符串（日期时间格式），转换为时间戳
+            if (isset($mainData['add_time']) && is_string($mainData['add_time']) && !empty($mainData['add_time'])) {
+                $mainData['add_time'] = strtotime($mainData['add_time']) ?: time();
+            } else {
+                $mainData['add_time'] = $mainData['add_time'] ?? time();
+            }
             $mainData['update_time'] = $mainData['update_time'] ?? time();
             $mainData['admin_id'] = $mainData['admin_id'] ?? admin_id();
             $mainData['lang'] = $mainData['lang'] ?? 'cn';
@@ -122,6 +150,13 @@ class ArchiveController extends Crud
             $aid = Archive::insertGetId($mainData);
             if (!$aid) {
                 return $this->json(1, '插入失败');
+            }
+            
+            // 处理标签字段（从 dynamicData 中提取 tags，单独处理）
+            $tags = $dynamicData['tags'] ?? '';
+            $arcrank = $mainData['arcrank'] ?? 0;
+            if (isset($dynamicData['tags'])) {
+                unset($dynamicData['tags']); // 从 dynamicData 中移除 tags，因为它是单独处理的
             }
             
             // 处理动态字段值
@@ -159,6 +194,10 @@ class ArchiveController extends Crud
                     }
                 }
             }
+            
+            // 保存标签
+            $taglistModel = new Taglist();
+            $taglistModel->savetags($aid, $typeid, $tags, $arcrank, 'add');
             
             return $this->json(0, '操作成功', ['aid' => $aid]);
         }
@@ -220,18 +259,32 @@ class ArchiveController extends Crud
             $mainData = [];
             $dynamicData = [];
             
-            // 获取该模型的所有字段定义
+            // 获取该模型的所有字段定义（包含 ifmain 信息）
             $fieldLogic = new FieldLogic();
-            $channelFields = Channelfield::where('channel_id', $channelId)
+            $channelFieldsMap = Channelfield::where('channel_id', $channelId)
                 ->where('ifeditable', 1)
-                ->pluck('name')
+                ->pluck('ifmain', 'name')
                 ->toArray();
             
             // 分离数据
             foreach ($post as $key => $value) {
+                // 优先检查是否在主表字段列表中（固定字段）
                 if (in_array($key, $mainFields)) {
                     $mainData[$key] = $value;
-                } elseif (in_array($key, $channelFields) || in_array($key, ['content', 'content_ey_m'])) {
+                } 
+                // 检查是否是动态字段
+                elseif (isset($channelFieldsMap[$key])) {
+                    // 根据 ifmain 判断是主表字段还是附加表字段
+                    if ($channelFieldsMap[$key] == 1) {
+                        // 主表字段（ifmain=1），保存到主表
+                        $mainData[$key] = $value;
+                    } else {
+                        // 附加表字段（ifmain=0），保存到附加表
+                        $dynamicData[$key] = $value;
+                    }
+                } 
+                // content、content_ey_m 和 tags 是特殊的附加表字段
+                elseif (in_array($key, ['content', 'content_ey_m', 'tags'])) {
                     $dynamicData[$key] = $value;
                 }
             }
@@ -239,15 +292,39 @@ class ArchiveController extends Crud
             // 使用父类的 inputFilter 过滤主表数据（检查字段是否存在、处理空值、处理数组等）
             $mainData = $this->inputFilter($mainData);
             
+            // 确保所有在 mainFields 中且在 post 中的字段都被包含在 mainData 中
+            // 这处理了字段被 inputFilter 移除的情况（如字段不在表中，或值为空被移除）
+            foreach ($mainFields as $fieldName) {
+                if ($fieldName === 'aid') continue; // 跳过 aid
+                if (isset($post[$fieldName]) && !isset($mainData[$fieldName])) {
+                    // 如果字段在 post 中，但不在 mainData 中，则添加它
+                    $mainData[$fieldName] = $post[$fieldName];
+                }
+            }
+            
             // 处理主表数据
             unset($mainData['aid']); // 移除 aid，因为它是 where 条件
             $mainData['channel'] = $channelId;
             $mainData['typeid'] = $typeid;
+            // 处理 add_time：如果是字符串（日期时间格式），转换为时间戳（更新时通常不更新 add_time，但如果前端传递了则处理）
+            if (isset($mainData['add_time']) && is_string($mainData['add_time']) && !empty($mainData['add_time'])) {
+                $mainData['add_time'] = strtotime($mainData['add_time']) ?: $archive->add_time ?? time();
+            } elseif (isset($mainData['add_time']) && !is_numeric($mainData['add_time'])) {
+                // 如果不是字符串也不是数字，使用原值或当前时间
+                $mainData['add_time'] = $archive->add_time ?? time();
+            }
             $mainData['update_time'] = time();
             
             // 更新主表
             if (!empty($mainData)) {
                 Archive::where('aid', $aid)->update($mainData);
+            }
+            
+            // 处理标签字段（从 dynamicData 中提取 tags，单独处理）
+            $tags = $dynamicData['tags'] ?? '';
+            $arcrank = $mainData['arcrank'] ?? 0;
+            if (isset($dynamicData['tags'])) {
+                unset($dynamicData['tags']); // 从 dynamicData 中移除 tags，因为它是单独处理的
             }
             
             // 处理动态字段值
@@ -305,6 +382,10 @@ class ArchiveController extends Crud
                 }
             }
             
+            // 保存标签
+            $taglistModel = new Taglist();
+            $taglistModel->savetags($aid, $typeid, $tags, $arcrank, 'edit');
+            
             return $this->json(0, '操作成功', ['aid' => $aid]);
         }
         return view('archive/update');
@@ -341,18 +422,32 @@ class ArchiveController extends Crud
             $mainData = [];
             $dynamicData = [];
             
-            // 获取该模型的所有字段定义
+            // 获取该模型的所有字段定义（包含 ifmain 信息）
             $fieldLogic = new FieldLogic();
-            $channelFields = Channelfield::where('channel_id', $channelId)
+            $channelFieldsMap = Channelfield::where('channel_id', $channelId)
                 ->where('ifeditable', 1)
-                ->pluck('name')
+                ->pluck('ifmain', 'name')
                 ->toArray();
             
             // 分离数据
             foreach ($post as $key => $value) {
+                // 优先检查是否在主表字段列表中（固定字段）
                 if (in_array($key, $mainFields)) {
                     $mainData[$key] = $value;
-                } elseif (in_array($key, $channelFields) || in_array($key, ['content', 'content_ey_m'])) {
+                } 
+                // 检查是否是动态字段
+                elseif (isset($channelFieldsMap[$key])) {
+                    // 根据 ifmain 判断是主表字段还是附加表字段
+                    if ($channelFieldsMap[$key] == 1) {
+                        // 主表字段（ifmain=1），保存到主表
+                        $mainData[$key] = $value;
+                    } else {
+                        // 附加表字段（ifmain=0），保存到附加表
+                        $dynamicData[$key] = $value;
+                    }
+                } 
+                // content 和 content_ey_m 是特殊的附加表字段
+                elseif (in_array($key, ['content', 'content_ey_m'])) {
                     $dynamicData[$key] = $value;
                 }
             }
@@ -482,6 +577,7 @@ class ArchiveController extends Crud
         // 查询附加表数据
         $content = $db->select("SELECT * FROM `{$tableName}` WHERE `aid` = ?", [$aid]);
         
+        $data = [];
         if (!empty($content)) {
             $data = (array)$content[0];
             
@@ -495,11 +591,16 @@ class ArchiveController extends Crud
                     }
                 }
             }
-            
-            return $this->json(0, 'ok', $data);
         }
         
-        return $this->json(0, 'ok', []);
+        // 获取标签数据
+        $taglistModel = new Taglist();
+        $tags = $taglistModel->GetTags($aid);
+        if (!empty($tags)) {
+            $data['tags'] = $tags;
+        }
+        
+        return $this->json(0, 'ok', $data);
     }
 
     /**
@@ -716,6 +817,144 @@ class ArchiveController extends Crud
         }
         
         return $filteredData;
+    }
+
+    /**
+     * 获取常用标签列表（用于标签输入框提示）
+     */
+    public function getCommonTags(Request $request)
+    {
+        $tags = $request->input('tags', '');
+        $type = $request->input('type', 0); // 0=常用标签，1=输入提示
+        $isClick = $request->input('is_click', 0); // 是否点击了"显示常用标签"按钮
+        
+        $lang = 'cn'; // 默认语言
+        
+        $newTagList = [];
+        $newtids = [];
+        
+        // 如果点击了"显示常用标签"按钮，忽略输入框内容，返回全部标签
+        $searchTags = '';
+        if ($isClick == 0) {
+            // 如果输入框有值，取最后一个标签作为搜索关键词
+            if (!empty($tags)) {
+                $tagsArr = explode(',', $tags);
+                $searchTags = trim(end($tagsArr));
+            }
+        }
+        
+        // 发布最新文档的tag里前3个
+        if (empty($searchTags)) {
+            $taglistRow = Taglist::where('lang', $lang)
+                ->select('tid', 'tag')
+                ->orderBy('aid', 'desc')
+                ->limit(20)
+                ->get()
+                ->toArray();
+            
+            foreach ($taglistRow as $val) {
+                if (count($newTagList) >= 3) {
+                    break;
+                }
+                $tid = is_array($val) ? $val['tid'] : $val->tid;
+                if (!in_array($tid, $newtids)) {
+                    $newTagList[] = [
+                        'tid' => $tid,
+                        'tag' => is_array($val) ? $val['tag'] : $val->tag
+                    ];
+                    $newtids[] = $tid;
+                }
+            }
+        }
+        $list = $newTagList;
+        
+        // 常用标签
+        $tagindexQuery = Tagindex::where('lang', $lang);
+        if (!empty($newtids)) {
+            $tagindexQuery->whereNotIn('id', $newtids);
+        }
+        // 只有在非点击按钮的情况下才进行搜索过滤
+        if (!empty($searchTags)) {
+            $tagindexQuery->where('tag', 'like', '%' . $searchTags . '%');
+        }
+        
+        $num = 20 - count($list);
+        $row = $tagindexQuery->where('is_common', 1)
+            ->select('id as tid', 'tag')
+            ->orderBy('total', 'desc')
+            ->orderBy('id', 'desc')
+            ->limit($num)
+            ->get()
+            ->toArray();
+        
+        // 转换为统一格式
+        foreach ($row as $key => $item) {
+            $row[$key] = [
+                'tid' => is_array($item) ? $item['tid'] : $item->tid,
+                'tag' => is_array($item) ? $item['tag'] : $item->tag
+            ];
+        }
+        $list = array_merge($list, $row);
+        
+        // 不够数量进行补充
+        $surplusNum = $num - count($list);
+        if ($surplusNum > 0) {
+            // 提取 tid
+            $ids = [];
+            foreach ($list as $item) {
+                $ids[] = $item['tid'];
+            }
+            
+            $tagindexQuery2 = Tagindex::where('lang', $lang);
+            if (!empty($ids)) {
+                $tagindexQuery2->whereNotIn('id', $ids);
+            }
+            // 只有在非点击按钮的情况下才进行搜索过滤
+            if (!empty($searchTags)) {
+                $tagindexQuery2->where('tag', 'like', '%' . $searchTags . '%');
+            }
+            
+            $row2 = $tagindexQuery2->select('id as tid', 'tag')
+                ->orderBy('total', 'desc')
+                ->orderBy('id', 'desc')
+                ->limit($surplusNum)
+                ->get()
+                ->toArray();
+            
+            // 转换为统一格式
+            foreach ($row2 as $key => $item) {
+                $row2[$key] = [
+                    'tid' => is_array($item) ? $item['tid'] : $item->tid,
+                    'tag' => is_array($item) ? $item['tag'] : $item->tag
+                ];
+            }
+            $list = array_merge($list, $row2);
+        }
+        
+        // 返回数组，不生成HTML
+        $result = [];
+        if (!empty($list)) {
+            $tagsInput = $request->input('tags', '');
+            $tagsInput = str_replace('，', ',', $tagsInput);
+            $tagArr = explode(',', $tagsInput);
+            foreach ($tagArr as $key => $val) {
+                $tagArr[$key] = trim($val);
+            }
+            
+            foreach ($list as $item) {
+                $tagName = $item['tag'] ?? '';
+                if (empty($tagName)) {
+                    continue;
+                }
+                $result[] = [
+                    'tid' => $item['tid'] ?? 0,
+                    'tag' => $tagName,
+                    'selected' => in_array($tagName, $tagArr)
+                ];
+            }
+        }
+        
+        return $this->json(0, 'success', ['list' => $result]);
     }
 
 }

@@ -491,10 +491,53 @@
 
             // 绑定栏目树节点点击事件
             dtree.on("node(arctypeTree)", function (obj) {
-                if (!obj.param.leaf) {
+                // 获取点击事件对象
+                var event = obj.event || window.event;
+                if (!event) {
+                    // 如果没有事件对象，默认执行完整逻辑
+                    handleNodeClick(obj);
+                    return;
+                }
+                
+                var target = event.target || event.srcElement;
+                var $target = $(target);
+                var $node = $(obj.dom);
+                
+                // 检查点击的是否是图标区域
+                // pearDtree 的图标通常在 .dtree-icon 或包含 i 标签的元素中
+                var isIconClick = false;
+                
+                // 检查点击目标及其父元素是否是图标相关元素
+                if ($target.is('i') || 
+                    $target.hasClass('dtree-icon') || 
+                    $target.hasClass('dtree-iconfont') ||
+                    $target.closest('.dtree-icon, .dtree-iconfont, i').length > 0) {
+                    isIconClick = true;
+                }
+                
+                // 检查点击的是否是展开/折叠按钮区域（通常在节点左侧）
+                var nodeOffset = $node.offset();
+                var nodeWidth = $node.width();
+                var clickX = event.pageX || event.clientX;
+                
+                // 如果点击位置在节点左侧30px内，认为是点击图标区域
+                if (clickX && nodeOffset && (clickX - nodeOffset.left) < 30) {
+                    isIconClick = true;
+                }
+                
+                // 如果是非叶子节点且点击的是图标区域，只展开/折叠
+                if (!obj.param.leaf && isIconClick) {
                     var $div = obj.dom;
                     DTree.clickSpread($div);
+                    return; // 只展开/折叠，不执行后续逻辑
                 }
+                
+                // 如果点击的是名称区域，只更新右侧内容，不展开/折叠
+                handleNodeClick(obj);
+            });
+            
+            // 处理节点点击（更新右侧内容）
+            function handleNodeClick(obj) {
                 // 更新当前选中的栏目ID和模型ID
                 currentTypeId = parseInt(obj.param.nodeId) || 0;
                 currentChannelId = 0;
@@ -576,7 +619,7 @@
                         }
                     });
                 }
-            });
+            }
 
             // 编辑或删除行事件
             table.on("tool(data-table)", function (obj) {
@@ -695,25 +738,206 @@
 
             // 表格新增数据
             let add = function () {
+                // 从全局变量获取栏目ID和模型ID
+                var typeid = currentTypeId || 0;
+                var channelId = currentChannelId || 0;
+                
+                // 如果全局变量没有数值，显示弹窗要求选择栏目
+                if (!typeid || typeid === 0 || !channelId || channelId === 0) {
+                    showSelectArctypeDialog();
+                } else {
+                    // 如果全局变量有值，根据模型类型打开对应页面
+                    openPageByChannel(typeid, channelId);
+                }
+            }
+
+            // 显示选择栏目弹窗
+            function showSelectArctypeDialog() {
+                // 创建弹窗内容
+                var dialogContent = '<div style="padding: 20px;">' +
+                    '<form class="layui-form" id="selectArctypeForm">' +
+                    '<div class="layui-form-item">' +
+                    '<label class="layui-form-label required">选择栏目</label>' +
+                    '<div class="layui-input-block">' +
+                    '<select name="typeid" id="dialog-typeid-select" lay-verify="required" lay-filter="dialog-typeid">' +
+                    '<option value="">请选择栏目</option>' +
+                    '</select>' +
+                    '</div>' +
+                    '</div>' +
+                    '</form>' +
+                    '</div>';
+
+                // 显示弹窗
+                var layerIndex = layer.open({
+                    type: 1,
+                    title: '选择栏目',
+                    content: dialogContent,
+                    area: ['60%', '600px'],
+                    btn: ['确定', '取消'],
+                    yes: function(layero, btnIndex) {
+                        // 获取选中的栏目ID
+                        var selectedTypeId = $('#dialog-typeid-select').val();
+                        if (!selectedTypeId || selectedTypeId === '') {
+                            layui.pearPopup.warning('请选择栏目');
+                            return false;
+                        }
+
+                        // 获取选中栏目的channelId
+                        var selectedChannelId = 0;
+                        if (treeData && treeData.length > 0) {
+                            var nodeInfo = findNodeInTree(treeData, selectedTypeId);
+                            if (nodeInfo && nodeInfo.current_channel) {
+                                selectedChannelId = parseInt(nodeInfo.current_channel) || 0;
+                            }
+                        }
+
+                        // 如果树数据中没有，从映射表中获取
+                        if (selectedChannelId === 0) {
+                            var nodeIdStr = String(selectedTypeId);
+                            if (arctypeInfoMap[nodeIdStr]) {
+                                selectedChannelId = parseInt(arctypeInfoMap[nodeIdStr].current_channel) || 0;
+                            }
+                        }
+
+                        // 如果还是没有，从后端获取栏目详情
+                        if (selectedTypeId > 0 && selectedChannelId === 0) {
+                            $.ajax({
+                                url: ARCTYPE_SELECT_API,
+                                type: 'get',
+                                dataType: 'json',
+                                data: { id: selectedTypeId },
+                                async: false, // 同步请求
+                                success: function (result) {
+                                    if (result.code === 0 && result.data && result.data.length > 0) {
+                                        var arctypeInfo = result.data[0];
+                                        selectedChannelId = parseInt(arctypeInfo.current_channel) || 0;
+                                    }
+                                }
+                            });
+                        }
+
+                        if (selectedChannelId === 0) {
+                            layui.pearPopup.warning('无法获取栏目模型ID');
+                            return false;
+                        }
+
+                        // 更新当前选中的栏目ID和模型ID到全局变量
+                        currentTypeId = parseInt(selectedTypeId);
+                        currentChannelId = selectedChannelId;
+
+                        // 关闭弹窗（使用外部作用域的layerIndex）
+                        layer.close(layerIndex);
+
+                        // 根据模型类型打开对应页面
+                        openPageByChannel(currentTypeId, currentChannelId);
+                    },
+                    success: function(layero, btnIndex) {
+                        // 加载栏目下拉选项
+                        loadDialogArctypeOptions();
+                    }
+                });
+            }
+
+            // 加载弹窗中的栏目下拉选项（使用和insert.html一样的树形数据格式）
+            function loadDialogArctypeOptions() {
+                $.ajax({
+                    url: ARCTYPE_SELECT_API + "?format=tree&limit=2000",
+                    type: 'get',
+                    dataType: 'json',
+                    success: function (result) {
+                        if (result.code === 0 && result.data && Array.isArray(result.data)) {
+                            var $select = $('#dialog-typeid-select');
+                            $select.empty();
+                            $select.append('<option value="">请选择栏目</option>');
+
+                            // 扁平化树形数据（和insert.html一样的格式）
+                            var options = flattenTree(result.data);
+
+                            options.forEach(function (item) {
+                                $select.append('<option value="' + item.id + '">' + item.label + '</option>');
+                            });
+                            form.render('select');
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        console.error('加载栏目数据请求失败:', error);
+                    }
+                });
+            }
+
+            // 扁平化树形数据（和insert.html一样的实现）
+            function flattenTree(nodes, level) {
+                level = level || 0;
+                var list = [];
+                if (!nodes || !Array.isArray(nodes)) {
+                    return list;
+                }
+                nodes.forEach(function (node) {
+                    if (!node) return;
+                    var indent = level > 0 ? '├─'.repeat(level) : '';
+                    var name = node.title || node.name || node.typename || '未命名';
+                    list.push({
+                        id: node.id,
+                        label: indent + name
+                    });
+                    if (node.children && Array.isArray(node.children) && node.children.length > 0) {
+                        list = list.concat(flattenTree(node.children, level + 1));
+                    }
+                });
+                return list;
+            }
+
+            // 根据模型类型打开对应页面
+            function openPageByChannel(typeid, channelId) {
+                // 如果是单页模型（channel_id=6）或留言模型（channel_id=8），打开单页表单
+                if (channelId == 6 || channelId == 8) {
+                    // 隐藏列表容器和表单容器，显示单页表单容器
+                    $("#listModelContainer").hide();
+                    $("#formContainer").hide();
+                    $("#singlePageContainer").show();
+                    // 加载单页模型编辑页面到iframe
+                    $("#singlePageIframe").attr("src", "/app/admin/archive/singlePage?id=" + typeid);
+                } else {
+                    // 其他模型，打开新增页面
+                    openInsertPage(typeid, channelId);
+                }
+            }
+
+            // 打开新增页面
+            function openInsertPage(typeid, channelId) {
                 // 隐藏列表容器和单页容器，显示表单容器
                 $("#listModelContainer").hide();
                 $("#singlePageContainer").hide();
                 $("#formContainer").show();
+                // 构建URL参数，传递typeid和channel_id
+                var url = INSERT_URL;
+                if (typeid > 0) {
+                    url += "?typeid=" + typeid;
+                    if (channelId > 0) {
+                        url += "&channel_id=" + channelId;
+                    }
+                }
                 // 加载新增页面到iframe
-                $("#formIframe").attr("src", INSERT_URL);
+                $("#formIframe").attr("src", url);
             }
 
             // 表格编辑数据
             let edit = function (obj) {
-                console.log("obj:", obj);
-                
+          
                 let value = obj.data[PRIMARY_KEY];
+                // 获取当前行的channel字段（模型ID）
+                var channelId = obj.data.channel || 0;
                 // 隐藏列表容器和单页容器，显示表单容器
                 $("#listModelContainer").hide();
                 $("#singlePageContainer").hide();
                 $("#formContainer").show();
+                // 构建URL参数，传递channel_id
+                var url = UPDATE_URL + "?" + PRIMARY_KEY + "=" + value;
+                if (channelId > 0) {
+                    url += "&channel_id=" + channelId;
+                }
                 // 加载编辑页面到iframe
-                $("#formIframe").attr("src", UPDATE_URL + "?" + PRIMARY_KEY + "=" + value);
+                $("#formIframe").attr("src", url);
             }
 
             // 浏览数据

@@ -181,13 +181,44 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="layui-form-item">
+                                    <div class="layui-form-item" style="position: relative; z-index: 2;">
                                         <label class="layui-form-label">文档标签</label>
-                                        <div class="layui-input-block">
-                                            <input type="text" name="tags" placeholder="多个标签之间以逗号隔开"
-                                                class="layui-input">
+                                        <div class="layui-input-block" style="position: relative;">
+                                            <input type="text" name="tags" id="tags" placeholder="多个标签之间以逗号隔开"
+                                                class="layui-input" autocomplete="off" 
+                                                oninput="get_common_tagindex_input(this);" 
+                                                onfocus="$('#often_tags').hide();" 
+                                                onkeyup="this.value=this.value.replace(/[\，]/g,',');" 
+                                                onpaste="this.value=this.value.replace(/[\，]/g,',')">
+                                            &nbsp;
+                                            <a href="javascript:void(0);" onclick="get_common_tagindex(this);" style="color: #1E9FFF;">显示常用标签</a>
+                                            <span id="tag_loading" style="display: none; margin-left: 5px; color: #1E9FFF;">加载中...</span>
+                                            <div class="often_tags" id="often_tags" data-opt="edit" style="display: none; position: absolute; top: 100%; left: 0; right: 0; background: #fff; border: 1px solid #e6e6e6; border-radius: 2px; padding: 10px; max-height: 300px; overflow-y: auto; z-index: 1000; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-top: 5px;"></div>
+                                            <div class="often_tags" id="often_tags_input" style="display: none; position: absolute; top: 100%; left: 0; right: 0; background: #fff; border: 1px solid #e6e6e6; border-radius: 2px; padding: 10px; max-height: 300px; overflow-y: auto; z-index: 1000; box-shadow: 0 2px 8px rgba(0,0,0,0.1); margin-top: 5px;"></div>
+                                            <input type="hidden" id="tags_click_count">
                                         </div>
                                     </div>
+                                    <style>
+                                        .often_tags a {
+                                            display: inline-block;
+                                            padding: 5px 10px;
+                                            margin: 3px;
+                                            background: #f5f5f5;
+                                            border: 1px solid #e6e6e6;
+                                            border-radius: 2px;
+                                            cursor: pointer;
+                                            color: #333;
+                                            text-decoration: none;
+                                        }
+                                        .often_tags a:hover {
+                                            background: #e6e6e6;
+                                        }
+                                        .often_tags a.cur {
+                                            background: #1E9FFF;
+                                            color: #fff;
+                                            border-color: #1E9FFF;
+                                        }
+                                    </style>
                                     <!-- 动态字段将追加到这里 -->
                                     <div id="dynamic-fields-container-1"></div>
 
@@ -354,6 +385,7 @@
         const INSERT_API = "/app/admin/archive/insert";
 
         var editors = {}; // 存储编辑器实例
+        var fieldsData = {}; // 存储字段数据（包含初始值dfvalue）
 
         //提交事件
         layui.use(["form", "pearPopup", "upload", "element", "laydate", "tinymce"], function () {
@@ -363,6 +395,151 @@
             var laydate = layui.laydate;
             var tinymce = layui.tinymce;
             var $ = layui.$;
+
+            // 获取URL参数
+            // var urlParams = new URLSearchParams(window.location.search);
+            // var channelId = parseInt(urlParams.get('channel_id')) || 0;
+
+            var urlParams = layui.url().search;
+            var channelId = urlParams.channel_id ? parseInt(urlParams.channel_id) : 0;
+
+     
+            
+            // 标签相关功能
+            // 显示常用标签
+            window.get_common_tagindex = function(obj) {
+                var val = $('#tags').val();
+                $('#often_tags').hide();
+                $('#often_tags_input').hide();
+                $('#tag_loading').show();
+                $.ajax({
+                    type: 'post',
+                    url: '/app/admin/archive/getCommonTags',
+                    data: {tags: val, is_click: 1},
+                    dataType: 'json',
+                    success: function(res) {
+                        $('#tag_loading').hide();
+                        if (res.code === 0) {
+                            if (res.data && res.data.list) {
+                                var html = '';
+                                if (res.data.list.length > 0) {
+                                    res.data.list.forEach(function(item) {
+                                        var classAttr = item.selected ? 'cur' : '';
+                                        html += '<a class="' + classAttr + '" href="javascript:void(0);" onclick="selectArchivesTag(this)">' + item.tag + '</a>';
+                                    });
+                                } else {
+                                    html = '没有找到记录';
+                                }
+                                $('#often_tags').html(html).show();
+                            }
+                        } else {
+                            layui.pearPopup.failure(res.msg || '获取标签失败');
+                        }
+                    },
+                    error: function(e) {
+                        $('#tag_loading').hide();
+                        layui.pearPopup.failure('获取标签失败');
+                    }
+                });
+            };
+
+            // 输入框输入时显示提示标签
+            window.get_common_tagindex_input = function(obj) {
+                var val = $(obj).val();
+                $('#tags_click_count').val(0);
+                $('#often_tags_input').hide();
+                if (!val || val.trim() === '') {
+                    return;
+                }
+                $.ajax({
+                    type: 'post',
+                    url: '/app/admin/archive/getCommonTags',
+                    data: {tags: val, type: 1},
+                    dataType: 'json',
+                    success: function(res) {
+                        if (res.code === 0) {
+                            if (res.data && res.data.list) {
+                                var html = '';
+                                if (res.data.list.length > 0) {
+                                    res.data.list.forEach(function(item) {
+                                        var classAttr = item.selected ? 'cur' : '';
+                                        html += '<a class="' + classAttr + '" href="javascript:void(0);" onclick="selectArchivesTagInput(this)">' + item.tag + '</a>';
+                                    });
+                                }
+                                if (html) {
+                                    $('#often_tags_input').html(html).show();
+                                }
+                            }
+                        }
+                    },
+                    error: function(e) {
+                        // 静默失败
+                    }
+                });
+            };
+
+            // 选择标签（常用标签）
+            window.selectArchivesTag = function(obj) {
+                event.stopPropagation();
+                var newTag = $.trim($(obj).html());
+                var tags = $.trim($('#tags').val());
+                if (tags != '') {
+                    tags = tags.replace(/，/ig, ',');
+                    tagsList = tags.split(',');
+                } else {
+                    tagsList = [];
+                }
+                if ($.inArray(newTag, tagsList) >= 0) {
+                    tagsList.splice($.inArray(newTag, tagsList), 1);
+                    $(obj).removeClass('cur');
+                } else {
+                    tagsList.push(newTag);
+                    $(obj).addClass('cur');
+                }
+                tags = tagsList.join(',');
+                $('#tags').val(tags);
+            };
+
+            // 选择标签（输入提示）
+            window.selectArchivesTagInput = function(obj) {
+                event.stopPropagation();
+                var newTag = $.trim($(obj).html());
+                var tags = $.trim($('#tags').val());
+                var count = parseInt($('#tags_click_count').val() || 0);
+                if (tags != '') {
+                    tags = tags.replace(/，/ig, ',');
+                    tagsList = tags.split(',');
+                } else {
+                    tagsList = [];
+                }
+                if ($.inArray(newTag, tagsList) >= 0) {
+                    tagsList.splice($.inArray(newTag, tagsList), 1);
+                    $(obj).removeClass('cur');
+                } else {
+                    if (count == 0 && tagsList.length > 0) {
+                        tagsList.splice(tagsList.length - 1, 1);
+                        $(obj).removeClass('cur');
+                    }
+                    tagsList.push(newTag);
+                    $(obj).addClass('cur');
+                    $('#tags_click_count').val(count + 1);
+                }
+                tags = tagsList.join(',');
+                $('#tags').val(tags);
+            };
+
+            // 点击其他地方隐藏标签列表
+            $(document).click(function(e) {
+                if (!$(e.target).closest('#tags, #often_tags, #often_tags_input, a[onclick*="get_common_tagindex"], a[onclick*="selectArchivesTag"]').length) {
+                    $('#often_tags').hide();
+                    $('#often_tags_input').hide();
+                }
+            });
+
+            // 点击标签列表区域时不隐藏
+            $('#often_tags, #often_tags_input').click(function(e) {
+                e.stopPropagation();
+            });
 
             // 初始化 tabs（Layui 会自动处理切换逻辑）
             element.render('tabs', 'archive-tabs');
@@ -394,12 +571,23 @@
             form.on('select(typeid)', function (data) {
                 var typeid = data.value;
                 if (typeid && typeid > 0) {
-                    loadChannelfields(typeid);
+                    // 获取选中栏目的 channelId
+                    var selectedChannelId = channelId; // 使用全局的 channelId
+                    // 如果全局 channelId 为空，尝试从 URL 获取
+                    if (!selectedChannelId || selectedChannelId <= 0) {
+                        var urlParams = layui.url().search;
+                        selectedChannelId = urlParams.channel_id ? parseInt(urlParams.channel_id) : 0;
+                    }
+                    loadChannelfields(typeid, selectedChannelId);
                 } else {
                     // 清空动态字段
                     $('#dynamic-fields-container-1').empty();
                     $('#dynamic-fields-container-2').empty();
                     $('#dynamic-fields-container-3').empty();
+                    // 清空模板下拉框
+                    var $tempviewSelect = $('select[name="tempview"]');
+                    $tempviewSelect.empty();
+                    $tempviewSelect.append('<option value="">默认模板</option>');
                     form.render();
                 }
             });
@@ -465,7 +653,7 @@
                 date: [/(^$)|^(\d{4})[-\/](\d{1}|0\d{1}|1[0-2])([-\/](\d{1}|0\d{1}|[1-2][0-9]|3[0-1]))*$/, "日期格式不正确"],
                 identity: [/(^$)|(^\d{15}$)|(^\d{17}(x|X|\d)$)/, "请输入正确的身份证号"]
             });
-            
+
 
             form.on("submit(save)", function (data) {
                 var formData = processFormData(data.field, editors, $);
@@ -488,16 +676,25 @@
                 });
                 return false;
             });
-        
- 
 
-            // 加载栏目下拉选项
+            // 加载栏目下拉选项（根据channel_id过滤，只显示该模型下的栏目）
             function loadArctypeOptions() {
+                // 从URL参数中获取channel_id和typeid
+                var urlParams = layui.url().search;
+                var channelId = urlParams.channel_id ? parseInt(urlParams.channel_id) : 0;
+                var urlTypeid = urlParams.typeid ? parseInt(urlParams.typeid) : 0;
+
+                // 使用getArctypeList接口，支持根据channeltype过滤
+                var requestParams = { format: 'tree', limit: 2000 };
+                if (channelId > 0) {
+                    requestParams.channeltype = channelId;
+                }
+
                 $.ajax({
-                    url: "/app/admin/arctype/select",
+                    url: "/app/admin/channelfield/getArctypeList",
                     type: 'get',
                     dataType: 'json',
-                    data: { format: 'tree', limit: 2000 },
+                    data: requestParams,
                     success: function (result) {
                         if (result.code === 0 && result.data && Array.isArray(result.data)) {
                             var $select = $('#typeid-select');
@@ -508,9 +705,28 @@
                             var options = flattenTree(result.data);
 
                             options.forEach(function (item) {
-                                $select.append('<option value="' + item.id + '">' + item.label + '</option>');
+                                // 如果栏目是单页模型（current_channel=6）或留言模型（current_channel=8），禁用该选项
+                                var disabled = '';
+                                if (item.current_channel == 6 || item.current_channel == 8) {
+                                    disabled = ' disabled';
+                                }
+                                $select.append('<option value="' + item.id + '"' + disabled + '>' + item.label + '</option>');
                             });
+                            
+                            // 如果URL中有typeid，设置下拉框的值
+                            if (urlTypeid > 0) {
+                                $select.val(urlTypeid);
+                            }
+                            
                             form.render('select');
+                            
+                                // 如果URL中有typeid和channel_id，自动加载动态字段
+                            if (urlTypeid > 0 && channelId > 0) {
+                                loadChannelfields(urlTypeid, channelId);
+                            } else if (channelId > 0) {
+                                // 即使没有 typeid，如果有 channelId，也加载模板列表
+                                loadTemplateList(channelId, 'view');
+                            }
                         }
                     },
                     error: function (xhr, status, error) {
@@ -519,57 +735,63 @@
                 });
             }
 
-            // 加载模型字段（异步加载动态字段）
-            function loadChannelfields(typeid) {
-                // 优先从URL参数获取channelId，避免重复请求后端
-                var urlParams = new URLSearchParams(window.location.search);
-                var channelId = parseInt(urlParams.get('channel_id')) || 0;
-
-                // 如果URL参数中没有channelId，才请求后端获取栏目信息
-                if (channelId === 0) {
-                    $.ajax({
-                        url: "/app/admin/arctype/select",
-                        type: 'get',
-                        dataType: 'json',
-                        data: { id: typeid },
-                        success: function (result) {
-                            if (result.code === 0 && result.data && result.data.length > 0) {
-                                var arctypeData = result.data[0];
-                                channelId = parseInt(arctypeData.current_channel) || 0;
-                                if (channelId > 0) {
-                                    loadChannelfieldsByChannelId(typeid, channelId);
-                                }
-                            }
-                        }
-                    });
-                } else {
-                    // 直接使用URL参数中的channelId加载字段
-                    loadChannelfieldsByChannelId(typeid, channelId);
+                                // 加载动态字段
+            function loadChannelfields(typeid, channelId) {
+                // 如果未传递channelId，尝试从URL参数中获取
+                if (!channelId || channelId <= 0) {
+                    var urlParams = layui.url().search;
+                    channelId = urlParams.channel_id ? parseInt(urlParams.channel_id) : 0;
                 }
-            }
-
-            // 根据channelId加载动态字段
-            function loadChannelfieldsByChannelId(typeid, channelId) {
+                
                 if (channelId <= 0) {
                     return;
                 }
-                var requestData = {
-                    channel_id: channelId,
-                    limit: 1000,
-                    is_release: 1,
-                    typeid: typeid
-                };
+                
+                                var requestData = {
+                                    channel_id: channelId,
+                                    limit: 1000,
+                    only_published: 1,  // 只获取已发布的字段
+                                    typeid: typeid
+                                };
 
-                $.ajax({
-                    url: "/app/admin/channelfield/select",
-                    type: 'get',
-                    dataType: 'json',
-                    data: requestData,
-                    success: function (result) {
-                        if (result.code === 0 && result.data) {
-                            renderFields(result.data);
-                        }
+                                $.ajax({
+                                    url: "/app/admin/channelfield/select",
+                                    type: 'get',
+                                    dataType: 'json',
+                                    data: requestData,
+                                    success: function (result) {
+                                        if (result.code === 0 && result.data) {
+                                            renderFields(result.data);
+                                        }
+                                    }
+                                });
+
+                // 加载文档模板列表
+                loadTemplateList(channelId, 'view');
+            }
+
+            // 加载模板文件列表
+            function loadTemplateList(channelId, type) {
+                // type: 'view' 表示文档模板
+                if (!channelId || channelId <= 0) {
+                    return;
+                }
+                var params = {
+                    channel_id: channelId,
+                    type: type
+                };
+                $.getJSON('/app/admin/arctype/getTemplates', params, function (res) {
+                    if (res.code === 0 && Array.isArray(res.data)) {
+                        var $tempviewSelect = $('select[name="tempview"]');
+                        $tempviewSelect.empty();
+                        $tempviewSelect.append('<option value="">默认模板</option>');
+                        res.data.forEach(function (template) {
+                            $tempviewSelect.append('<option value="' + template.value + '">' + template.name + '</option>');
+                        });
+                        form.render('select');
                     }
+                }).fail(function () {
+                    // 静默失败
                 });
             }
 
@@ -634,24 +856,25 @@
                     element.render('tabs', 'content-tabs');
                 }
 
-                // 按标签页分类字段
-                var tabFields = { 1: [], 2: [], 3: [] };
+                // 将所有字段（除了 content 和 content_ey_m）都渲染到基础内容标签页（标签页1）
+                var fieldsToRender = [];
                 fields.forEach(function (field) {
-                    if (field.ifeditable != 1) {
-                        return;
-                    }
+                    // 不过滤任何字段，渲染所有后端返回的字段
                     var fieldName = field.name || '';
                     if (fieldName === 'content' || fieldName === 'content_ey_m') {
-                        return;
+                        return;  // content 和 content_ey_m 单独处理
                     }
-                    var tabIndex = getFieldTabIndex(fieldName);
-                    tabFields[tabIndex].push(field);
+                    fieldsToRender.push(field);
+                    // 保存字段数据（包含初始值dfvalue），用于重置时恢复
+                    fieldsData[fieldName] = {
+                        dfvalue: field.dfvalue || '',
+                        dtype: field.dtype || '',
+                        define: field.define || ''
+                    };
                 });
 
-                // 渲染每个标签页的字段
-                [1, 2, 3].forEach(function (tabIndex) {
-                    renderTabFields(tabFields[tabIndex], tabIndex);
-                });
+                // 将所有字段渲染到基础内容标签页（标签页1）
+                renderTabFields(fieldsToRender, 1);
 
                 // 重新渲染表单
                 form.render();
@@ -662,7 +885,7 @@
                     $typeidField.off('change').on('change', function () {
                         var typeid = $(this).val();
                         if (typeid && typeid > 0) {
-                            loadChannelfields(typeid);
+                            loadChannelfields(typeid, channelId);
                         }
                     });
                 }
@@ -787,27 +1010,72 @@
                     }
                 });
             }
-            
-            // 重置表单 - 清空所有数据并初始化
+
+            // 重置表单 - 恢复初始值（保留动态字段结构）
             function resetForm() {
-                // 清空所有输入框（保留默认值的字段）
-                $('input[type="text"]:not([name="author"]), input[type="number"]:not([name="click"])').val('');
-
-                // 清空所有文本域
-                $('textarea').val('');
-
-                // 重置所有选择框为第一个选项
-                $('select').each(function () {
-                    $(this).val($(this).find('option:first').val());
+                // 先重置动态字段的值（恢复初始值，保留字段结构，不清空容器）
+                var $dynamicContainers = $('#dynamic-fields-container-1, #dynamic-fields-container-2, #dynamic-fields-container-3');
+                
+                // 遍历所有动态字段，恢复初始值
+                Object.keys(fieldsData).forEach(function (fieldName) {
+                    var fieldInfo = fieldsData[fieldName];
+                    var dfvalue = fieldInfo.dfvalue || '';
+                    var fieldType = fieldInfo.dtype || '';
+                    var $field = $dynamicContainers.find('[name="' + fieldName + '"]');
+                    
+                    if ($field.length > 0) {
+                        if (fieldType === 'select' || fieldType === 'selects') {
+                            $field.val(dfvalue || '');
+                        } else if (fieldType === 'radio' || fieldType === 'radios') {
+                            $field.filter('[value="' + dfvalue + '"]').prop('checked', true);
+                            $field.not('[value="' + dfvalue + '"]').prop('checked', false);
+                        } else if (fieldType === 'checkbox' || fieldType === 'checkboxs') {
+                            var dfvalueArray = dfvalue ? String(dfvalue).split(',') : [];
+                            $field.each(function () {
+                                var $checkbox = $(this);
+                                var value = $checkbox.val();
+                                $checkbox.prop('checked', dfvalueArray.indexOf(value) >= 0);
+                            });
+                        } else if (fieldType === 'switch') {
+                            $field.prop('checked', (dfvalue == 1 || dfvalue === '1'));
+                        } else if (fieldType === 'img') {
+                            if (dfvalue) {
+                                $('#preview-' + fieldName).attr('src', dfvalue).show();
+                                $('#input-' + fieldName).val(dfvalue);
+                            } else {
+                                $('#preview-' + fieldName).attr('src', '').hide();
+                                $('#input-' + fieldName).val('');
+                            }
+                            $('#text-' + fieldName).html('');
+                        } else if (fieldType === 'imgs') {
+                            $('#list-' + fieldName).empty();
+                            // 多图字段的初始值处理（如果需要）
+                        } else if (fieldType === 'htmltext') {
+                            // htmltext 类型的字段通过编辑器处理
+                            var editorId = '#editor-' + fieldName;
+                            var editorInstance = typeof tinymce !== 'undefined' && tinymce.get ? tinymce.get(editorId) : null;
+                            if (editorInstance && typeof editorInstance.setContent === 'function') {
+                                editorInstance.setContent(dfvalue || '');
+                            } else {
+                                $(editorId).val(dfvalue || '');
+                            }
+                        } else {
+                            // text, textarea, int, float, decimal, datetime, media, multitext 等
+                            $field.val(dfvalue || '');
+                        }
+                    }
                 });
 
-                // 重置所有复选框
-                $('input[type="checkbox"]').prop('checked', false);
+                // 重置固定字段的值
+                $('input[type="text"]:not([name="author"]), input[type="number"]:not([name="click"])').not($dynamicContainers.find('input')).val('');
+                $('textarea').not($dynamicContainers.find('textarea')).val('');
+                $('select').not($dynamicContainers.find('select')).each(function () {
+                    $(this).val($(this).find('option:first').val());
+                });
+                $('input[type="checkbox"]').not($dynamicContainers.find('input')).prop('checked', false);
+                $('input[type="radio"]').not($dynamicContainers.find('input')).prop('checked', false);
 
-                // 重置所有单选框
-                $('input[type="radio"]').prop('checked', false);
-
-                // 清空编辑器内容
+                // 清空编辑器内容（包括动态字段的编辑器）
                 Object.keys(editors).forEach(function (fieldName) {
                     if (editors[fieldName]) {
                         // 使用 tinymce.get 获取编辑器实例
@@ -845,18 +1113,10 @@
                     $editorContentEyM.val('');
                 }
 
-                // 清空图片预览和隐藏字段
+                // 清空封面图片预览和隐藏字段
                 $('#preview-litpic').attr('src', '').hide();
                 $('#input-litpic').val('');
                 $('#text-litpic').html('');
-
-                // 清空所有动态字段的图片预览
-                $('img[id^="preview-"]').not('#preview-litpic').attr('src', '').hide();
-                $('input[type="hidden"][id^="input-"]').not('#input-litpic').val('');
-                $('p[id^="text-"]').not('#text-litpic').html('');
-
-                // 清空多图列表
-                $('div[id^="list-"]').empty();
 
                 // 重置日期选择器为当前时间
                 laydate.render({
@@ -874,22 +1134,23 @@
                 // 重置阅读权限
                 $('select[name="arcrank"]').val('0');
 
-                // 清空动态字段容器
-                $('#dynamic-fields-container-1').empty();
-                $('#dynamic-fields-container-2').empty();
-                $('#dynamic-fields-container-3').empty();
-
-                // 重置栏目选择
-                $('#typeid-select').val('');
+                // 恢复栏目选择到初始值（从URL参数中获取）
+                var urlParams = layui.url().search;
+                var initialTypeid = urlParams.typeid ? parseInt(urlParams.typeid) : 0;
+                if (initialTypeid > 0) {
+                    $('#typeid-select').val(initialTypeid);
+                } else {
+                    // 如果没有URL参数，保持当前选择
+                }
 
                 // 重新渲染表单
                 form.render();
 
                 // 提示用户
-                layui.pearPopup.msg('表单已重置', { icon: 1, time: 1000 });
+                layui.pearPopup.success('表单已重置');
             }
-        
-        
+
+
         });
 
 
@@ -914,7 +1175,8 @@
                 var name = node.title || node.name || node.typename || '未命名';
                 list.push({
                     id: node.id,
-                    label: indent + name
+                    label: indent + name,
+                    current_channel: node.current_channel || 0
                 });
                 if (node.children && Array.isArray(node.children) && node.children.length > 0) {
                     list = list.concat(flattenTree(node.children, level + 1));
@@ -1020,7 +1282,42 @@
                     break;
                 case 'radio':
                 case 'radios':
-                    var radioOptions = parseFieldOptions(fieldDefine);
+                    // 对于 radio 类型，使用 dfvalue 来生成选项（逗号分隔的字符串）
+                    var radioOptions = [];
+                    if (dfvalue) {
+                        // dfvalue 格式：选项1,选项2,选项3
+                        dfvalue.split(',').forEach(function (option) {
+                            var optionValue = option.trim();
+                            if (optionValue) {
+                                radioOptions.push({
+                                    text: optionValue,
+                                    value: optionValue
+                                });
+                            }
+                        });
+                    }
+                    // 如果 dfvalue 为空，尝试从 define 解析 enum 格式
+                    if (radioOptions.length === 0 && fieldDefine) {
+                        // define 格式可能是：enum('值1','值2','值3') 或 选项1|值1,选项2|值2
+                        if (fieldDefine.indexOf('enum(') === 0) {
+                            // 解析 enum 格式
+                            var enumMatch = fieldDefine.match(/enum\(([^)]+)\)/);
+                            if (enumMatch && enumMatch[1]) {
+                                enumMatch[1].split(',').forEach(function (option) {
+                                    var optionValue = option.trim().replace(/^'|'$/g, '').replace(/^"|"$/g, '');
+                                    if (optionValue) {
+                                        radioOptions.push({
+                                            text: optionValue,
+                                            value: optionValue
+                                        });
+                                    }
+                                });
+                            }
+                        } else {
+                            // 使用 parseFieldOptions 解析其他格式
+                            radioOptions = parseFieldOptions(fieldDefine);
+                        }
+                    }
                     radioOptions.forEach(function (opt) {
                         var checked = (dfvalue == opt.value) ? 'checked' : '';
                         fieldHtml += '<input type="radio" name="' + fieldName + '" value="' + opt.value + '" title="' + opt.text + '" ' + checked + '>';
@@ -1089,50 +1386,50 @@
          * @returns {Object} 处理后的表单数据
          */
         function processFormData(formData, editors, $) {
-            // 获取所有文本编辑器的内容
-            Object.keys(editors).forEach(function (fieldName) {
-                if (editors[fieldName]) {
-                    formData[fieldName] = editors[fieldName].getContent();
-                }
-            });
+                // 获取所有文本编辑器的内容
+                Object.keys(editors).forEach(function (fieldName) {
+                    if (editors[fieldName]) {
+                        formData[fieldName] = editors[fieldName].getContent();
+                    }
+                });
 
-            // 处理复选框字段（将数组转换为逗号分隔的字符串）
-            Object.keys(formData).forEach(function (key) {
-                if (key.endsWith('[]') && Array.isArray(formData[key])) {
-                    var newKey = key.replace('[]', '');
-                    formData[newKey] = formData[key].join(',');
-                    delete formData[key];
-                }
-            });
+                // 处理复选框字段（将数组转换为逗号分隔的字符串）
+                Object.keys(formData).forEach(function (key) {
+                    if (key.endsWith('[]') && Array.isArray(formData[key])) {
+                        var newKey = key.replace('[]', '');
+                        formData[newKey] = formData[key].join(',');
+                        delete formData[key];
+                    }
+                });
 
-            // 处理 switch 字段
-            $('input[type="checkbox"][lay-skin="switch"]').each(function () {
-                var fieldName = $(this).attr('name');
-                if (!formData[fieldName]) {
-                    formData[fieldName] = 0;
-                } else {
-                    formData[fieldName] = 1;
-                }
-            });
+                // 处理 switch 字段
+                $('input[type="checkbox"][lay-skin="switch"]').each(function () {
+                    var fieldName = $(this).attr('name');
+                    if (!formData[fieldName]) {
+                        formData[fieldName] = 0;
+                    } else {
+                        formData[fieldName] = 1;
+                    }
+                });
 
-            // 处理多图字段
-            $('input[type="hidden"][name$="[]"]').each(function () {
-                var fieldName = $(this).attr('name').replace('[]', '');
-                if (!formData[fieldName] || !Array.isArray(formData[fieldName])) {
-                    formData[fieldName] = [];
-                }
-                var value = $(this).val();
-                if (value) {
-                    formData[fieldName].push(value);
-                }
-            });
+                // 处理多图字段
+                $('input[type="hidden"][name$="[]"]').each(function () {
+                    var fieldName = $(this).attr('name').replace('[]', '');
+                    if (!formData[fieldName] || !Array.isArray(formData[fieldName])) {
+                        formData[fieldName] = [];
+                    }
+                    var value = $(this).val();
+                    if (value) {
+                        formData[fieldName].push(value);
+                    }
+                });
 
-            // 处理单图字段
-            $('input[type="hidden"][id^="input-"]').each(function () {
-                var id = $(this).attr('id');
-                var fieldName = id.replace('input-', '');
-                formData[fieldName] = $(this).val();
-            });
+                // 处理单图字段
+                $('input[type="hidden"][id^="input-"]').each(function () {
+                    var id = $(this).attr('id');
+                    var fieldName = id.replace('input-', '');
+                    formData[fieldName] = $(this).val();
+                });
 
             return formData;
         }
