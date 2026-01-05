@@ -58,11 +58,40 @@ class Util
 
     /**
      * 获取表前缀
+     * @param bool $autoDetect 是否自动检测前缀（当配置为空时）
      * @return string
      */
-    public static function getTablePrefix(): string
+    public static function getTablePrefix(bool $autoDetect = true): string
     {
-        return config('plugin.admin.database.connections.mysql.prefix', 'wa_');
+        $prefix = config('plugin.admin.database.connections.mysql.prefix', 'wa_');
+        
+        // 如果前缀为空且启用自动检测，尝试从数据库表名推断前缀
+        if (empty($prefix) && $autoDetect) {
+            try {
+                $database = config('plugin.admin.database.connections.mysql.database');
+                if ($database) {
+                    // 查询包含 'admins' 的表名（核心表）
+                    $tables = Util::db()->select(
+                        "SELECT TABLE_NAME FROM information_schema.TABLES 
+                         WHERE TABLE_SCHEMA = ? AND TABLE_NAME LIKE '%admins' 
+                         LIMIT 1",
+                        [$database]
+                    );
+                    
+                    if (!empty($tables)) {
+                        $tableName = $tables[0]->TABLE_NAME;
+                        // 提取前缀（假设表名格式为：前缀 + admins）
+                        if (strpos($tableName, 'admins') !== false) {
+                            $prefix = substr($tableName, 0, strpos($tableName, 'admins'));
+                        }
+                    }
+                }
+            } catch (\Throwable $e) {
+                // 检测失败时使用默认值
+            }
+        }
+        
+        return $prefix ?: 'wa_';
     }
 
     /**

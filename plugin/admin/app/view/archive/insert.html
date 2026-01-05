@@ -334,7 +334,6 @@
                                         <label class="layui-form-label">文档模板</label>
                                         <div class="layui-input-block">
                                             <select name="tempview">
-                                                <option value="">默认模板</option>
                                             </select>
                                         </div>
                                     </div>
@@ -450,7 +449,7 @@
                 $('#often_tags_input').hide();
                 if (!val || val.trim() === '') {
                     return;
-                }
+            }
                 $.ajax({
                     type: 'post',
                     url: '/app/admin/archive/getCommonTags',
@@ -523,7 +522,7 @@
                     tagsList.push(newTag);
                     $(obj).addClass('cur');
                     $('#tags_click_count').val(count + 1);
-                }
+                        }
                 tags = tagsList.join(',');
                 $('#tags').val(tags);
             };
@@ -571,14 +570,25 @@
             form.on('select(typeid)', function (data) {
                 var typeid = data.value;
                 if (typeid && typeid > 0) {
-                    // 获取选中栏目的 channelId
-                    var selectedChannelId = channelId; // 使用全局的 channelId
-                    // 如果全局 channelId 为空，尝试从 URL 获取
+                    // 从选中的栏目选项中获取对应的 channelId
+                    var $selectedOption = $('#typeid-select option:selected');
+                    var selectedChannelId = parseInt($selectedOption.data('channel')) || 0;
+                    
+                    // 如果从选项中获取不到，尝试使用全局的 channelId
                     if (!selectedChannelId || selectedChannelId <= 0) {
-                        var urlParams = layui.url().search;
-                        selectedChannelId = urlParams.channel_id ? parseInt(urlParams.channel_id) : 0;
+                        selectedChannelId = channelId; // 使用全局的 channelId
+                        // 如果全局 channelId 为空，尝试从 URL 获取
+                        if (!selectedChannelId || selectedChannelId <= 0) {
+                            var urlParams = layui.url().search;
+                            selectedChannelId = urlParams.channel_id ? parseInt(urlParams.channel_id) : 0;
+                        }
                     }
-                    loadChannelfields(typeid, selectedChannelId);
+                    
+                    if (selectedChannelId > 0) {
+                        loadChannelfields(typeid, selectedChannelId);
+                    } else {
+                        layui.pearPopup.failure('无法获取栏目对应的模型ID，请重新选择栏目');
+                    }
                 } else {
                     // 清空动态字段
                     $('#dynamic-fields-container-1').empty();
@@ -587,7 +597,6 @@
                     // 清空模板下拉框
                     var $tempviewSelect = $('select[name="tempview"]');
                     $tempviewSelect.empty();
-                    $tempviewSelect.append('<option value="">默认模板</option>');
                     form.render();
                 }
             });
@@ -710,7 +719,8 @@
                                 if (item.current_channel == 6 || item.current_channel == 8) {
                                     disabled = ' disabled';
                                 }
-                                $select.append('<option value="' + item.id + '"' + disabled + '>' + item.label + '</option>');
+                                // 存储 current_channel 到 data 属性中，方便切换时获取
+                                $select.append('<option value="' + item.id + '" data-channel="' + (item.current_channel || 0) + '"' + disabled + '>' + item.label + '</option>');
                             });
                             
                             // 如果URL中有typeid，设置下拉框的值
@@ -781,12 +791,13 @@
                     type: type
                 };
                 $.getJSON('/app/admin/arctype/getTemplates', params, function (res) {
-                    if (res.code === 0 && Array.isArray(res.data)) {
+                    if (res.code === 0 && Array.isArray(res.data) && res.data.length > 0) {
                         var $tempviewSelect = $('select[name="tempview"]');
                         $tempviewSelect.empty();
-                        $tempviewSelect.append('<option value="">默认模板</option>');
-                        res.data.forEach(function (template) {
-                            $tempviewSelect.append('<option value="' + template.value + '">' + template.name + '</option>');
+                        // 不添加"默认模板"选项，直接添加模板选项
+                        res.data.forEach(function (template, index) {
+                            var selected = index === 0 ? 'selected' : ''; // 默认选中第一个
+                            $tempviewSelect.append('<option value="' + template.value + '" ' + selected + '>' + template.name + '</option>');
                         });
                         form.render('select');
                     }
@@ -1432,7 +1443,7 @@
                 });
 
             return formData;
-        }
+                    }
 
     </script>
 

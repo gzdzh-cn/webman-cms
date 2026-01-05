@@ -1098,23 +1098,46 @@
                 var $this = $(this);
                 var id = $this.data('id');
                 var field = $this.data('field');
-                var currentValue = parseInt($this.data('value')) || -1;
-                // arcrank: 0=已审核, -1=待审核
-                var newValue = currentValue === 0 ? -1 : 0;
-
-                updateField(id, field, newValue, function () {
-                    $this.data('value', newValue);
-                    var $icon = $this.find('.layui-icon');
-                    if (newValue === 0) {
-                        $this.removeClass('status-hide').addClass('status-show');
-                        $icon.removeClass('layui-icon-close-fill').addClass('layui-icon-ok-circle');
-                        $icon[0].nextSibling.nodeValue = '是';
-                    } else {
-                        $this.removeClass('status-show').addClass('status-hide');
-                        $icon.removeClass('layui-icon-ok-circle').addClass('layui-icon-close-fill');
-                        $icon[0].nextSibling.nodeValue = '否';
+                // 修复：使用 Number() 或显式转换，避免 0 被当作 falsy 值
+                var currentValue = Number($this.data('value'));
+                // 如果转换失败，默认为 -1（待审核）
+                if (isNaN(currentValue)) {
+                    currentValue = -1;
+                }
+                // 使用单独的更新状态接口，避免触发标签删除逻辑
+                // 前端发送当前状态值，后端负责切换
+                $.ajax({
+                    url: '/app/admin/archive/updateStatus',
+                    type: "POST",
+                    dataType: "json",
+                    data: {
+                        aid: id,
+                        field: field,
+                        value: currentValue  // 发送当前状态值，后端负责切换
+                    },
+                    success: function (res) {
+                        if (res.code) {
+                            layui.pearPopup.failure(res.msg);
+                            return;
+                        }
+                        // 后端返回新的状态值
+                        var newValue = res.data && res.data.new_value !== undefined ? res.data.new_value : ((currentValue === 0) ? -1 : 0);
+                        $this.data('value', newValue);
+                        var $icon = $this.find('.layui-icon');
+                        if (newValue === 0) {
+                            $this.removeClass('status-hide').addClass('status-show');
+                            $icon.removeClass('layui-icon-close-fill').addClass('layui-icon-ok-circle');
+                            $icon[0].nextSibling.nodeValue = '是';
+                        } else {
+                            $this.removeClass('status-show').addClass('status-hide');
+                            $icon.removeClass('layui-icon-ok-circle').addClass('layui-icon-close-fill');
+                            $icon[0].nextSibling.nodeValue = '否';
+                        }
+                        layer.msg('更新成功', { icon: 1, time: 1000 });
+                    },
+                    error: function () {
+                        layui.pearPopup.failure("请求失败");
                     }
-                    layer.msg('更新成功', { icon: 1, time: 1000 });
                 });
             });
         })

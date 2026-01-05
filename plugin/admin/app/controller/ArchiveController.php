@@ -167,7 +167,7 @@ class ArchiveController extends Crud
             // 获取模型对应的附加表
             $channeltype = Channeltype::find($channelId);
             if ($channeltype) {
-                $prefix = config('plugin.admin.database.connections.mysql.prefix', 'wa_');
+                $prefix = Util::getTablePrefix();
                 $tableName = $prefix . $channeltype->table . '_content';
                 
                 // 插入附加表（动态字段存储在附加表中）
@@ -335,7 +335,7 @@ class ArchiveController extends Crud
             // 获取模型对应的附加表
             $channeltype = Channeltype::find($channelId);
             if ($channeltype) {
-                $prefix = config('plugin.admin.database.connections.mysql.prefix', 'wa_');
+                $prefix = Util::getTablePrefix();
                 $tableName = $prefix . $channeltype->table . '_content';
                 
                 // 更新或插入附加表（动态字段存储在附加表中）
@@ -389,6 +389,64 @@ class ArchiveController extends Crud
             return $this->json(0, '操作成功', ['aid' => $aid]);
         }
         return view('archive/update');
+    }
+
+    /**
+     * 单独更新状态字段（不触发标签删除逻辑）
+     * @param Request $request
+     * @return Response
+     */
+    public function updateStatus(Request $request): Response
+    {
+        $aid = (int)($request->post('aid') ?? 0);
+        $field = $request->post('field', '');
+        $currentValue = $request->post('value'); // 前端发送的是当前状态值
+
+        if (!$aid) {
+            return $this->json(1, 'ID不能为空');
+        }
+
+        if (empty($field)) {
+            return $this->json(1, '字段名不能为空');
+        }
+
+        // 获取文档信息
+        $archive = Archive::find($aid);
+        if (!$archive) {
+            return $this->json(1, '文档不存在');
+        }
+
+        // 允许更新的状态字段列表
+        $allowedFields = ['arcrank', 'status', 'is_head', 'is_recom', 'is_litpic', 'is_jump', 'sort_order'];
+        if (!in_array($field, $allowedFields)) {
+            return $this->json(1, '不允许更新该字段');
+        }
+
+        // 对于 arcrank 字段，根据当前状态进行切换：0=已审核 -> -1=待审核，-1=待审核 -> 0=已审核
+        if ($field === 'arcrank') {
+            $currentValue = (int)$currentValue;
+            // 获取数据库中的实际值
+            $dbValue = (int)($archive->arcrank ?? -1);
+            
+            // 如果前端发送的值与数据库中的值不一致，使用数据库的值（更可靠）
+            if ($currentValue !== $dbValue) {
+                $currentValue = $dbValue;
+            }
+            
+            // 切换状态：0 -> -1, -1 -> 0
+            $newValue = ($currentValue === 0) ? -1 : 0;
+        } else {
+            // 其他字段直接使用传入的值
+            $newValue = $currentValue;
+        }
+
+        // 更新指定字段
+        $updateData = [$field => $newValue];
+        $updateData['update_time'] = time();
+
+        Archive::where('aid', $aid)->update($updateData);
+
+        return $this->json(0, '更新成功', ['new_value' => $newValue]);
     }
 
     /**
@@ -472,7 +530,7 @@ class ArchiveController extends Crud
                 return $this->json(1, '模型不存在');
             }
             
-            $prefix = config('plugin.admin.database.connections.mysql.prefix', 'wa_');
+            $prefix = Util::getTablePrefix();
             $tableName = $prefix . $channeltype->table . '_content';
             
             // 查找或创建 archives 记录（主表）
@@ -563,7 +621,7 @@ class ArchiveController extends Crud
             return $this->json(1, '模型不存在');
         }
         
-        $prefix = config('plugin.admin.database.connections.mysql.prefix', 'wa_');
+        $prefix = Util::getTablePrefix();
         $tableName = $prefix . $channeltype->table . '_content';
         
         $db = Util::db();
@@ -628,7 +686,7 @@ class ArchiveController extends Crud
         $where = $request->get();
         $page = (int)$request->get('page');
         $page = $page > 0 ? $page : 1;
-        $table = config('plugin.admin.database.connections.mysql.prefix') . $this->model->getTable();
+        $table = Util::getTablePrefix() . $this->model->getTable();
 
         $allow_column = Util::db()->select("desc `$table`");
         if (!$allow_column) {

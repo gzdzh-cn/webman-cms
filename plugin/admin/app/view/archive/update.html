@@ -332,7 +332,6 @@
                                         <label class="layui-form-label">文档模板</label>
                                         <div class="layui-input-block">
                                             <select name="tempview">
-                                                <option value="">默认模板</option>
                                             </select>
                                         </div>
                                     </div>
@@ -566,12 +565,36 @@
             form.on('select(typeid)', function (data) {
                 var typeid = data.value;
                 if (typeid && typeid > 0) {
-                    loadChannelfields(typeid, 0, 0);
+                    // 从选中的栏目选项中获取对应的 channelId
+                    var $selectedOption = $('#typeid-select option:selected');
+                    var selectedChannelId = parseInt($selectedOption.data('channel')) || 0;
+                    
+                    // 如果从选项中获取不到，尝试从 URL 参数或 archiveData 获取
+                    if (!selectedChannelId || selectedChannelId <= 0) {
+                        var urlParams = layui.url().search;
+                        selectedChannelId = urlParams.channel_id ? parseInt(urlParams.channel_id) : 0;
+                        
+                        // 如果 URL 参数中也没有，尝试从已加载的数据中获取
+                        if ((!selectedChannelId || selectedChannelId <= 0) && archiveData && archiveData.channel) {
+                            selectedChannelId = parseInt(archiveData.channel) || 0;
+                        }
+                    }
+                    
+                    if (selectedChannelId > 0) {
+                        // loadChannelfields 的签名是 (typeid, channelId, aid)
+                        var aid = archiveData && archiveData.aid ? archiveData.aid : 0;
+                        loadChannelfields(typeid, selectedChannelId, aid);
+                    } else {
+                        layui.pearPopup.failure('无法获取栏目对应的模型ID，请重新选择栏目');
+                    }
                 } else {
                     // 清空动态字段
                     $('#dynamic-fields-container-1').empty();
                     $('#dynamic-fields-container-2').empty();
                     $('#dynamic-fields-container-3').empty();
+                    // 清空模板下拉框
+                    var $tempviewSelect = $('select[name="tempview"]');
+                    $tempviewSelect.empty();
                     form.render();
                 }
             });
@@ -752,7 +775,8 @@
                                 if (item.current_channel == 6 || item.current_channel == 8) {
                                     disabled = ' disabled';
                                 }
-                                $select.append('<option value="' + item.id + '"' + disabled + '>' + item.label + '</option>');
+                                // 存储 current_channel 到 data 属性中，方便切换时获取
+                                $select.append('<option value="' + item.id + '" data-channel="' + (item.current_channel || 0) + '"' + disabled + '>' + item.label + '</option>');
                             });
                             form.render('select');
                         }
@@ -948,18 +972,22 @@
                     type: type
                 };
                 $.getJSON('/app/admin/arctype/getTemplates', params, function (res) {
-                    if (res.code === 0 && Array.isArray(res.data)) {
+                    if (res.code === 0 && Array.isArray(res.data) && res.data.length > 0) {
                         var $tempviewSelect = $('select[name="tempview"]');
                         $tempviewSelect.empty();
-                        $tempviewSelect.append('<option value="">默认模板</option>');
-                        res.data.forEach(function (template) {
-                            $tempviewSelect.append('<option value="' + template.value + '">' + template.name + '</option>');
+                        // 不添加"默认模板"选项，直接添加模板选项
+                        res.data.forEach(function (template, index) {
+                            var selected = '';
+                            // 如果之前保存了 tempview 值，优先使用保存的值
+                            if (window.tempviewValue && template.value === window.tempviewValue) {
+                                selected = 'selected';
+                                window.tempviewValue = null; // 清除临时值
+                            } else if (!window.tempviewValue && index === 0) {
+                                // 如果没有保存的值，默认选中第一个
+                                selected = 'selected';
+                            }
+                            $tempviewSelect.append('<option value="' + template.value + '" ' + selected + '>' + template.name + '</option>');
                         });
-                        // 如果之前保存了 tempview 值，现在设置它
-                        if (window.tempviewValue) {
-                            $tempviewSelect.val(window.tempviewValue);
-                            window.tempviewValue = null; // 清除临时值
-                        }
                         form.render('select');
                     }
                 }).fail(function () {
