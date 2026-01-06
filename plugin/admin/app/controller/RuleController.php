@@ -70,10 +70,48 @@ class RuleController extends Crud
         $rules = $this->getRules(admin('roles'));
         $types = $request->get('type', '0,1');
         $types = is_string($types) ? explode(',', $types) : [0, 1];
-        $items = Rule::orderBy('weight', 'desc')->get()->toArray();
+        
+        // 获取所有规则（包括 status=0 的），用于检查父级链
+        $allRules = Rule::orderBy('weight', 'desc')->get()->keyBy('id')->toArray();
+        
+        // 构建 id => (status, pid) 映射，用于快速查找父级信息
+        $ruleMap = [];
+        foreach ($allRules as $id => $rule) {
+            $ruleMap[$id] = [
+                'status' => $rule['status'] ?? 0,
+                'pid' => (int)($rule['pid'] ?? 0)
+            ];
+        }
+        
+        // 检查父级链是否都是 status=1 的函数
+        $checkParentStatus = function($pid, $ruleMap) use (&$checkParentStatus) {
+            if ($pid == 0) {
+                return true; // 顶级节点，没有父级
+            }
+            if (!isset($ruleMap[$pid])) {
+                return false; // 父级不存在
+            }
+            if ($ruleMap[$pid]['status'] != 1) {
+                return false; // 父级 status=0
+            }
+            // 继续检查父级的父级
+            return $checkParentStatus($ruleMap[$pid]['pid'], $ruleMap);
+        };
+        
+        // 只显示 status=1 且所有父级都是 status=1 的规则（用于左侧菜单）
+        $items = Rule::where('status', 1)->orderBy('weight', 'desc')->get()->toArray();
+        
+        // 过滤掉那些父级链中存在 status=0 的项
+        $filteredItems = [];
+        foreach ($items as $item) {
+            // 检查所有父级是否都是 status=1
+            if ($checkParentStatus($item['pid'], $ruleMap)) {
+                $filteredItems[] = $item;
+            }
+        }
 
         $formatted_items = [];
-        foreach ($items as $item) {
+        foreach ($filteredItems as $item) {
             $item['pid'] = (int)$item['pid'];
             $item['name'] = $item['title'];
             $item['value'] = $item['id'];
@@ -247,6 +285,25 @@ class RuleController extends Crud
         if ($request->method() === 'GET') {
             return raw_view('rule/update');
         }
+        
+        $id = (int)($request->post('id', 0) ?: $request->get('id', 0));
+        if (!$id) {
+            return $this->json(1, 'ID不能为空');
+        }
+        
+        $post = $request->post();
+        
+        // 如果只传了 id 和 status，只更新 status 字段（用于点击切换显示/隐藏）
+        if (isset($post['status']) && count($post) <= 2) {
+            $rule = Rule::find($id);
+            if (!$rule) {
+                return $this->json(1, '记录不存在');
+            }
+            $rule->status = (int)$post['status'];
+            $rule->save();
+            return $this->json(0, 'ok', ['id' => $id]);
+        }
+        
         [$id, $data] = $this->updateInput($request);
         if (!$row = $this->model->find($id)) {
             return $this->json(2, '记录不存在');

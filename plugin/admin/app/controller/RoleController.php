@@ -78,10 +78,12 @@ class RoleController extends Crud
         if ($request->method() === 'POST') {
             $data = $this->insertInput($request);
             $pid = $data['pid'] ?? null;
-            if (!$pid) {
+            // 允许顶级角色 pid = 0，只有在 pid 为空时才提示未选择
+            if ($pid === null || $pid === '') {
                 return $this->json(1, '请选择父级角色组');
             }
-            if (!Auth::isSuperAdmin() && !in_array($pid, Auth::getScopeRoleIds(true))) {
+            // pid=0 为顶级角色，不做范围校验，其余须在可见范围内
+            if ($pid && !Auth::isSuperAdmin() && !in_array($pid, Auth::getScopeRoleIds(true))) {
                 return $this->json(1, '父级角色组超出权限范围');
             }
             $this->checkRules($pid, $data['rules'] ?? '');
@@ -123,13 +125,15 @@ class RoleController extends Crud
 
         if (key_exists('pid', $data)) {
             $pid = $data['pid'];
-            if (!$pid) {
+            // 允许 pid = 0 作为顶级角色
+            if ($pid === null || $pid === '') {
                 return $this->json(1, '请选择父级角色组');
             }
             if ($pid == $id) {
                 return $this->json(1, '父级不能是自己');
             }
-            if (!$is_supper_admin && !in_array($pid, Auth::getScopeRoleIds(true))) {
+            // pid=0 不做范围校验，其余须在可见范围内
+            if ($pid && !$is_supper_admin && !in_array($pid, Auth::getScopeRoleIds(true))) {
                 return $this->json(1, '父级超出权限范围');
             }
         } else {
@@ -151,7 +155,10 @@ class RoleController extends Crud
             foreach ($descendant_role_ids as $role_id) {
                 $tmp_role = Role::find($role_id);
                 $tmp_rule_ids = $role->getRuleIds();
-                $tmp_rule_ids = array_intersect(explode(',',$tmp_role->rules), $tmp_rule_ids);
+                // 兼容 rules 为空或 null 的情况，避免 explode(null) 触发 deprecated
+                $tmp_role_rules = $tmp_role->rules ?? '';
+                $tmp_role_ids = $tmp_role_rules === '' ? [] : explode(',', $tmp_role_rules);
+                $tmp_rule_ids = array_intersect($tmp_role_ids, $tmp_rule_ids);
                 $tmp_role->rules = implode(',', $tmp_rule_ids);
                 $tmp_role->save();
             }
@@ -230,26 +237,48 @@ class RoleController extends Crud
      */
     protected function checkRules(int $role_id, $rule_ids)
     {
-        if ($rule_ids) {
-            $rule_ids = explode(',', $rule_ids);
-            if (in_array('*', $rule_ids)) {
-                throw new BusinessException('非法数据');
-            }
-            $rule_exists = Rule::whereIn('id', $rule_ids)->pluck('id');
-            if (count($rule_exists) != count($rule_ids)) {
-                throw new BusinessException('权限不存在');
-            }
-            $rule_id_string = Role::where('id', $role_id)->value('rules');
-            if ($rule_id_string === '') {
-                throw new BusinessException('数据超出权限范围');
-            }
-            if ($rule_id_string === '*') {
-                return;
-            }
-            $legal_rule_ids = explode(',', $rule_id_string);
-            if (array_diff($rule_ids, $legal_rule_ids)) {
-                throw new BusinessException('数据超出权限范围');
-            }
+        // 无权限数据直接通过
+        if (!$rule_ids) {
+            return;
+        }
+
+        // 兼容数组或字符串输入，过滤空值
+        if (is_array($rule_ids)) {
+            $rule_ids = array_values(array_filter($rule_ids, static fn($v) => $v !== '' && $v !== null));
+        } else {
+            $rule_ids = array_values(array_filter(explode(',', (string)$rule_ids), static fn($v) => $v !== '' && $v !== null));
+        }
+
+        // 过滤后无权限数据直接通过
+        if (empty($rule_ids)) {
+            return;
+        }
+
+        // 顶级角色（pid=0）不做范围校验
+        if ($role_id === 0) {
+            return;
+        }
+
+        if (in_array('*', $rule_ids)) {
+            throw new BusinessException('非法数据');
+        }
+
+        $rule_exists = Rule::whereIn('id', $rule_ids)->pluck('id');
+        if (count($rule_exists) != count($rule_ids)) {
+            throw new BusinessException('权限不存在');
+        }
+
+        $rule_id_string = Role::where('id', $role_id)->value('rules');
+        if ($rule_id_string === '' || $rule_id_string === null) {
+            throw new BusinessException('数据超出权限范围');
+        }
+        if ($rule_id_string === '*') {
+            return;
+        }
+
+        $legal_rule_ids = explode(',', $rule_id_string);
+        if (array_diff($rule_ids, $legal_rule_ids)) {
+            throw new BusinessException('数据超出权限范围');
         }
     }
 

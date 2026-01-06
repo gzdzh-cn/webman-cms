@@ -13,6 +13,7 @@ use support\exception\BusinessException;
 use support\Request;
 use support\Response;
 use Throwable;
+use support\Log;
 
 class TableController extends Base
 {
@@ -153,7 +154,7 @@ class TableController extends Base
             }
         }
 
-        Util::schema()->create($table_name, function (Blueprint $table) use ($columns) {
+        Util::schemaCreate($table_name, function (Blueprint $table) use ($columns) {
             $type_method_map = Util::methodControlMap();
             foreach ($columns as $column) {
                 if (!isset($column['type'])) {
@@ -169,10 +170,10 @@ class TableController extends Base
             $table->engine = 'InnoDB';
         });
 
-        Util::db()->statement("ALTER TABLE `$table_name` COMMENT $table_comment");
+        Util::dbStatement("ALTER TABLE `$table_name` COMMENT $table_comment");
 
         // 索引
-        Util::schema()->table($table_name, function (Blueprint $table) use ($keys) {
+        Util::schemaTable($table_name, function (Blueprint $table) use ($keys) {
             foreach ($keys as $key) {
                 $name = $key['name'];
                 $columns = is_array($key['columns']) ? $key['columns'] : explode(',', $key['columns']);
@@ -275,7 +276,7 @@ class TableController extends Base
 
         // 改表名
         if ($table_name != $old_table_name) {
-            Util::schema()->rename($old_table_name, $table_name);
+            Util::schemaRename($old_table_name, $table_name);
         }
 
         $type_method_map = Util::methodControlMap();
@@ -298,11 +299,11 @@ class TableController extends Base
         $table = Util::getSchema($table_name, 'table');
         if ($table_comment !== $table['comment']) {
             $table_comment = Util::pdoQuote($table_comment);
-            Util::db()->statement("ALTER TABLE `$table_name` COMMENT $table_comment");
+            Util::dbStatement("ALTER TABLE `$table_name` COMMENT $table_comment");
         }
 
         $old_columns = Util::getSchema($table_name, 'columns');
-        Util::schema()->table($table_name, function (Blueprint $table) use ($columns, $old_columns, $keys, $table_name) {
+        Util::schemaTable($table_name, function (Blueprint $table) use ($columns, $old_columns, $keys) {
             foreach ($columns as $column) {
                 $field = $column['field'];
                 // 新字段
@@ -325,11 +326,11 @@ class TableController extends Base
         $drop_column_names = array_diff($old_columns_names, $exists_column_names);
         $drop_column_names = Util::filterAlphaNum($drop_column_names);
         foreach ($drop_column_names as $drop_column_name) {
-            Util::db()->statement("ALTER TABLE `$table_name` DROP COLUMN `$drop_column_name`");
+            Util::dbStatement("ALTER TABLE `$table_name` DROP COLUMN `$drop_column_name`");
         }
 
         $old_keys = Util::getSchema($table_name, 'keys');
-        Util::schema()->table($table_name, function (Blueprint $table) use ($keys, $old_keys, $table_name) {
+        Util::schemaTable($table_name, function (Blueprint $table) use ($keys, $old_keys) {
             foreach ($keys as $key) {
                 $key_name = $key['name'];
                 $old_key = $old_keys[$key_name] ?? [];
@@ -367,11 +368,11 @@ class TableController extends Base
         // 变更主键
         if ($old_primary_key != $primary_key) {
             if ($old_primary_key) {
-                Util::db()->statement("ALTER TABLE `$table_name` DROP PRIMARY KEY");
+                Util::dbStatement("ALTER TABLE `$table_name` DROP PRIMARY KEY");
             }
             if ($primary_key) {
                 $primary_key = Util::filterAlphaNum($primary_key);
-                Util::db()->statement("ALTER TABLE `$table_name` ADD PRIMARY KEY(`$primary_key`)");
+                Util::dbStatement("ALTER TABLE `$table_name` ADD PRIMARY KEY(`$primary_key`)");
             }
         }
 
@@ -808,10 +809,10 @@ EOF
 
         <!-- 表格顶部工具栏 -->
         <script type="text/html" id="table-toolbar">
-            <button class="pear-btn pear-btn-primary pear-btn-md" lay-event="add" permission="$code_base.insert">
+            <button class="pear-btn pear-btn-primary pear-btn-xs" lay-event="add" permission="$code_base.insert">
                 <i class="layui-icon layui-icon-add-1"></i>新增
             </button>
-            <button class="pear-btn pear-btn-danger pear-btn-md" lay-event="batchRemove" permission="$code_base.delete">
+            <button class="pear-btn pear-btn-danger pear-btn-xs" lay-event="batchRemove" permission="$code_base.delete">
                 <i class="layui-icon layui-icon-delete"></i>删除
             </button>
         </script>
@@ -1253,38 +1254,40 @@ EOF;
         $table = Util::filterAlphaNum($request->get('table', ''));
         $format = $request->get('format', 'normal');
         $limit = $request->get('limit', $format === 'tree' ? 5000 : 10);
-
         $allow_column = Util::db()->select("desc `$table`");
-        if (!$allow_column) {
-            return $this->json(2, '表不存在');
-        }
+  
         $allow_column = array_column($allow_column, 'Field', 'Field');
         if (!in_array($field, $allow_column)) {
             $field = current($allow_column);
         }
         $order = $order === 'asc' ? 'asc' : 'desc';
-        $paginator = Util::db()->table($table);
-        foreach ($request->get() as $column => $value) {
-            if ($value === '') {
-                continue;
-            }
-            if (isset($allow_column[$column])) {
-                if (is_array($value)) {
-                    if ($value[0] === 'like') {
-                        $paginator = $paginator->where($column, 'like', "%$value[1]%");
-                    } elseif (in_array($value[0], ['>', '=', '<', '<>', 'not like'])) {
-                        $paginator = $paginator->where($column, $value[0], $value[1]);
-                    } else {
-                        if ($value[0] !== '' || $value[1] !== '') {
-                            $paginator = $paginator->whereBetween($column, $value);
+       
+        // 使用智能表操作，自动处理前缀
+        $requestParams = $request->get();
+        $paginator = Util::smartTableOperation(function($db) use ($table, $requestParams, $allow_column, $field, $order, $limit, $page) {
+            $query = $db->table($table);
+            foreach ($requestParams as $column => $value) {
+                if ($value === '') {
+                    continue;
+                }
+                if (isset($allow_column[$column])) {
+                    if (is_array($value)) {
+                        if ($value[0] === 'like') {
+                            $query = $query->where($column, 'like', "%$value[1]%");
+                        } elseif (in_array($value[0], ['>', '=', '<', '<>', 'not like'])) {
+                            $query = $query->where($column, $value[0], $value[1]);
+                        } else {
+                            if ($value[0] !== '' || $value[1] !== '') {
+                                $query = $query->whereBetween($column, $value);
+                            }
                         }
+                    } else {
+                        $query = $query->where($column, $value);
                     }
-                } else {
-                    $paginator = $paginator->where($column, $value);
                 }
             }
-        }
-        $paginator = $paginator->orderBy($field, $order)->paginate($limit, '*', 'page', $page);
+            return $query->orderBy($field, $order)->paginate($limit, '*', 'page', $page);
+        });
         $items = $paginator->items();
         if ($format == 'tree') {
             $items_map = [];
@@ -1356,7 +1359,7 @@ EOF;
         if (isset($columns['updated_at']) && empty($data['updated_at'])) {
             $data['updated_at'] = $datetime;
         }
-        $id = Util::db()->table($table)->insertGetId($data);
+        $id = Util::table($table)->insertGetId($data);
         return $this->json(0, $id);
     }
 
@@ -1423,7 +1426,7 @@ EOF;
         if (isset($columns['updated_at']) && empty($data['updated_at'])) {
             $data['updated_at'] = $datetime;
         }
-        Util::db()->table($table)->where($primary_key, $value)->update($data);
+        Util::table($table)->where($primary_key, $value)->update($data);
         return $this->json(0);
     }
 
@@ -1446,7 +1449,7 @@ EOF;
         }
         $primary_key = $primary_keys[0];
         $value = (array)$request->post($primary_key);
-        Util::db()->table($table)->whereIn($primary_key, $value)->delete();
+        Util::table($table)->whereIn($primary_key, $value)->delete();
         return $this->json(0);
     }
 
@@ -1468,9 +1471,9 @@ EOF;
             return $this->json(400, implode(',', $found) . '不允许删除');
         }
         foreach ($tables as $table) {
-            Util::schema()->drop($table);
+            Util::schemaDrop($table);
             // 删除schema
-            Util::db()->table('options')->where('name', "table_form_schema_$table")->delete();
+            Util::table('options')->where('name', "table_form_schema_$table")->delete();
         }
         return $this->json(0, 'ok');
     }
@@ -1638,7 +1641,7 @@ EOF;
         }
 
         echo "$sql\n";
-        Util::db()->statement($sql);
+        Util::dbStatement($sql);
     }
 
     /**

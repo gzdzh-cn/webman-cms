@@ -23,10 +23,10 @@
 
                 <div class="layui-form-item layui-inline">
                     <label class="layui-form-label"></label>
-                    <button class="pear-btn pear-btn-md pear-btn-primary" lay-submit lay-filter="table-query">
+                    <button class="pear-btn pear-btn-xs pear-btn-primary" lay-submit lay-filter="table-query">
                         <i class="layui-icon layui-icon-search"></i>查询
                     </button>
-                    <button type="reset" class="pear-btn pear-btn-md" lay-submit lay-filter="table-reset">
+                    <button type="reset" class="pear-btn pear-btn-xs" lay-submit lay-filter="table-reset">
                         <i class="layui-icon layui-icon-refresh"></i>重置
                     </button>
                 </div>
@@ -46,10 +46,10 @@
         </div>
 
         <script type="text/html" id="table-toolbar">
-            <button class="pear-btn pear-btn-primary pear-btn-md" lay-event="add" permission="app.admin.table.create">
+            <button class="pear-btn pear-btn-primary pear-btn-xs" lay-event="add" permission="app.admin.table.create">
                 <i class="layui-icon layui-icon-add-1"></i>创建表格
             </button>
-            <button class="pear-btn pear-btn-danger pear-btn-md" lay-event="batchRemove" permission="app.admin.table.drop">
+            <button class="pear-btn pear-btn-danger pear-btn-xs" lay-event="batchRemove" permission="app.admin.table.drop">
                 <i class="layui-icon layui-icon-delete"></i>删除表格
             </button>
         </script>
@@ -129,6 +129,7 @@
                     skin: "line",
                     size: "lg",
                     toolbar: "#table-toolbar",
+                    id: "data-table",
                     defaultToolbar: [{
                         title: "刷新",
                         layEvent: "refresh",

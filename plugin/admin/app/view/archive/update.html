@@ -164,21 +164,42 @@
                                             <input type="checkbox" name="is_jump" value="1" title="外链">
                                         </div>
                                     </div>
+
+
                                     <div class="layui-form-item">
                                         <label class="layui-form-label">封面图片</label>
                                         <div class="layui-input-block">
-                                            <div class="layui-upload">
-                                                <button type="button" class="layui-btn layui-btn-normal"
-                                                    id="upload-litpic">选择图片</button>
-                                                <div class="layui-upload-list" style="margin-top: 10px;">
-                                                    <img class="layui-upload-img" id="preview-litpic" src=""
-                                                        style="max-width: 200px; max-height: 200px; display: none;">
-                                                    <input type="hidden" name="litpic" id="input-litpic" value="">
-                                                    <p id="text-litpic" style="margin-top: 10px;"></p>
+                                            <div class="layui-input-group" id="litpic-group">
+                                                <div class="layui-input-prefix" id="preview-litpic-icon" style="display: none; cursor: pointer;">
+                                                    <i class="layui-icon layui-icon-picture"></i>
+                                                </div>
+                                                <input type="text" name="litpic" value="" class="layui-input" id="litpic-input">
+                                                <div class="layui-input-suffix">
+                                                    <button type="button" id="upload-litpic" 
+                                                        class="layui-btn layui-btn-normal layui-btn-sm">
+                                                        上传图片
+                                                    </button>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
+
+
+                                    <!-- 图片集 -->
+                                    <div class="layui-form-item">
+                                        <label class="layui-form-label">图片集</label>
+                                        <div class="layui-input-block">
+                                            <input type="text" name="litpic_list" id="litpic_list" placeholder="多个图片之间以逗号隔开"
+                                                class="layui-input">
+                                        </div>
+                                    </div>
+
+
+
+
+
+
+
                                     <div class="layui-form-item" style="position: relative; z-index: 2;">
                                         <label class="layui-form-label">文档标签</label>
                                         <div class="layui-input-block" style="position: relative;">
@@ -550,14 +571,32 @@
                 elem: '#upload-litpic',
                 url: '/app/admin/upload/image',
                 accept: 'images',
-                done: function (res) {
+                acceptMime: 'image/*',
+                done: function(res) {
                     if (res.code === 0) {
-                        $('#preview-litpic').attr('src', res.data.url).show();
-                        $('#input-litpic').val(res.data.url);
-                        $('#text-litpic').html('');
+                        $('#litpic-input').val(res.data.url);
+                        var $preview = $('#preview-litpic-icon');
+                        $preview.html(`<img src="${res.data.url}" style="max-height:32px;vertical-align:middle;">`);
+                        $preview.show();
                     } else {
-                        $('#text-litpic').html('<span style="color: red;">上传失败：' + (res.msg || '未知错误') + '</span>');
+                        layer.msg(res.msg || '上传失败', {icon: 2});
                     }
+                },
+                error: function() {
+                    layer.msg('上传失败', {icon: 2});
+                }
+            });
+
+            // 点击预览大图
+            $('#preview-litpic-icon').on('click', function() {
+                var imgSrc = $('#litpic-input').val();
+                if (imgSrc) {
+                    layer.photos({
+                        photos: {
+                            data: [{src: imgSrc}]
+                        },
+                        anim: 5
+                    });
                 }
             });
 
@@ -811,8 +850,10 @@
                     $('input[name="is_jump"]').prop('checked', data.is_jump == 1);
                 }
                 if (data.litpic) {
-                    $('#preview-litpic').attr('src', data.litpic).show();
-                    $('#input-litpic').val(data.litpic);
+                    $('#litpic-input').val(data.litpic);
+                    var $preview = $('#preview-litpic-icon');
+                    $preview.html(`<img src="${data.litpic}" style="max-height:32px;vertical-align:middle;">`);
+                    $preview.show();
                 }
                 if (data.tags) {
                     $('input[name="tags"]').val(data.tags);

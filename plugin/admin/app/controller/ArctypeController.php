@@ -96,6 +96,18 @@ class ArctypeController extends Crud
                 return $this->json(0, 'ok', ['id' => $id]);
             }
             
+            // 如果只传了 id 和 is_hidden，只更新 is_hidden 字段（用于点击切换显示/隐藏）
+            if (isset($post['is_hidden']) && count($post) <= 2) {
+                $arctype = Arctype::find($id);
+                if (!$arctype) {
+                    return $this->json(1, '记录不存在');
+                }
+                $arctype->is_hidden = (int)$post['is_hidden'];
+                $arctype->update_time = time();
+                $arctype->save();
+                return $this->json(0, 'ok', ['id' => $id]);
+            }
+            
             // 在 inputFilter 之前获取 inherit_option（因为这不是数据库字段，会被过滤）
             $inheritOption = $request->post('inherit_option', 0);
             $inheritOption = ($inheritOption == 1 || $inheritOption === '1') ? 1 : 0;

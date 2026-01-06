@@ -11,7 +11,7 @@ use support\Response;
 use Throwable;
 use Webman\Captcha\CaptchaBuilder;
 use Webman\Captcha\PhraseBuilder;
-use support\Log;
+
 
 
 /**
@@ -196,7 +196,7 @@ class AccountController extends Crud
      */
     public function captcha(Request $request, string $type = 'login'): Response
     {
-        Log::debug('log captcha');
+       
         $builder = new PhraseBuilder(4, 'abcdefghjkmnpqrstuvwxyzABCDEFGHJKMNPQRSTUVWXYZ');
         $captcha = new CaptchaBuilder(null, $builder);
         $captcha->build(120);

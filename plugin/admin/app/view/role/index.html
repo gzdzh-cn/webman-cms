@@ -21,17 +21,20 @@
 
         <!-- 表格顶部工具栏 -->
         <script type="text/html" id="table-toolbar">
-            <button class="pear-btn pear-btn-primary pear-btn-md" lay-event="add" permission="app.admin.role.insert">
+            <button class="pear-btn pear-btn-primary pear-btn-xs" lay-event="add" permission="app.admin.role.insert">
                 <i class="layui-icon layui-icon-add-1"></i>新增
             </button>
-            <button class="pear-btn pear-btn-danger pear-btn-md" lay-event="batchRemove" permission="app.admin.role.delete">
+            <button class="pear-btn pear-btn-danger pear-btn-xs" lay-event="batchRemove" permission="app.admin.role.delete">
                 <i class="layui-icon layui-icon-delete"></i>删除
+            </button>
+            <button class="pear-btn pear-btn-normal pear-btn-xs" id="expand-fold-btn" lay-event="expandFold">
+                <i class="layui-icon layui-icon-shrink-right"></i><span class="btn-text">折叠</span>
             </button>
         </script>
 
         <!-- 表格行工具栏 -->
         <script type="text/html" id="table-bar">
-            {{# if(d.id!==1&&d.pid&&!d.isRoot){ }}
+            {{# if(d.id!==1){ }}
             <button class="pear-btn pear-btn-xs tool-btn" lay-event="edit" permission="app.admin.role.update">编辑</button>
             <button class="pear-btn pear-btn-xs tool-btn" lay-event="remove" permission="app.admin.role.delete">删除</button>
             {{# } }}
@@ -60,6 +63,70 @@
                 let $ = layui.$;
                 let common = layui.pearCommon;
                 let util = layui.util;
+                // 树形表格展开/折叠状态（treeDefaultClose=false，初始为展开）
+                let isExpanded = true;
+                // 保存展开的节点 ID 集合（用于刷新后恢复部分展开状态）
+                let expandedNodeIds = new Set();
+
+                // 获取当前所有展开的节点 ID
+                function getExpandedNodeIds() {
+                    let ids = new Set();
+                    let $table = $('#data-table').next('.treeTable');
+                    if ($table.length > 0) {
+                        let openIcons = $table.find('.treeTable-icon.open');
+                        openIcons.each(function() {
+                            let nodeId = $(this).attr('lay-tid');
+                            if (nodeId) {
+                                ids.add(nodeId);
+                            }
+                        });
+                    }
+                    return ids;
+                }
+
+                // 展开指定的节点
+                function expandNodes(nodeIds) {
+                    if (!nodeIds || nodeIds.size === 0) {
+                        return;
+                    }
+                    let $table = $('#data-table').next('.treeTable');
+                    if ($table.length === 0) {
+                        return;
+                    }
+                    let attempts = 0;
+                    let maxAttempts = 10;
+                    let expandInterval = setInterval(function() {
+                        attempts++;
+                        let expanded = 0;
+                        $table.find('.treeTable-icon').each(function() {
+                            let $icon = $(this);
+                            let nodeId = $icon.attr('lay-tid');
+                            let ttype = $icon.attr('lay-ttype');
+                            let isOpen = $icon.hasClass('open');
+                            if (nodeId && nodeIds.has(nodeId) && ttype === 'dir' && !isOpen) {
+                                $icon.trigger('click');
+                                expanded++;
+                            }
+                        });
+                        if (expanded === 0 || attempts >= maxAttempts) {
+                            clearInterval(expandInterval);
+                        }
+                    }, 50);
+                }
+
+                // 更新展开/折叠按钮显示
+                function updateExpandFoldButton(expanded) {
+                    let $btn = $('#expand-fold-btn');
+                    let $icon = $btn.find('i');
+                    let $text = $btn.find('.btn-text');
+                    if (expanded) {
+                        $icon.removeClass('layui-icon-spread-left').addClass('layui-icon-shrink-right');
+                        $text.text('折叠');
+                    } else {
+                        $icon.removeClass('layui-icon-shrink-right').addClass('layui-icon-spread-left');
+                        $text.text('展开');
+                    }
+                }
                 
 				// 表头参数
 				let cols = [
@@ -116,8 +183,8 @@
 				function render()
 				{
                     treeTable.render({
-				        elem: "#data-table",
-				        url: SELECT_API,
+                        elem: "#data-table",
+                        url: SELECT_API,
                         treeColIndex: 1,
                         treeIdName: "id",
                         treePidName: "pid",
@@ -125,13 +192,15 @@
                         cols: [cols],
                         skin: "line",
                         size: "lg",
+                        page: false,
+                        id: "data-table",
                         toolbar: "#table-toolbar",
                         defaultToolbar: [{
                             title: "刷新",
                             layEvent: "refresh",
                             icon: "layui-icon-refresh",
                         }, "filter", "print", "exports"]
-				    });
+                    });
 				}
 				
 				// 获取表格中下拉或树形组件数据
@@ -190,6 +259,19 @@
                         refreshTable();
                     } else if (obj.event === "batchRemove") {
                         batchRemove(obj);
+                    } else if (obj.event === "expandFold") {
+                        // 切换展开/折叠状态
+                        if (isExpanded) {
+                            treeTable.foldAll("#data-table");
+                            isExpanded = false;
+                            expandedNodeIds.clear();
+                            updateExpandFoldButton(false);
+                        } else {
+                            treeTable.expandAll("#data-table");
+                            isExpanded = true;
+                            expandedNodeIds.clear();
+                            updateExpandFoldButton(true);
+                        }
                     }
                 });
 
@@ -288,20 +370,58 @@
                 }
 
                 // 刷新表格数据
-                window.refreshTable = function() {
-                    table.reloadData("data-table", {
-                        scrollPos: "fixed",
-                        done: function (res, curr) {
-                            if (curr > 1 && res.data && !res.data.length) {
-                                curr = curr - 1;
-                                table.reloadData("data-table", {
-                                    page: {
-                                        curr: curr
-                                    },
-                                })
+                // 监听节点展开/折叠事件，更新展开节点集合
+                $(document).on('click', '.treeTable .treeTable-icon', function() {
+                    setTimeout(function() {
+                        let $table = $('#data-table').next('.treeTable');
+                        if ($table.length > 0) {
+                            let totalDirs = $table.find('.treeTable-icon[lay-ttype="dir"]').length;
+                            let openDirs = $table.find('.treeTable-icon[lay-ttype="dir"].open').length;
+                            expandedNodeIds = getExpandedNodeIds();
+                            let allExpanded = (totalDirs > 0 && openDirs === totalDirs);
+                            if (allExpanded) {
+                                expandedNodeIds.clear();
+                                isExpanded = true;
+                            } else {
+                                isExpanded = false;
                             }
+                            updateExpandFoldButton(isExpanded);
                         }
-                    });
+                    }, 50);
+                });
+
+                // 刷新表格数据（保持展开状态）
+                window.refreshTable = function() {
+                    let wasExpanded = isExpanded;
+                    let savedExpandedNodeIds = getExpandedNodeIds();
+                    treeTable.reload("#data-table");
+                    setTimeout(function() {
+                        if (wasExpanded) {
+                            treeTable.expandAll("#data-table");
+                            isExpanded = true;
+                            expandedNodeIds.clear();
+                            updateExpandFoldButton(true);
+                        } else if (savedExpandedNodeIds.size > 0) {
+                            expandedNodeIds = savedExpandedNodeIds;
+                            expandNodes(expandedNodeIds);
+                            setTimeout(function() {
+                                let $table = $('#data-table').next('.treeTable');
+                                if ($table.length > 0) {
+                                    let totalDirs = $table.find('.treeTable-icon[lay-ttype="dir"]').length;
+                                    let openDirs = $table.find('.treeTable-icon[lay-ttype="dir"].open').length;
+                                    isExpanded = (totalDirs > 0 && openDirs === totalDirs);
+                                    if (isExpanded) {
+                                        expandedNodeIds.clear();
+                                    }
+                                    updateExpandFoldButton(isExpanded);
+                                }
+                            }, 200);
+                        } else {
+                            isExpanded = false;
+                            expandedNodeIds.clear();
+                            updateExpandFoldButton(false);
+                        }
+                    }, 50);
                 }
             })
 

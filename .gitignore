@@ -7,5 +7,4 @@
 /tests/tmp
 /tests/.phpunit.result.cache
 /build
-/sql
 /z-example

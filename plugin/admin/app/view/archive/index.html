@@ -98,7 +98,7 @@
                                 <select name="arcrank">
                                     <option value="">全部</option>
                                     <option value="0">已审核</option>
-                                    <option value="-1">待审核</option>
+                                    <option value="-1">审核未通过</option>
                                 </select>
                             </div>
                         </div>
@@ -296,6 +296,7 @@
                 height: 'full',  // 表格高度占满容器
                 toolbar: "#table-toolbar",
                 autoSort: false,
+                id: "data-table",
                 defaultToolbar: [{
                     title: "刷新",
                     layEvent: "refresh",

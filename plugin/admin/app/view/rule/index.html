@@ -186,6 +186,18 @@
                             return '<span class="layui-badge '+css+'">'+util.escape(value)+'</span>';
                         }
                     },{
+                        title: "显示", align: "center",
+                        field: "status",
+                        templet: function (d) {
+                            const isShow = d.status == 1;
+                            const cls = isShow ? "status-show" : "status-hide";
+                            const icon = isShow ? "layui-icon-ok-circle" : "layui-icon-close-fill";
+                            const text = isShow ? "是" : "否";
+                            const val = isShow ? "1" : "0";
+                            return '<span class="status-badge ' + cls + '" data-id="' + util.escape(d.id) + '" data-field="status" data-value="' + val + '"><i class="layui-icon ' + icon + '"></i>' + text + '</span>';
+                        },
+                        width: 80,
+                    },{
                         title: "排序",
                         field: "weight",
                         width: 80,
@@ -433,6 +445,47 @@
                             updateExpandFoldButton(isExpanded);
                         }
                     }, 50);
+                });
+                
+                // 点击切换显示/隐藏状态
+                $(document).on('click', '.status-badge', function () {
+                    var $this = $(this);
+                    var id = $this.data('id');
+                    var currentValue = parseInt($this.data('value'));
+                    var newValue = currentValue === 1 ? 0 : 1;
+
+                    // 更新字段到数据库
+                    let data = {};
+                    data[PRIMARY_KEY] = id;
+                    data['status'] = newValue;
+                    $.ajax({
+                        url: UPDATE_API,
+                        type: "POST",
+                        dataType: "json",
+                        data: data,
+                        success: function (res) {
+                            if (res.code) {
+                                layui.pearPopup.failure(res.msg);
+                                return;
+                            }
+                            // 更新UI - 只改变类名和属性
+                            $this.data('value', newValue);
+                            var $icon = $this.find('.layui-icon');
+                            if (newValue === 1) {
+                                $this.removeClass('status-hide').addClass('status-show');
+                                $icon.removeClass('layui-icon-close-fill').addClass('layui-icon-ok-circle');
+                                $icon[0].nextSibling.nodeValue = '是';
+                            } else {
+                                $this.removeClass('status-show').addClass('status-hide');
+                                $icon.removeClass('layui-icon-ok-circle').addClass('layui-icon-close-fill');
+                                $icon[0].nextSibling.nodeValue = '否';
+                            }
+                            layer.msg('更新成功', { icon: 1, time: 1000 });
+                        },
+                        error: function () {
+                            layui.pearPopup.failure("请求失败");
+                        }
+                    });
                 });
             })
 

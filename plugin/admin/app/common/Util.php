@@ -57,6 +57,118 @@ class Util
     }
 
     /**
+     * 检查表名是否已包含前缀
+     * @param string $table
+     * @return bool
+     */
+    protected static function hasTablePrefix(string $table): bool
+    {
+        $prefix = self::getTablePrefix(false);
+        return !empty($prefix) && strpos($table, $prefix) === 0;
+    }
+
+    /**
+     * 智能执行表操作（自动处理前缀）
+     * 如果表名已包含前缀，则使用 withoutTablePrefix()，否则正常执行
+     * @param callable $callback
+     * @return mixed
+     */
+    public static function smartTableOperation(callable $callback)
+    {
+        $db = self::db();
+        $prefix = self::getTablePrefix(false);
+        
+        // 如果前缀为空，直接执行
+        if (empty($prefix)) {
+            return $callback($db);
+        }
+        
+        // 使用 withoutTablePrefix() 执行，因为传入的表名可能已包含前缀
+        // 这样可以避免双重前缀问题
+        return $db->withoutTablePrefix($callback);
+    }
+
+    /**
+     * 智能获取 Query Builder（自动处理前缀）
+     * @param string $table 表名（可能已包含前缀）
+     * @return \Illuminate\Database\Query\Builder
+     */
+    public static function table(string $table)
+    {
+        return self::smartTableOperation(function($db) use ($table) {
+            return $db->table($table);
+        });
+    }
+
+    /**
+     * 智能执行 Schema table 操作（自动处理前缀）
+     * @param string $table 表名（可能已包含前缀）
+     * @param \Closure $callback
+     * @return void
+     */
+    public static function schemaTable(string $table, \Closure $callback)
+    {
+        self::smartTableOperation(function($db) use ($table, $callback) {
+            $schema = $db->getSchemaBuilder();
+            $schema->table($table, $callback);
+        });
+    }
+
+    /**
+     * 智能执行 Schema create 操作（自动处理前缀）
+     * @param string $table 表名（可能已包含前缀）
+     * @param \Closure $callback
+     * @return void
+     */
+    public static function schemaCreate(string $table, \Closure $callback)
+    {
+        self::smartTableOperation(function($db) use ($table, $callback) {
+            $schema = $db->getSchemaBuilder();
+            $schema->create($table, $callback);
+        });
+    }
+
+    /**
+     * 智能执行 Schema drop 操作（自动处理前缀）
+     * @param string $table 表名（可能已包含前缀）
+     * @return void
+     */
+    public static function schemaDrop(string $table)
+    {
+        self::smartTableOperation(function($db) use ($table) {
+            $schema = $db->getSchemaBuilder();
+            $schema->drop($table);
+        });
+    }
+
+    /**
+     * 智能执行 Schema rename 操作（自动处理前缀）
+     * @param string $from 原表名（可能已包含前缀）
+     * @param string $to 新表名（可能已包含前缀）
+     * @return void
+     */
+    public static function schemaRename(string $from, string $to)
+    {
+        self::smartTableOperation(function($db) use ($from, $to) {
+            $schema = $db->getSchemaBuilder();
+            $schema->rename($from, $to);
+        });
+    }
+
+    /**
+     * 智能执行 SQL statement（自动处理前缀）
+     * 注意：此方法主要用于 ALTER TABLE 等语句，表名在 SQL 中已包含前缀
+     * @param string $sql SQL 语句
+     * @return int
+     */
+    public static function dbStatement(string $sql)
+    {
+        return self::smartTableOperation(function($db) use ($sql) {
+            return $db->statement($sql);
+        });
+    }
+
+    /**
      * 获取表前缀
      * @param bool $autoDetect 是否自动检测前缀（当配置为空时）
      * @return string

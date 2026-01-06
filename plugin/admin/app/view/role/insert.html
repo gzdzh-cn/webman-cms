@@ -16,7 +16,7 @@
                     <div class="layui-form-item">
                         <label class="layui-form-label">父级</label>
                         <div class="layui-input-block">
-                            <div name="pid" id="pid" value="1" ></div>
+                            <div name="pid" id="pid" value="0" ></div>
                         </div>
                     </div>
 
@@ -88,6 +88,19 @@
                     success: function (res) {
                         let value = layui.$("#pid").attr("value");
                         let initValue = value ? value.split(",") : [];
+                        // 在数据最前面插入一个“顶级角色”选项（虚拟节点，pid=0）
+                        if (Array.isArray(res.data)) {
+                            res.data.unshift({
+                                name: "顶级角色",
+                                value: "0",
+                                id: 0,
+                                pid: 0,
+                            });
+                        }
+                        // 默认选中顶级角色（pid=0）
+                        if (!initValue.length) {
+                            initValue = ["0"];
+                        }
                         layui.xmSelect.render({
                             el: "#pid",
                             name: "pid",
