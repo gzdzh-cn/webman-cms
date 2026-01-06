@@ -166,21 +166,143 @@
 
                                         </div>
                                     </div>
-                                    <div class="layui-form-item">
+                                    <div class="layui-form-item" id="litpic-item-wrapper">
                                         <label class="layui-form-label">封面图片</label>
                                         <div class="layui-input-block">
-                                            <div class="layui-upload">
-                                                <button type="button" class="layui-btn layui-btn-normal"
-                                                    id="upload-litpic">选择图片</button>
-                                                <div class="layui-upload-list" style="margin-top: 10px;">
-                                                    <img class="layui-upload-img" id="preview-litpic" src=""
-                                                        style="max-width: 200px; max-height: 200px; display: none;">
-                                                    <input type="hidden" name="litpic" id="input-litpic" value="">
-                                                    <p id="text-litpic" style="margin-top: 10px;"></p>
+                                            <div class="layui-input-group" id="litpic-group">
+                                                <div class="layui-input-prefix" id="preview-litpic-icon" style="display: none; cursor: pointer;">
+                                                    <i class="layui-icon layui-icon-picture"></i>
+                                                </div>
+                                                <input type="text" name="litpic" value="" class="layui-input" id="litpic-input">
+                                                <div class="layui-input-suffix">
+                                                    <button type="button" id="upload-litpic" 
+                                                        class="layui-btn layui-btn-normal layui-btn-sm">
+                                                        上传图片
+                                                    </button>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
+                                    <!-- 图片集（与 update 页保持一致：+号上传、注释、可排序/删除/预览；提交为 litpic_list JSON） -->
+                                    <div class="layui-form-item" id="litpic_list-wrapper" style="display: none;">
+                                        <label class="layui-form-label">图片集</label>
+                                        <div class="layui-input-block">
+                                            <div class="layui-upload">
+                                                <div class="layui-upload-list" id="list-litpic_list"></div>
+                                                <div class="layui-form-mid layui-word-aux" style="margin-left: 0;">点击 “+” 上传图片；可拖拽排序；点击图片可预览；支持图片注释</div>
+                                                <input type="hidden" name="litpic_list" id="litpic_list" value="">
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <style>
+                                        /* 图片集样式 */
+                                        #list-litpic_list {
+                                            display: flex;
+                                            flex-wrap: wrap;
+                                            gap: 10px;
+                                            margin-top: 10px;
+                                        }
+
+                                        .ey-pic-item {
+                                            width: 120px;
+                                            height: 120px;
+                                            border: 1px solid #e6e6e6;
+                                            border-radius: 4px;
+                                            background: #fff;
+                                            position: relative;
+                                            overflow: hidden;
+                                            cursor: move;
+                                        }
+
+                                        .ey-pic-item img {
+                                            width: 100%;
+                                            height: 100%;
+                                            object-fit: cover;
+                                            display: block;
+                                            user-select: none;
+                                            -webkit-user-drag: none;
+                                        }
+
+                                        .ey-pic-item .ey-pic-actions {
+                                            position: absolute;
+                                            left: 0;
+                                            right: 0;
+                                            bottom: 0;
+                                            height: 28px;
+                                            background: rgba(0, 0, 0, 0.45);
+                                            display: flex;
+                                            align-items: center;
+                                            justify-content: space-between;
+                                            padding: 0 6px;
+                                            box-sizing: border-box;
+                                        }
+
+                                        .ey-pic-item .ey-pic-actions a {
+                                            color: #fff;
+                                            font-size: 12px;
+                                            line-height: 1;
+                                            text-decoration: none;
+                                            cursor: pointer;
+                                        }
+
+                                        .ey-pic-item .ey-pic-actions a:hover { opacity: .9; }
+
+                                        .ey-pic-item .ey-pic-badge {
+                                            position: absolute;
+                                            top: 6px;
+                                            left: 6px;
+                                            padding: 2px 6px;
+                                            border-radius: 10px;
+                                            font-size: 12px;
+                                            background: rgba(0, 0, 0, 0.45);
+                                            color: #fff;
+                                        }
+
+                                        .ey-pic-item.is-cover {
+                                            border-color: #16b777;
+                                            box-shadow: 0 0 0 2px rgba(22, 183, 119, 0.15) inset;
+                                        }
+
+                                        .ey-pic-item.is-cover .ey-pic-badge {
+                                            background: rgba(22, 183, 119, 0.8);
+                                        }
+
+                                        .ey-pic-wrap {
+                                            width: 120px;
+                                        }
+
+                                        .ey-pic-wrap .ey-pic-caption-input {
+                                            width: 100%;
+                                            box-sizing: border-box;
+                                            margin-top: 6px;
+                                            height: 28px;
+                                            line-height: 28px;
+                                            font-size: 12px;
+                                        }
+
+                                        .ey-pic-uploader {
+                                            width: 120px;
+                                            height: 120px;
+                                            border: 1px dashed #d9d9d9;
+                                            border-radius: 4px;
+                                            display: flex;
+                                            align-items: center;
+                                            justify-content: center;
+                                            cursor: pointer;
+                                            background-color: #fafafa;
+                                            transition: border-color .3s;
+                                            box-sizing: border-box;
+                                        }
+
+                                        .ey-pic-uploader:hover { border-color: #1E9FFF; }
+
+                                        .ey-pic-uploader .layui-icon {
+                                            font-size: 28px;
+                                            color: #999;
+                                        }
+                                    </style>
+
                                     <div class="layui-form-item" style="position: relative; z-index: 2;">
                                         <label class="layui-form-label">文档标签</label>
                                         <div class="layui-input-block" style="position: relative;">
@@ -535,6 +657,201 @@
                 }
             });
 
+            // 根据模型ID控制封面图片/图片集显示（仅 product/images）
+            function toggleLitpicComponents(channelId) {
+                // TODO：根据你系统实际模型ID调整；这里按约定：2=product,3=images
+                var allow = (parseInt(channelId) === 2 || parseInt(channelId) === 3);
+                // 封面图片默认显示；仅控制图片集显示
+                $('#litpic_list-wrapper').toggle(allow);
+            }
+
+            // ==================== 图片集（litpic_list）- 同步自 update.html ====================
+            function normalizeImgUrl(url) {
+                if (!url) return '';
+                return String(url).trim();
+            }
+
+            function parseLitpicList(val) {
+                if (!val) return [];
+                if (Array.isArray(val)) {
+                    var arr = val.slice().sort(function (a, b) {
+                        var sa = (a && typeof a === 'object') ? (parseInt(a.sort_order, 10) || 0) : 0;
+                        var sb = (b && typeof b === 'object') ? (parseInt(b.sort_order, 10) || 0) : 0;
+                        return sa - sb;
+                    });
+                    return arr.map(function (it) {
+                        if (typeof it === 'string') {
+                            var u = normalizeImgUrl(it);
+                            return u ? { url: u, title: '' } : null;
+                        }
+                        if (it && typeof it === 'object') {
+                            var url = normalizeImgUrl(it.image_url || it.url || it.path || '');
+                            if (!url) return null;
+                            return { url: url, title: it.title || '' };
+                        }
+                        return null;
+                    }).filter(function (x) { return x && x.url; });
+                }
+                var str = String(val).trim();
+                if (!str) return [];
+                try {
+                    var json = JSON.parse(str);
+                    if (Array.isArray(json)) {
+                        return parseLitpicList(json);
+                    }
+                } catch (e) { /* ignore */ }
+                return str.split(',').map(function (u) {
+                    u = normalizeImgUrl(u);
+                    return u ? { url: u, title: '' } : null;
+                }).filter(function (x) { return x && x.url; });
+            }
+
+            function syncLitpicListInput() {
+                var arr = [];
+                $('#list-litpic_list .ey-pic-item').each(function () {
+                    var url = $(this).attr('data-url');
+                    if (url) arr.push(url);
+                });
+                $('#litpic_list').val(arr.join(','));
+            }
+
+            function renderLitpicList(arr) {
+                var $list = $('#list-litpic_list');
+                $list.empty();
+                (arr || []).forEach(function (it, idx) {
+                    var url = it && typeof it === 'object' ? it.url : '';
+                    var title = it && typeof it === 'object' ? (it.title || '') : '';
+                    url = normalizeImgUrl(url);
+                    if (!url) return;
+                    var safeUrl = url.replace(/"/g, '&quot;');
+                    var $wrap = $(
+                        '<div class="ey-pic-wrap">' +
+                            '<div class="ey-pic-item" draggable="true" data-url="' + safeUrl + '">' +
+                                '<span class="ey-pic-badge">' + (idx === 0 ? '封面' : (idx + 1)) + '</span>' +
+                                '<img src="' + safeUrl + '" alt="" />' +
+                                '<div class="ey-pic-actions">' +
+                                    '<a class="js-set-cover" href="javascript:void(0);">设为封面</a>' +
+                                    '<a class="js-del" href="javascript:void(0);">删除</a>' +
+                                '</div>' +
+                            '</div>' +
+                            '<input type="text" class="layui-input ey-pic-caption-input" placeholder="注释" />' +
+                        '</div>'
+                    );
+                    $wrap.find('.ey-pic-caption-input').val(title);
+                    if (idx === 0) $wrap.find('.ey-pic-item').addClass('is-cover');
+                    $list.append($wrap);
+                });
+                $list.append(
+                    '<div class="ey-pic-uploader" id="upload-litpic_list">' +
+                        '<i class="layui-icon layui-icon-add-1"></i>' +
+                    '</div>'
+                );
+                syncLitpicListInput();
+            }
+
+            function refreshLitpicBadges() {
+                $('#list-litpic_list .ey-pic-item').each(function (i) {
+                    $(this).toggleClass('is-cover', i === 0);
+                    $(this).find('.ey-pic-badge').text(i === 0 ? '封面' : (i + 1));
+                });
+            }
+
+            if ($('#litpic_list_upload_input').length === 0) {
+                $('body').append('<button type="button" id="litpic_list_upload_input" style="position:absolute;left:-9999px;top:-9999px;width:0;height:0;overflow:hidden;"></button>');
+            }
+            var litpicListUploaderInst = upload.render({
+                elem: '#litpic_list_upload_input',
+                url: '/app/admin/upload/image',
+                accept: 'images',
+                acceptMime: 'image/*',
+                multiple: true,
+                done: function (res) {
+                    if (res.code === 0) {
+                        var url = normalizeImgUrl(res.data && res.data.url);
+                        if (!url) return;
+                        var current = [];
+                        $('#list-litpic_list .ey-pic-wrap').each(function () {
+                            var u = $(this).find('.ey-pic-item').attr('data-url') || '';
+                            var t = $(this).find('.ey-pic-caption-input').val() || '';
+                            u = normalizeImgUrl(u);
+                            if (u) current.push({ url: u, title: t });
+                        });
+                        current.push({ url: url, title: '' });
+                        renderLitpicList(current);
+                    } else {
+                        layer.msg(res.msg || '上传失败', {icon: 2});
+                    }
+                },
+                error: function () {
+                    layer.msg('上传失败', {icon: 2});
+                }
+            });
+
+            $('#list-litpic_list').on('click', '#upload-litpic_list', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                $('#litpic_list_upload_input').trigger('click');
+            });
+
+            $('#list-litpic_list').on('click', '.js-del', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                $(this).closest('.ey-pic-wrap').remove();
+                refreshLitpicBadges();
+                syncLitpicListInput();
+            }).on('click', '.js-set-cover', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                var $wrap = $(this).closest('.ey-pic-wrap');
+                if ($wrap.length) {
+                    // 移动到第一位
+                    $('#list-litpic_list').prepend($wrap);
+                    refreshLitpicBadges();
+                    syncLitpicListInput();
+
+                    // 自动填充到封面图片字段
+                    var url = $wrap.find('.ey-pic-item').attr('data-url');
+                    if (url) {
+                        $('#litpic-input').val(url);
+                        var $preview = $('#preview-litpic-icon');
+                        $preview.html('<img src="' + url + '" style="max-height:32px;vertical-align:middle;">');
+                        $preview.show();
+                    }
+                }
+            }).on('click', '.ey-pic-item img', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                var src = $(this).closest('.ey-pic-item').attr('data-url');
+                if (!src) return;
+                layer.photos({ photos: { data: [{src: src}] }, anim: 5 });
+            });
+
+            var dragEl = null;
+            $('#list-litpic_list').on('dragstart', '.ey-pic-item', function (e) {
+                dragEl = this;
+                try { e.originalEvent.dataTransfer.setData('text/plain', ''); } catch (err) {}
+            }).on('dragover', '.ey-pic-item', function (e) {
+                e.preventDefault();
+            }).on('drop', '.ey-pic-item', function (e) {
+                e.preventDefault();
+                if (!dragEl || dragEl === this) return;
+                var rect = this.getBoundingClientRect();
+                var isAfter = (e.originalEvent.clientX - rect.left) > rect.width / 2;
+                if (isAfter) {
+                    $(this).after($(dragEl).closest('.ey-pic-wrap'));
+                } else {
+                    $(this).before($(dragEl).closest('.ey-pic-wrap'));
+                }
+                refreshLitpicBadges();
+                syncLitpicListInput();
+            });
+
+            // 初始化显示状态
+            toggleLitpicComponents(channelId);
+
+            // 初始化图片集
+            renderLitpicList([]);
+
             // 点击标签列表区域时不隐藏
             $('#often_tags, #often_tags_input').click(function(e) {
                 e.stopPropagation();
@@ -555,14 +872,32 @@
                 elem: '#upload-litpic',
                 url: '/app/admin/upload/image',
                 accept: 'images',
-                done: function (res) {
+                acceptMime: 'image/*',
+                done: function(res) {
                     if (res.code === 0) {
-                        $('#preview-litpic').attr('src', res.data.url).show();
-                        $('#input-litpic').val(res.data.url);
-                        $('#text-litpic').html('');
+                        $('#litpic-input').val(res.data.url);
+                        var $preview = $('#preview-litpic-icon');
+                        $preview.html('<img src="' + res.data.url + '" style="max-height:32px;vertical-align:middle;">');
+                        $preview.show();
                     } else {
-                        $('#text-litpic').html('<span style="color: red;">上传失败：' + (res.msg || '未知错误') + '</span>');
+                        layer.msg(res.msg || '上传失败', {icon: 2});
                     }
+                },
+                error: function() {
+                    layer.msg('上传失败', {icon: 2});
+                }
+            });
+
+            // 点击封面缩略图预览大图（与 update 页保持一致）
+            $('#preview-litpic-icon').on('click', function() {
+                var imgSrc = $('#litpic-input').val();
+                if (imgSrc) {
+                    layer.photos({
+                        photos: {
+                            data: [{src: imgSrc}]
+                        },
+                        anim: 5
+                    });
                 }
             });
 
@@ -585,6 +920,7 @@
                     }
                     
                     if (selectedChannelId > 0) {
+                        toggleLitpicComponents(selectedChannelId);
                         loadChannelfields(typeid, selectedChannelId);
                     } else {
                         layui.pearPopup.failure('无法获取栏目对应的模型ID，请重新选择栏目');
@@ -666,6 +1002,20 @@
 
             form.on("submit(save)", function (data) {
                 var formData = processFormData(data.field, editors, $);
+
+                // Re-build litpic_list as a JSON string before submitting (same as update page)
+                var litpicListData = [];
+                $('#list-litpic_list .ey-pic-wrap').each(function () {
+                    var url = $(this).find('.ey-pic-item').attr('data-url');
+                    var title = $(this).find('.ey-pic-caption-input').val();
+                    if (url) {
+                        litpicListData.push({
+                            image_url: url,
+                            title: title || ''
+                        });
+                    }
+                });
+                formData['litpic_list'] = JSON.stringify(litpicListData);
 
                 $.ajax({
                     url: INSERT_API,
@@ -1125,9 +1475,8 @@
                 }
 
                 // 清空封面图片预览和隐藏字段
-                $('#preview-litpic').attr('src', '').hide();
-                $('#input-litpic').val('');
-                $('#text-litpic').html('');
+                $('#litpic-input').val('');
+                $('#preview-litpic-icon').hide().html('<i class="layui-icon layui-icon-picture"></i>');
 
                 // 重置日期选择器为当前时间
                 laydate.render({

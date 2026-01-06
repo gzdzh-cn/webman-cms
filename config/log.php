@@ -101,7 +101,7 @@ if ($realLogDir === false || strpos($realLogDir, $realRuntimePath) !== 0) {
 
 $defaultLogConfig = [
     'enable' => $getEnvBool('LOG_ENABLE', true), // 是否启用日志
-    'print_to_console' => $getEnvBool('LOG_PRINT_TO_CONSOLE', false), // 是否打印到终端
+    'print_to_console' => $getEnvBool('LOG_PRINT_TO_CONSOLE', true), // 是否打印到终端
     'print_to_file' => $getEnvBool('LOG_PRINT_TO_FILE', true), // 是否写入日志文件
     'log_file' => $logFile, // 日志文件完整路径
     'max_files' => $getEnvInt('LOG_MAX_FILES', 7), // 日志文件保留天数
@@ -145,7 +145,7 @@ $sqlLogFile = rtrim($sqlLogDir, '/\\') . '/sql-' . date('Y-m-d') . '.log';
 
 $sqlLogConfig = [
     'enable' => $getEnvBool('SQL_LOG_ENABLE', true), // 是否启用 SQL 日志
-    'print_to_console' => $getEnvBool('SQL_LOG_PRINT_TO_CONSOLE', true), // 是否打印到终端
+    'print_to_console' => $getEnvBool('SQL_LOG_PRINT_TO_CONSOLE', false), // 是否打印到终端
     'print_to_file' => $getEnvBool('SQL_LOG_PRINT_TO_FILE', true), // 是否写入日志文件
     'log_file' => $sqlLogFile, // SQL 日志文件完整路径（包含日期文件名）
     'max_files' => $getEnvInt('SQL_LOG_MAX_FILES', 7), // 日志文件保留天数

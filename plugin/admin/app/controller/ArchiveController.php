@@ -10,11 +10,13 @@ use plugin\admin\app\model\Channeltype;
 use plugin\admin\app\model\Channelfield;
 use plugin\admin\app\model\Taglist;
 use plugin\admin\app\model\Tagindex;
+use plugin\admin\app\model\ProductImg;
 use plugin\admin\app\logic\FieldLogic;
 use plugin\admin\app\common\Util;
 use plugin\admin\app\common\Auth;
 use plugin\admin\app\controller\Crud;
 use support\exception\BusinessException;
+use support\Log;
 
 /**
  * 内容管理 
@@ -53,6 +55,7 @@ class ArchiveController extends Crud
      */
     public function insert(Request $request): Response
     {
+        
         if ($request->method() === 'POST') {
             $post = $request->post();
             
@@ -73,7 +76,7 @@ class ArchiveController extends Crud
             }
             
             // 分离主表字段和动态字段
-            $mainFields = ['typeid', 'stypeid', 'channel', 'title', 'subtitle', 'introduction', 'litpic', 
+            $mainFields = ['typeid', 'stypeid', 'channel', 'title', 'subtitle', 'introduction', 'litpic', 'is_litpic_list',
                           'is_b', 'is_head', 'is_special', 'is_top', 'is_recom', 'is_jump', 'is_litpic', 
                           'is_roll', 'is_slide', 'is_diyattr', 'origin', 'author', 'click', 'arcrank', 
                           'jumplinks', 'ismake', 'seo_title', 'seo_keywords', 'seo_description', 
@@ -198,6 +201,57 @@ class ArchiveController extends Crud
             // 保存标签
             $taglistModel = new Taglist();
             $taglistModel->savetags($aid, $typeid, $tags, $arcrank, 'add');
+
+            // ==================== 保存图片集到 wa_product_img（insert：先删后插） ====================
+            try {
+                $litpicListRaw = $post['litpic_list'] ?? '';
+                $litpicListArr = [];
+
+                if (is_string($litpicListRaw) && $litpicListRaw !== '') {
+                    $decoded = json_decode($litpicListRaw, true);
+                    if (is_array($decoded)) {
+                        $litpicListArr = $decoded;
+                    }
+                }
+
+                // 1) 先删除旧数据（理论上 insert 时不会有，但保持与 update 一致）
+                ProductImg::where('aid', $aid)->delete();
+
+                // 2) 再批量插入
+                if (!empty($litpicListArr)) {
+                    $now = time();
+                    $insertData = [];
+                    $sort = 1;
+
+                    foreach ($litpicListArr as $row) {
+                        $imageUrl = trim((string)($row['image_url'] ?? ''));
+                        if ($imageUrl === '') {
+                            continue;
+                        }
+
+                        $insertData[] = [
+                            'aid'         => $aid,
+                            'title'       => (string)($row['title'] ?? ''),
+                            'image_url'   => $imageUrl,
+                            'intro'       => (string)($row['intro'] ?? ''),
+                            'width'       => (int)($row['width'] ?? 0),
+                            'height'      => (int)($row['height'] ?? 0),
+                            'filesize'    => (string)($row['filesize'] ?? ''),
+                            'mime'        => (string)($row['mime'] ?? ''),
+                            'sort_order'  => $sort,
+                            'add_time'    => $now,
+                            'update_time' => 0,
+                        ];
+                        $sort++;
+                    }
+
+                    if (!empty($insertData)) {
+                        ProductImg::insert($insertData);
+                    }
+                }
+            } catch (\Throwable $e) {
+                Log::error('insert product_img failed: ' . $e->getMessage());
+            }
             
             return $this->json(0, '操作成功', ['aid' => $aid]);
         }
@@ -385,6 +439,59 @@ class ArchiveController extends Crud
             // 保存标签
             $taglistModel = new Taglist();
             $taglistModel->savetags($aid, $typeid, $tags, $arcrank, 'edit');
+
+            // ==================== 保存图片集到 wa_product_img（先删后插） ====================
+            try {
+                // 使用模型操作 product_img 表
+
+                $litpicListRaw = $post['litpic_list'] ?? '';
+                $litpicListArr = [];
+
+                if (is_string($litpicListRaw) && $litpicListRaw !== '') {
+                    $decoded = json_decode($litpicListRaw, true);
+                    if (is_array($decoded)) {
+                        $litpicListArr = $decoded;
+                    }
+                }
+
+                // 1) 先删除旧数据
+                ProductImg::where('aid', $aid)->delete();
+
+                // 2) 再批量插入
+                if (!empty($litpicListArr)) {
+                    $now = time();
+                    $insertData = [];
+                    $sort = 1;
+
+                    foreach ($litpicListArr as $row) {
+                        $imageUrl = trim((string)($row['image_url'] ?? ''));
+                        if ($imageUrl === '') {
+                            continue;
+                        }
+                        
+                        $insertData[] = [
+                            'aid'         => $aid,
+                            'title'       => (string)($row['title'] ?? ''),
+                            'image_url'   => $imageUrl,
+                            'intro'       => (string)($row['intro'] ?? ''),
+                            'width'       => (int)($row['width'] ?? 0),
+                            'height'      => (int)($row['height'] ?? 0),
+                            'filesize'    => (string)($row['filesize'] ?? ''),
+                            'mime'        => (string)($row['mime'] ?? ''),
+                            'sort_order'  => $sort,
+                            'add_time'    => $now,
+                            'update_time' => 0,
+                        ];
+                        $sort++;
+                    }
+
+                    if (!empty($insertData)) {
+                        ProductImg::insert($insertData);
+                    }
+                }
+            } catch (\Throwable $e) {
+                Log::error('save product_img failed: ' . $e->getMessage());
+            }
             
             return $this->json(0, '操作成功', ['aid' => $aid]);
         }
@@ -602,12 +709,13 @@ class ArchiveController extends Crud
     }
 
     /**
-     * 获取附加表内容（用于单页模型）
+     * 获取附加表内容
      * @param Request $request
      * @return Response
      */
     public function getContent(Request $request): Response
     {
+        Log::debug('getContent:start');
         $aid = (int)$request->get('aid', 0);
         $channelId = (int)$request->get('channel_id', 0);
         
@@ -651,6 +759,27 @@ class ArchiveController extends Crud
             }
         }
         
+        // 获取图片集数据（wa_images_upload表，通过aid关联）
+        try {
+            Log::debug('getContent:get images:'.$aid);
+            $prefix = Util::getTablePrefix();
+            // 说明：这里按你的要求返回“对象数组”（而不是逗号字符串）
+            // 表结构以 wa_images_upload 为准：img_id, aid, title, image_url, intro, width, height, filesize, mime, sort_order ...
+            $imagesTable = $prefix . 'product_img';
+            $imgRows = Util::db()->select(
+                "SELECT `img_id`,`aid`,`title`,`image_url`,`intro`,`width`,`height`,`filesize`,`mime`,`sort_order`,`add_time`,`update_time` FROM `{$imagesTable}` WHERE `aid` = ? ORDER BY `sort_order` ASC, `img_id` ASC",
+                [$aid]
+            );
+
+            // 直接返回对象数组，前端用 contentData.litpic_list 渲染
+            $data['litpic_list'] = $imgRows;
+
+            Log::debug('getContent:get images:' . json_encode($imgRows, JSON_UNESCAPED_UNICODE));
+        } catch (\Throwable $e) {
+            // 查询失败时忽略
+            Log::error('getContent:get images:error:'.$e->getMessage());
+        }
+
         // 获取标签数据
         $taglistModel = new Taglist();
         $tags = $taglistModel->GetTags($aid);
@@ -883,7 +1012,7 @@ class ArchiveController extends Crud
     public function getCommonTags(Request $request)
     {
         $tags = $request->input('tags', '');
-        $type = $request->input('type', 0); // 0=常用标签，1=输入提示
+        // $type = $request->input('type', 0); // 0=常用标签，1=输入提示（当前未使用）
         $isClick = $request->input('is_click', 0); // 是否点击了"显示常用标签"按钮
         
         $lang = 'cn'; // 默认语言
