@@ -12,11 +12,9 @@
  * @license   http://www.opensource.org/licenses/mit-license.php MIT License
  */
 
-use support\view\Raw;
-use support\view\Twig;
-use support\view\Blade;
-use support\view\ThinkPHP;
+use app\view\EyouTemplate;
 
 return [
-    'handler' => Raw::class
+    // 使用自定义模板引擎渲染 eyou 模板（template/pc/*.htm）
+    'handler' => EyouTemplate::class,
 ];

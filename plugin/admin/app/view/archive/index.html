@@ -14,6 +14,12 @@
             display: flex;
             flex-direction: column;
         }
+
+        /* 让表格容器可滚动时，底部分页不被横向滚动条/边界遮住 */
+        #listModelContainer{
+            box-sizing: border-box;
+            padding-bottom: 20px;
+        }
         
         .query-form-container {
             flex-shrink: 0;
@@ -146,7 +152,7 @@
             <div class="layui-card" style="height: 100%; margin: 0;">
 
                 <!-- 列表模型显示 -->
-                <div id="listModelContainer" class="layui-card-body" style="padding: 15px; height: 100%; overflow: hidden;">
+                <div id="listModelContainer" class="layui-card-body" style="padding: 15px; height: 100%; overflow: auto;">
                     <table id="data-table" lay-filter="data-table"></table>
                 </div>
 

@@ -87,6 +87,27 @@
             margin-top: 20px;
         }
 
+        /* 避免 TinyMCE 初始化前 textarea 闪一下 */
+        #content-editor-wrapper .editor-loading{
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 550,
+                            resize: 'vertical'px;
+            border: 1px solid #e6e6e6;
+            background: #fafafa;
+            color: #666;
+        }
+        #content-editor-wrapper .editor-shell.is-loading .layui-tabs{
+            display: none;
+        }
+        #content-editor-wrapper .editor-shell.is-loading .editor-loading{
+            display: flex;
+        }
+        #content-editor-wrapper .editor-shell .editor-loading{
+            display: none;
+        }
+
         #content-editor-wrapper .layui-form-item {
             margin-bottom: 15px;
         }
@@ -349,7 +370,8 @@
                                         <div class="layui-form-item">
                                             <label class="layui-form-label">内容详情</label>
                                             <div class="layui-input-block">
-                                                <div id="content-editor-tabs">
+                                                <div id="content-editor-tabs" class="editor-shell is-loading">
+                                                    <div class="editor-loading">编辑器加载中...</div>
                                                     <div class="layui-tabs layui-tabs-card" lay-filter="content-tabs">
                                                         <ul class="layui-tabs-header">
                                                             <li class="layui-this" lay-id="pc">电脑端</li>
@@ -957,12 +979,15 @@
             function initContentEditors() {
                 var $contentWrapper = $('#content-editor-wrapper');
                 if ($contentWrapper.length > 0) {
+                    var $editorShell = $('#content-editor-tabs');
+
                     // 初始化 content 编辑器
                     var $editorContent = $('#editor-content');
                     if ($editorContent.length > 0 && typeof tinymce !== 'undefined' && !editors['content']) {
                         editors['content'] = tinymce.render({
                             elem: '#editor-content',
-                            height: 400
+                            height: 550,
+                            resize: 'vertical'
                         });
                     }
 
@@ -971,12 +996,20 @@
                     if ($editorContentEyM.length > 0 && typeof tinymce !== 'undefined' && !editors['content_ey_m']) {
                         editors['content_ey_m'] = tinymce.render({
                             elem: '#editor-content-ey-m',
-                            height: 400
+                            height: 550,
+                            resize: 'vertical'
                         });
                     }
 
                     // 渲染 tabs
                     element.render('tabs', 'content-tabs');
+
+                    // 下一帧再显示编辑器区域，避免初始化过程中闪烁
+                    if ($editorShell.length) {
+                        requestAnimationFrame(function () {
+                            $editorShell.removeClass('is-loading');
+                        });
+                    }
                 }
             }
 
@@ -1261,7 +1294,8 @@
                         if ($editorContent.length > 0 && typeof tinymce !== 'undefined' && !editors['content']) {
                             editors['content'] = tinymce.render({
                                 elem: '#editor-content',
-                                height: 400
+                                height: 550,
+                            resize: 'vertical'
                             });
                         }
                     }
@@ -1271,7 +1305,8 @@
                         if ($editorContentEyM.length > 0 && typeof tinymce !== 'undefined' && !editors['content_ey_m']) {
                             editors['content_ey_m'] = tinymce.render({
                                 elem: '#editor-content-ey-m',
-                                height: 400
+                                height: 550,
+                            resize: 'vertical'
                             });
                         }
                     }
@@ -1288,7 +1323,8 @@
                             if ($editor.length > 0 && typeof tinymce !== 'undefined' && !editors[fieldName]) {
                                 editors[fieldName] = tinymce.render({
                                     elem: '#' + editorId,
-                                    height: 400
+                                    height: 550,
+                            resize: 'vertical'
                                 });
                             }
                         }

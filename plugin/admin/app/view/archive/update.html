@@ -87,6 +87,26 @@
             margin-top: 20px;
         }
 
+        /* 避免 TinyMCE 初始化前 textarea 闪一下 */
+        #content-editor-wrapper .editor-loading{
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 400px;
+            border: 1px solid #e6e6e6;
+            background: #fafafa;
+            color: #666;
+        }
+        #content-editor-wrapper .editor-shell.is-loading .layui-tabs{
+            display: none;
+        }
+        #content-editor-wrapper .editor-shell.is-loading .editor-loading{
+            display: flex;
+        }
+        #content-editor-wrapper .editor-shell .editor-loading{
+            display: none;
+        }
+
         #content-editor-wrapper .layui-form-item {
             margin-bottom: 15px;
         }
@@ -356,7 +376,8 @@
                                         <div class="layui-form-item">
                                             <label class="layui-form-label">内容详情</label>
                                             <div class="layui-input-block">
-                                                <div id="content-editor-tabs">
+                                                <div id="content-editor-tabs" class="editor-shell is-loading">
+                                                    <div class="editor-loading">编辑器加载中...</div>
                                                     <div class="layui-tabs layui-tabs-card" lay-filter="content-tabs">
                                                         <ul class="layui-tabs-header">
                                                             <li class="layui-this" lay-id="pc">电脑端</li>
@@ -1709,6 +1730,10 @@
 
                 // 初始化编辑器和上传（在所有字段渲染完成后，立即初始化避免延迟感）
                 function initEditorsAndUploads() {
+                    var $editorShell = $('#content-editor-tabs');
+                    if ($editorShell.length) {
+                        $editorShell.addClass('is-loading');
+                    }
                     // 为 content 和 content_ey_m 字段初始化编辑器（默认初始化，除非 ifeditable=0）
                     if (hasContent && contentField && contentField.ifeditable != 0) {
                         var $editorContent = $('#editor-content');
@@ -1721,7 +1746,8 @@
                             }
                             editors['content'] = tinymce.render({
                                 elem: '#editor-content',
-                                height: 400,
+                                height: 550,
+                                resize: 'vertical',
                                 init_instance_callback: function (editor) {
                                     var textareaValue = $editorContent.val();
                                     if (textareaValue) {
@@ -1755,7 +1781,8 @@
                             }
                             editors['content_ey_m'] = tinymce.render({
                                 elem: '#editor-content-ey-m',
-                                height: 400,
+                                height: 550,
+                                resize: 'vertical',
                                 init_instance_callback: function (editor) {
                                     var textareaValue = $editorContentEyM.val();
                                     if (textareaValue) {
@@ -1778,6 +1805,13 @@
                         }
                     }
 
+                    // 初始化完成后显示编辑器区域（下一帧移除 loading，避免闪烁）
+                    if ($editorShell && $editorShell.length) {
+                        requestAnimationFrame(function () {
+                            $editorShell.removeClass('is-loading');
+                        });
+                    }
+
                     // 为其他 htmltext 类型的字段初始化 tinymce 编辑器
                     fields.forEach(function (field) {
                         if (field.ifeditable == 1 && field.dtype === 'htmltext') {
@@ -1796,7 +1830,8 @@
                                 }
                                 editors[fieldName] = tinymce.render({
                                     elem: '#' + editorId,
-                                    height: 400,
+                                    height: 550,
+                                resize: 'vertical',
                                     init_instance_callback: function (editor) {
                                         var textareaValue = $editor.val();
                                         if (textareaValue) {

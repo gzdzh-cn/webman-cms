@@ -23,6 +23,9 @@ use support\Log;
  */
 class ArchiveController extends Crud
 {
+
+
+
     
     /**
      * @var Archive
@@ -498,6 +501,30 @@ class ArchiveController extends Crud
         return view('archive/update');
     }
 
+        /**
+     * 删除内容（同时删除图片集 product_img 表数据）
+     * 说明：前端调用 /app/admin/archive/delete
+     */
+    public function delete(Request $request): Response
+    {
+        // 先拿到要删除的主键ID（支持批量）
+        $ids = $this->deleteInput($request);
+
+        // 先删除图片集表（避免 archive 删除后无法关联/查找）
+        try {
+            if (!empty($ids)) {
+                ProductImg::whereIn('aid', $ids)->delete();
+            }
+        } catch (\Throwable $e) {
+            // 不阻断主流程，仅记录日志
+            Log::error('delete product_img failed: ' . $e->getMessage());
+        }
+
+        // 再执行主表删除（走 Crud 的权限校验与删除逻辑）
+        $this->doDelete($ids);
+        return $this->json(0);
+    }
+    
     /**
      * 单独更新状态字段（不触发标签删除逻辑）
      * @param Request $request
