@@ -1,70 +1,72 @@
-<div style="padding:18px;max-width: 1024px;margin:0 auto;background-color:#fff;color:#333">
-<h1>webman</h1>
+# webman-cms
 
-基于<a href="https://www.workerman.net" target="__blank">workerman</a>开发的超高性能PHP框架
+一个基于 **Webman(Workerman)** 的高性能 CMS 项目，目标是 **复用并兼容 EyouCMS(易优CMS)** 的核心能力与模板生态：
 
+- 运行在常驻内存的 Workerman 事件循环之上，具备 **高并发、低延迟、低资源占用** 的优势
+- 尽可能复用 EyouCMS 的数据结构/后台思路/前台模板标签（如 `{eyou:channel}`、`{eyou:arclist}`）
+- 通过 ThinkTemplate + 自定义 TagLib，在 Webman 里实现对 EyouCMS 模板的“直接兼容”
 
-<h1>学习</h1>
-
+<h1>webman官网</h1>
 <ul>
-  <li>
-    <a href="https://www.workerman.net/webman" target="__blank">主页 / Home page</a>
-  </li>
+
   <li>
     <a href="https://webman.workerman.net" target="__blank">文档 / Document</a>
   </li>
-  <li>
-    <a href="https://www.workerman.net/doc/webman/install.html" target="__blank">安装 / Install</a>
-  </li>
-  <li>
-    <a href="https://www.workerman.net/questions" target="__blank">问答 / Questions</a>
-  </li>
-  <li>
-    <a href="https://www.workerman.net/apps" target="__blank">市场 / Apps</a>
-  </li>
-  <li>
-    <a href="https://www.workerman.net/sponsor" target="__blank">赞助 / Sponsors</a>
-  </li>
-  <li>
-    <a href="https://www.workerman.net/doc/webman/thanks.html" target="__blank">致谢 / Thanks</a>
-  </li>
+ 
 </ul>
 
-<div style="float:left;padding-bottom:30px;">
 
-  <h1>赞助商</h1>
+## 特性亮点
 
-  <h4>特别赞助</h4>
-  <a href="https://www.crmeb.com/?form=workerman" target="__blank">
-    <img src="https://www.workerman.net/img/sponsors/6429/20230719111500.svg" width="200">
-  </a>
+- **高性能**：Webman 基于 Workerman，常驻内存、无需反复引导框架，适合高并发场景
+- **模板生态复用**：直接使用 `template/pc/*.htm` 等 EyouCMS 风格模板
+- **标签兼容**：通过 think-template 的 TagLib 机制支持 `{eyou:xxx}` 模板标签
 
-  <h4>铂金赞助</h4>
-  <a href="https://www.fadetask.com/?from=workerman" target="__blank"><img src="https://www.workerman.net/img/sponsors/1/20230719084316.png" width="200"></a>
-  <a href="https://www.yilianyun.net/?from=workerman" target="__blank" style="margin-left:20px;"><img src="https://www.workerman.net/img/sponsors/6218/20230720114049.png" width="200"></a>
+---
 
 
-</div>
 
+## 演示截图
 
-<div style="float:left;padding-bottom:30px;clear:both">
+> 下图为本项目部分功能演示（以仓库图片为准）：
 
-  <h1>请作者喝咖啡</h1>
+|   | 预览 |
+|---|---|
+|   | ![](dzh/t0.png) |
+|   | ![](dzh/t1.png) |
+|   | ![](dzh/t2.png) |
+|   | ![](dzh/t3.png) |
+|   | ![](dzh/t4.png) |
+|   | ![](dzh/t5.png) |
 
-<img src="https://www.workerman.net/img/wx_donate.png" width="200">
-<img src="https://www.workerman.net/img/ali_donate.png" width="200">
-<br>
-<b>如果您觉得webman对您有所帮助，欢迎捐赠。</b>
+---
 
+## 演示地址
 
-</div>
+>
+- 前台：http://webmancms.dzha.gzdazhihui.cn/
+- 后台：http://webmancms.dzha.gzdazhihui.cn/app/admin
+  * 账号：test
+  * 密码：123456
 
+## 交流 / 反馈
 
-<div style="clear: both">
-<h1>LICENSE</h1>
-The webman is open-sourced software licensed under the MIT.
-</div>
+- 扫码添加微信，沟通需求、问题排查、拉群交流：
 
-</div>
+<img src="dzh/weixin.jpg" width="360" alt="微信沟通/拉群" />
 
+---
 
+## 请作者喝咖啡
+
+如果这个项目对你有帮助，欢迎赞助支持我持续维护与迭代：
+
+<img src="dzh/qcode.png" width="360" alt="赞助/捐赠二维码" />
+
+> 你的支持会用于：功能完善、标签兼容扩展、性能优化、文档与示例补齐。
+
+---
+
+## License
+
+MIT

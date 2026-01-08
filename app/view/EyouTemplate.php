@@ -20,24 +20,12 @@ class EyouTemplate
             'taglib_begin' => '{',
             'taglib_end'   => '}',
 
-            // think-template 3.x:
-            // 1) 开启 <taglib ... /> 导入语法解析
-            // 2) 同时预加载一次标签库，避免某些情况下未触发导入解析时标签库类不可用
+            // 解析 {taglib name="..."} 导入语法（注意：think-template 3.x 是花括号语法，不是 <taglib />）
             'taglib_load'     => true,
-            'taglib_pre_load' => '\\app\\taglib\\eyou\\Eyou',
-        ]);
 
-        // 兜底：如果模板里没写 <taglib .../> 或解析失败，
-        // 先做一个最小的字符串级预处理，把 {eyou:xxx} 统一改成 {base:xxx}。
-        // 因为 taglib_pre_load 加载 \app\taglib\eyou\Base 后，其默认前缀是 "base"。
-        // 这样至少能让 channel/arclist/global 跑通。
-        // 注意：这只是兼容层，后续你可以再逐步替换成标准 <taglib name="eyou=..." /> 用法。
-        $this->template->extend('/\{\s*eyou\s*:/i', function ($match) {
-            return '{base:';
-        });
-        $this->template->extend('/\{\s*\/\s*eyou\s*:/i', function ($match) {
-            return '{/base:';
-        });
+            // 预加载标签库：你已把目录调整为 app/taglib/engine/Eyou.php
+            'taglib_pre_load' => '\\app\\taglib\\engine\\Eyou',
+        ]);
     }
 
     public function fetch(string $template, array $data = []): string

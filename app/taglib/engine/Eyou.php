@@ -1,6 +1,6 @@
 <?php
-// app/taglib/eyou/Eyou.php
-namespace app\taglib\eyou;
+// app/taglib/engine/Eyou.php
+namespace app\taglib\engine;
 
 use think\template\TagLib;
 
@@ -15,7 +15,7 @@ class Eyou extends TagLib
     // 标签定义
     protected $tags = [
         // 全局变量
-        'global'  => ['attr' => 'name', 'close' => 0],
+        'global'  => ['attr' => 'name', 'close' => 0, 'must' => 'name'],
         // 导航
         'channel' => ['attr' => 'typeid,row,currentstyle', 'close' => 1],
         // 文章列表

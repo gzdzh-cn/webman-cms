@@ -1,10 +1,10 @@
 <?php
-// app/taglib/eyou/Base.php
-namespace app\taglib\eyou;
+// app/taglib/engine/Wman.php
+namespace app\taglib\engine;
 
 use think\template\TagLib;
 
-class Base extends TagLib
+class Wman extends TagLib
 {
     // 标签定义
     protected $tags = [
