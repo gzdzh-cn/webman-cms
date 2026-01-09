@@ -12,9 +12,9 @@
  * @license   http://www.opensource.org/licenses/mit-license.php MIT License
  */
 
-use app\view\EyouTemplate;
+use think\view\driver\Think;
 
 return [
     // 使用自定义模板引擎渲染 eyou 模板（template/pc/*.htm）
-    'handler' => EyouTemplate::class,
+    'handler' => Think::class,
 ];

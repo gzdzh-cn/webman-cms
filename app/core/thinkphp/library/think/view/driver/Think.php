@@ -1,10 +1,10 @@
 <?php
-// app/view/EyouTemplate.php
-namespace app\view;
+// app/core/library/think/view/driver/Think.php
+namespace think\view\driver;
 
 use think\Template;
 
-class EyouTemplate
+class Think
 {
     protected Template $template;
     protected array $data = [];
@@ -20,11 +20,8 @@ class EyouTemplate
             'taglib_begin' => '{',
             'taglib_end'   => '}',
 
-            // 解析 {taglib name="..."} 导入语法（注意：think-template 3.x 是花括号语法，不是 <taglib />）
             'taglib_load'     => true,
-
-            // 预加载标签库：你已把目录调整为 app/taglib/engine/Eyou.php
-            'taglib_pre_load' => '\\app\\taglib\\engine\\Eyou',
+            'taglib_pre_load' => '\\think\\template\\taglib\\Eyou',
         ]);
     }
 

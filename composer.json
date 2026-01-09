@@ -31,7 +31,8 @@
     "webman/console": "^2.1",
     "vlucas/phpdotenv": "^5.6",
     "overtrue/pinyin": "^6.0",
-    "topthink/think-template": "^3.0"
+    "topthink/think-template": "^3.0",
+    "webman/think-orm": "^2.1"
   },
   "suggest": {
     "ext-event": "For better performance. "
@@ -41,6 +42,7 @@
       "": "./",
       "app\\": "./app",
       "App\\": "./app",
+      "think\\": "./app/core/thinkphp/library/think",
       "app\\View\\Components\\": "./app/view/components"
     }
   },

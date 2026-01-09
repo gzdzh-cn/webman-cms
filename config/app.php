@@ -24,6 +24,6 @@ return [
     'controller_suffix' => 'Controller',
     'controller_reuse' => false,
     'bootstrap' => [
-        app\provider\ViewService::class,
+        \think\provider\ViewService::class,
     ],
 ];

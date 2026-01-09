@@ -13,6 +13,7 @@
  */
 
 return [
+    Webman\ThinkOrm\ThinkOrm::class,
     support\bootstrap\Session::class,
     support\SqlDebug::class,
 ];
