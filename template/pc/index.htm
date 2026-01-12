@@ -3,10 +3,32 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
 
+<!-- 顶部导航 -->
+<header class="topbar">
+    <div class="wrap topbar-inner">
+        <div class="brand">
+            <div class="logo"></div>
+         
+        </div>
+
+        <nav class="nav">
+            <a href="/" class="active">首页</a>
+            {eyou:models type="top" currentstyle="active" id='field'}
+            <span class="{$current}"><a href="##">{$field.typename}</a></span>
+            {/eyou:models}
+        </nav>
+    </div>
+</header>
+
+<!-- Hero -->
  
-   
 
+<!-- 主体内容 -->
+ 
+ 
     <style>
         :root{
             --bg: #0b1220;
@@ -157,32 +179,5 @@
         .footer{margin:26px 0 14px; color: var(--muted); font-size:12px; text-align:center}
         .footer a{color: rgba(255,255,255,.8); text-decoration: underline; text-underline-offset:3px}
     </style>
-</head>
-<body>
-
-<!-- 顶部导航 -->
-<header class="topbar">
-    <div class="wrap topbar-inner">
-        <div class="brand">
-            <div class="logo"></div>
-         
-        </div>
-
-        <nav class="nav">
-            <a href="/" class="active">首页</a>
-            {eyou:channel typeid="0" row="5" currentstyle="active"}
-            <span class="{$current}"><a href="##">{$field.typename}</a></span>
-            {/eyou:channel}
-        </nav>
-    </div>
-</header>
-
-<!-- Hero -->
- 
-
-<!-- 主体内容 -->
- 
- 
-
 </body>
 </html>
