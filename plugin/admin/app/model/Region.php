@@ -3,6 +3,7 @@
 namespace plugin\admin\app\model;
 
 use plugin\admin\app\model\Base;
+use support\Log;
 
 /**
  * 区域模型
@@ -40,7 +41,7 @@ class Region extends Base
                 ->toArray();
         } catch (\Exception $e) {
             // 如果表不存在或其他错误，返回空数组
-            error_log('获取区域列表失败: ' . $e->getMessage());
+            Log::error('获取区域列表失败: ' . $e->getMessage());
             return [];
         }
     }

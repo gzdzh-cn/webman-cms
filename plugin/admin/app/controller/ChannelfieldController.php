@@ -4,6 +4,7 @@ namespace plugin\admin\app\controller;
 
 use support\Request;
 use support\Response;
+use support\Log;
 use plugin\admin\app\model\Channelfield;
 use plugin\admin\app\model\Channeltype;
 use plugin\admin\app\model\Arctype;
@@ -342,7 +343,7 @@ class ChannelfieldController extends Crud
                 try {
                     FieldCustomParam::insert($mdatas);
                 } catch (\Exception $e) {
-                    error_log('field_custom_param insert failed: ' . $e->getMessage());
+                    Log::error('field_custom_param insert failed: ' . $e->getMessage());
                 }
             }
         }
@@ -365,7 +366,7 @@ class ChannelfieldController extends Crud
                 try {
                     ChannelfieldBind::insert($addData);
                 } catch (\Exception $e) {
-                    error_log('channelfield_bind insert failed: ' . $e->getMessage());
+                    Log::error('channelfield_bind insert failed: ' . $e->getMessage());
                 }
             }
         }
@@ -562,7 +563,7 @@ class ChannelfieldController extends Crud
                     }
                 }
             } catch (\Exception $e) {
-                error_log('field_custom_param update failed: ' . $e->getMessage());
+                Log::error('field_custom_param update failed: ' . $e->getMessage());
             }
         }
         
@@ -590,7 +591,7 @@ class ChannelfieldController extends Crud
                 }
             }
         } catch (\Exception $e) {
-            error_log('channelfield_bind update failed: ' . $e->getMessage());
+            Log::error('channelfield_bind update failed: ' . $e->getMessage());
         }
         
         return $this->json(0, 'ok', ['id' => $id]);
@@ -645,7 +646,7 @@ class ChannelfieldController extends Crud
                     $db->statement($sql);
                 } catch (\Exception $e) {
                     // 表不存在、字段不存在等情况，记录日志但不中断整个删除流程
-                    error_log('drop channel field column failed: ' . $e->getMessage());
+                    Log::error('drop channel field column failed: ' . $e->getMessage());
                 }
             }
         }
@@ -659,7 +660,7 @@ class ChannelfieldController extends Crud
             FieldCustomParam::whereIn('field_id', $ids)->delete();
         } catch (\Exception $e) {
             // 表不存在或其它异常时，记录日志但不影响主流程
-            error_log('delete channelfield relations failed: ' . $e->getMessage());
+            Log::error('delete channelfield relations failed: ' . $e->getMessage());
         }
         
         return $this->json(0);

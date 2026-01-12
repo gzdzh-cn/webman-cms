@@ -358,23 +358,153 @@ class Eyou extends TagLib
      */
     public function tagArclist($tag, $content)
     {
-        $typeid   = $tag['typeid'] ?? 0;
-        $row      = $tag['row'] ?? 10;
-        $titlelen = $tag['titlelen'] ?? 30;
-        $orderby  = $tag['orderby'] ?? 'a.add_time desc';
+        $typeid     = !empty($tag['typeid']) ? $tag['typeid'] : '';
+        $typeid  = $this->varOrvalue($typeid);
 
-   
-        $parseStr  = "<?php ";
-        $parseStr .= "\$tagArclist = new \\think\\template\\taglib\\engine\\TagArclist;";
-        $parseStr .= "\$arclist = \$tagArclist->getArclist({$typeid}, {$row}, " . var_export($orderby, true) . ");";
-        $parseStr .= "if(!empty(\$arclist)):";
-        $parseStr .= "foreach(\$arclist as \$field):";
-        $parseStr .= "\$field['title'] = mb_substr(\$field['title'] ?? '', 0, {$titlelen}, 'utf-8');";
-        $parseStr .= "\$field['arcurl'] = \$field['arcurl'] ?? '#';";
-        $parseStr .= "?>";
+        $notypeid     = !empty($tag['notypeid']) ? $tag['notypeid'] : '';
+        $notypeid  = $this->varOrvalue($notypeid);
+
+        $modelid   = isset($tag['modelid']) ? $tag['modelid'] : (isset($tag['channelid']) ? $tag['channelid'] : '');
+        $modelid  = $this->varOrvalue($modelid);
+
+        $addfields     = isset($tag['addfields']) ? $tag['addfields'] : '';
+        $addfields  = $this->varOrvalue($addfields);
+
+        $joinaid   = isset($tag['joinaid']) ? $tag['joinaid'] : '';
+        $joinaid  = $this->varOrvalue($joinaid);
+
+        $keyword   = isset($tag['keyword']) ? $tag['keyword'] : '';
+        $keyword  = $this->varOrvalue($keyword);
+
+        $release   = isset($tag['release']) ? $tag['release'] : 'off';
+        $release  = $this->varOrvalue($release);
+
+        $idlist   = isset($tag['idlist']) ? $tag['idlist'] : '';
+        $idlist  = $this->varOrvalue($idlist);
+
+        $idrange   = isset($tag['idrange']) ? $tag['idrange'] : '';
+        $idrange  = $this->varOrvalue($idrange);
+        
+        $aid   = isset($tag['aid']) ? $tag['aid'] : '';
+        $aid  = $this->varOrvalue($aid);
+
+        $name   = !empty($tag['name']) ? $tag['name'] : '';
+        $id     = isset($tag['id']) ? $tag['id'] : 'field';
+        $key    = !empty($tag['key']) ? $tag['key'] : 'i';
+        $empty  = isset($tag['empty']) ? $tag['empty'] : '';
+        $empty  = htmlspecialchars($empty);
+        $mod    = !empty($tag['mod']) && is_numeric($tag['mod']) ? $tag['mod'] : '2';
+        $orderby    = isset($tag['orderby']) ? $tag['orderby'] : '';
+        $ordermode = 'desc';
+        if (!empty($tag['ordermode'])) {
+            $ordermode = $tag['ordermode'];
+        } else {
+            if (!empty($tag['orderWay'])) {
+                $ordermode = $tag['orderWay'];
+            } else {
+                $ordermode = !empty($tag['orderway']) ? $tag['orderway'] : $ordermode;
+            }
+        }
+        $flag    = isset($tag['flag']) ? $tag['flag'] : '';
+        $noflag    = isset($tag['noflag']) ? $tag['noflag'] : '';
+        $tagid    = isset($tag['tagid']) ? $tag['tagid'] : ''; // 标签ID
+        $pagesize = !empty($tag['pagesize']) && is_numeric($tag['pagesize']) ? intval($tag['pagesize']) : 0;
+        $thumb   = !empty($tag['thumb']) ? $tag['thumb'] : 'on';
+        $titlelen = !empty($tag['titlelen']) && is_numeric($tag['titlelen']) ? intval($tag['titlelen']) : 100;
+        $bodylen = !empty($tag['bodylen']) && is_numeric($tag['bodylen']) ? intval($tag['bodylen']) : 160;
+        if (isset($tag['infolen'])) {
+            $bodylen = !empty($tag['infolen']) && is_numeric($tag['infolen']) ? intval($tag['infolen']) : 160;
+        }
+        $offset = !empty($tag['offset']) && is_numeric($tag['offset']) ? intval($tag['offset']) : 0;
+        if (isset($tag['loop'])) $tag['row'] = $tag['loop'];
+        $row = !empty($tag['row']) && is_numeric($tag['row']) ? intval($tag['row']) : 10;
+        if (!empty($tag['limit'])) {
+            $limitArr = explode(',', $tag['limit']);
+            $offset = !empty($limitArr[0]) ? intval($limitArr[0]) : 0;
+            $row = !empty($limitArr[1]) ? intval($limitArr[1]) : 0;
+        }
+        $arcrank    = !empty($tag['arcrank']) ? $tag['arcrank'] : 'off';
+        $type   = !empty($tag['type']) ? $tag['type'] : '';
+        $siteall  = isset($tag['siteall']) ? $tag['siteall'] : null;
+        $parseStr = '<?php ';
+        // 声明变量
+        /*typeid的优先级别从高到低：装修数据 -> 标签属性值 -> 外层标签channelartlist属性值*/
+        $parseStr .= ' if(isset($ui_typeid) && !empty($ui_typeid)) : $typeid = $ui_typeid; else: $typeid = '.$typeid.'; endif;';
+        $parseStr .= ' if(isset($ui_modelid) && !empty($ui_modelid)) : $modelid = $ui_modelid; else: $modelid = '.$modelid.'; endif;';
+        $parseStr .= ' if(empty($typeid) && isset($channelartlist["id"]) && !empty($channelartlist["id"])) : $typeid = intval($channelartlist["id"]); endif; ';
+        /*--end*/
+        $parseStr .= ' if(isset($ui_row) && !empty($ui_row)) : $row = $ui_row; else: $row = '.$row.'; endif;';
+
+        if ($name) { // 从模板中传入数据集
+            $symbol     = substr($name, 0, 1);
+            if (':' == $symbol) {
+                $name = str_replace(':', '$', $name);
+                $parseStr .= '$_result=' . $name . ';';
+                $name = '$_result';
+            } else {
+                $name = '$' . $name;
+            }
+
+            $parseStr .= 'if(is_array(' . $name . ') || ' . $name . ' instanceof \think\Collection || ' . $name . ' instanceof \think\Paginator): $' . $key . ' = 0; $e = 1;';
+            // 设置了输出数组长度
+            if (0 != $offset || 'null' != $row) {
+                $parseStr .= '$__LIST__ = is_array(' . $name . ') ? array_slice(' . $name . ',' . $offset . ',' . $row . ', true) : ' . $name . '->slice(' . $offset . ',' . $row . ', true); ';
+            } else {
+                $parseStr .= ' $__LIST__ = ' . $name . ';';
+            }
+
+        } else { // 查询数据库获取的数据集
+            $parseStr .= ' $param = array(';
+            $parseStr .= '      "typeid"=> $typeid,';
+            $parseStr .= '      "notypeid"=> '.$notypeid.',';
+            $parseStr .= '      "flag"=> "'.$flag.'",';
+            $parseStr .= '      "noflag"=> "'.$noflag.'",';
+            $parseStr .= '      "channel"=> $modelid,';
+            $parseStr .= '      "joinaid"=> '.$joinaid.',';
+            $parseStr .= '      "keyword"=> '.$keyword.',';
+            $parseStr .= '      "release"=> '.$release.',';
+            $parseStr .= '      "idlist"=> '.$idlist.',';
+            $parseStr .= '      "idrange"=> '.$idrange.',';
+            $parseStr .= '      "aid"=> '.$aid.',';
+            $parseStr .= ' );';
+            $parseStr .= ' $tag = '.var_export($tag,true).';';
+            $parseStr .= ' $tagArclist = new \think\template\taglib\engine\TagArclist;';
+            $parseStr .= ' $_result = $tagArclist->getArclist($param, $row, "'.$orderby.'", '.$addfields.',"'.$ordermode.'","'.$tagid.'",$tag,"'.$pagesize.'","'.$thumb.'","'.$arcrank.'","'.$type.'","'.$siteall.'");';
+
+            $parseStr .= 'if(!empty($_result["list"]) && (is_array($_result["list"]) || $_result["list"] instanceof \think\Collection || $_result["list"] instanceof \think\Paginator)): $' . $key . ' = 0; $e = 1;';
+            // 设置了输出数组长度
+            if (0 != $offset || 'null' != $row) {
+                $parseStr .= ' $__LIST__ = is_array($_result["list"]) ? array_slice($_result["list"],' . $offset . ', $row, true) : $_result["list"]->slice(' . $offset . ', $row, true); ';
+            } else {
+                $parseStr .= ' $__LIST__ = $_result["list"];';
+            }
+            $parseStr .= ' $__TAG__ = $_result["tag"];';
+        }
+        $parseStr .= 'if( count($__LIST__)==0 ) : echo htmlspecialchars_decode("' . $empty . '");';
+        $parseStr .= 'else: ';
+        $parseStr .= 'foreach($__LIST__ as $key=>$' . $id . '): ';
+        $parseStr .= '$aid = $'.$id.'["aid"] ?? 0;';
+        $parseStr .= '$users_id = $'.$id.'["users_id"] ?? 0;';
+        // 使用mb_substr替代text_msubstr，模拟EyouCMS的text_msubstr行为
+        $parseStr .= '$' . $id . '["title"] = mb_substr($' . $id . '["title"] ?? "", 0, '.$titlelen.', "UTF-8");';
+        $parseStr .= 'if(($' . $id . '["is_b"] ?? 0) == 1) : $' . $id . '["title"] = "<strong>".$' . $id . '["title"]."</strong>";endif;';
+        // 对于seo_description，如果实际长度超过截取长度，添加省略号
+        $parseStr .= '$desc = $' . $id . '["seo_description"] ?? "";';
+        $parseStr .= '$' . $id . '["seo_description"] = mb_substr($desc, 0, '.$bodylen.', "UTF-8");';
+        $parseStr .= 'if(mb_strlen($desc, "UTF-8") > '.$bodylen.') : $' . $id . '["seo_description"] .= "...";endif;';
+
+        $parseStr .= '$' . $key . '= intval($key) + 1;?>';
+        $parseStr .= '<?php $mod = ($' . $key . ' % ' . $mod . ' ); ?>';
         $parseStr .= $content;
-        $parseStr .= "<?php endforeach; endif; ?>";
+        $parseStr .= '<?php ++$e; ?>';
+        $parseStr .= '<?php $aid = 0; ?>';
+        $parseStr .= '<?php $users_id = 0; ?>';
+        $parseStr .= '<?php endforeach; endif; else: echo htmlspecialchars_decode("' . $empty . '");endif; ?>';
+        $parseStr .= '<?php $'.$id.' = []; ?>'; // 清除变量值，只限于在标签内部使用
 
-        return $parseStr;
+        if (!empty($parseStr)) {
+            return $parseStr;
+        }
+        return;
     }
 }

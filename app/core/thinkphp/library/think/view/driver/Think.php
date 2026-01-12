@@ -22,6 +22,8 @@ class Think
 
             'taglib_load'     => true,
             'taglib_pre_load' => '\\think\\template\\taglib\\Eyou',
+            // 禁用默认HTML转义，以便正确渲染HTML标签
+            'default_filter'  => '',
         ]);
     }
 

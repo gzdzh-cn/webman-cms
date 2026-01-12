@@ -32,12 +32,12 @@
 
 |   | 预览 |
 |---|---|
-|   | ![](dzh/t0.png) |
-|   | ![](dzh/t1.png) |
-|   | ![](dzh/t2.png) |
-|   | ![](dzh/t3.png) |
-|   | ![](dzh/t4.png) |
-|   | ![](dzh/t5.png) |
+|   | ![](https://www.gzdzh.cn/public/dzh/t0.png) |
+|   | ![](https://www.gzdzh.cn/public/dzh/t1.png) |
+|   | ![](https://www.gzdzh.cn/public/dzh/t2.png) |
+|   | ![](https://www.gzdzh.cn/public/dzh/t3.png) |
+|   | ![](https://www.gzdzh.cn/public/dzh/t4.png) |
+|   | ![](https://www.gzdzh.cn/public/dzh/t5.png) |
 
 ---
 
@@ -53,7 +53,7 @@
 
 - 扫码添加微信，沟通需求、问题排查、拉群交流：
 
-<img src="dzh/weixin.jpg" width="360" alt="微信沟通/拉群" />
+<img src="https://www.gzdzh.cn/public/dzh/weixin.jpg" width="360" alt="微信沟通/拉群" />
 
 ---
 
@@ -61,7 +61,7 @@
 
 如果这个项目对你有帮助，欢迎赞助支持我持续维护与迭代：
 
-<img src="dzh/qcode.png" width="360" alt="赞助/捐赠二维码" />
+<img src="https://www.gzdzh.cn/public/dzh/qcode.png" width="360" alt="赞助/捐赠二维码" />
 
 > 你的支持会用于：功能完善、标签兼容扩展、性能优化、文档与示例补齐。
 

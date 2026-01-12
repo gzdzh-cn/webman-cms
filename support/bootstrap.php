@@ -12,6 +12,9 @@
  * @license   http://www.opensource.org/licenses/mit-license.php MIT License
  */
 
+// 加载基础常量定义
+require_once base_path() . '/app/base.php';
+
 use Dotenv\Dotenv;
 use support\Log;
 use Webman\Bootstrap;
