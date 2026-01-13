@@ -101,6 +101,22 @@ function is_local_images($pic_url)
 }
 
 /**
+ * 判断是否为移动设备
+ * @return bool
+ */
+function isMobile()
+{
+    $userAgent = request()->header('user-agent', '');
+    $mobileAgents = ['Android', 'iPhone', 'iPad', 'iPod', 'BlackBerry', 'Windows Phone', 'SymbianOS'];
+    foreach ($mobileAgents as $agent) {
+        if (strpos($userAgent, $agent) !== false) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
  * 获取绝对URL
  * @param string $path
  * @return string
@@ -221,4 +237,31 @@ function typeurl($route, $params = array())
     }
     
     return $url;
+}
+
+/**
+ * 获取主语言
+ * @return string
+ */
+function get_main_lang($is_force = false)
+{
+    return 'zh-cn'; // 默认中文
+}
+
+/**
+ * 获取前台语言
+ * @return string
+ */
+function get_home_lang($is_force = false)
+{
+    return 'zh-cn'; // 默认中文
+}
+
+/**
+ * 获取前台站点
+ * @return string
+ */
+function get_home_site()
+{
+    return ''; // 默认空
 }
