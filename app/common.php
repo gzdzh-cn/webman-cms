@@ -151,3 +151,74 @@ function thumb_img($original_img = '', $width = '', $height = '', $thumb_mode = 
     // 简化版：直接返回原图
     return $original_img;
 }
+
+/**
+ * 获取文章详情页URL
+ * @param array $arcview_info 文章信息
+ * @return string 文章详情页URL
+ */
+function arcurl($arcview_info = array())
+{
+    // 简化版：返回动态URL格式
+    $aid = $arcview_info['aid'] ?? 0;
+    $channel = $arcview_info['channel'] ?? 1;
+    
+    // 根据模型类型确定控制器名称
+    $ctl_name = '';
+    switch ($channel) {
+        case 1: // 文章模型
+            $ctl_name = 'Article';
+            break;
+        case 2: // 图片模型
+            $ctl_name = 'Images';
+            break;
+        case 3: // 下载模型
+            $ctl_name = 'Download';
+            break;
+        case 4: // 产品模型
+            $ctl_name = 'Product';
+            break;
+        case 5: // 视频模型
+            $ctl_name = 'Media';
+            break;
+        default: // 默认使用View控制器
+            $ctl_name = 'View';
+            break;
+    }
+    
+    // 构建URL
+    if ($ctl_name == 'View') {
+        return "/index.php?m=home&c=View&a=index&aid={$aid}";
+    } else {
+        return "/index.php?m=home&c={$ctl_name}&a=view&aid={$aid}";
+    }
+}
+
+/**
+ * 生成栏目URL
+ * @param string $route 路由规则，如'home/Article/lists'
+ * @param array $params 路由参数
+ * @return string 栏目URL
+ */
+function typeurl($route, $params = array())
+{
+    // 简化版：返回动态URL格式
+    $typeid = $params['typeid'] ?? $params['id'] ?? 0;
+    $dir_id = $params['dir_id'] ?? 0;
+    
+    // 解析路由规则
+    $route_parts = explode('/', $route);
+    $ctl_name = $route_parts[1] ?? 'Article';
+    $act_name = $route_parts[2] ?? 'lists';
+    
+    // 构建URL
+    $url = "/index.php?m=home&c={$ctl_name}&a={$act_name}";
+    if ($typeid > 0) {
+        $url .= "&tid={$typeid}";
+    }
+    if ($dir_id > 0) {
+        $url .= "&dir_id={$dir_id}";
+    }
+    
+    return $url;
+}

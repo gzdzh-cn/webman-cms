@@ -317,8 +317,8 @@ class Eyou extends TagLib
             }
 
         } else { // 查询数据库获取的数据集
-            $parseStr .= ' $tagChannel = new \\think\\template\\taglib\\engine\\TagChannel;';
-            $parseStr .= ' $_result = $tagChannel->getChannel($typeid, "'.$type.'", "'.$currentclass.'", $notypeid, $modelid, $row);';
+            $parseStr .= ' $tagChannel = new \think\template\taglib\engine\TagChannel;';
+            $parseStr .= ' $_result = $tagChannel->getChannel($typeid, "'.$type.'", "'.$currentclass.'", $notypeid, $modelid);';
             $parseStr .= ' if(is_array($_result) || $_result instanceof \think\Collection || $_result instanceof \think\Paginator): $' . $key . ' = 0; $e = 1;';
             // 设置了输出数组长度
             if (0 != $offset || 'null' != $row) {
@@ -336,7 +336,6 @@ class Eyou extends TagLib
         $parseStr .= 'else: ';
         $parseStr .= 'foreach($__LIST__ as $key=>$' . $id . '): ';
         $parseStr .= '$' . $id . '["typename"] = mb_substr($' . $id . '["typename"], 0, '.$titlelen.', "UTF-8");';
-        $parseStr .= '$current = $tagChannel->isCurrent($' . $id . '["typeid"] ?? 0) ? ' . var_export($currentclass, true) . ' : "";';
 
         $parseStr .= ' $__LIST__[$key] = $_result[$key] = $' . $id . ';';
         $parseStr .= '$' . $key . '= intval($key) + 1;?>';

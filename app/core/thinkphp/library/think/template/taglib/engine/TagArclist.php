@@ -149,12 +149,15 @@ class TagArclist extends Base
                     }
                     
                     // 处理图片路径，确保有默认图片
-                    $item['litpic'] = get_default_pic($item['litpic']);
-                    
-                    // 如果thumb参数为on，则进行缩略图处理
-                    if ($thumb == 'on') {
-                        $item['litpic'] = thumb_img($item['litpic']);
-                    }
+                        $item['litpic'] = get_default_pic($item['litpic']);
+                        
+                        // 如果thumb参数为on，则进行缩略图处理
+                        if ($thumb == 'on') {
+                            $item['litpic'] = thumb_img($item['litpic']);
+                        }
+                        
+                        // 生成文章详情页URL
+                        $item['arcurl'] = arcurl($item);
                 }
                 
                 // 更新结果为转换后的数组

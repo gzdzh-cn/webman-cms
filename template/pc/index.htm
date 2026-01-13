@@ -11,30 +11,205 @@
     <div class="wrap topbar-inner">
         <div class="brand">
             <div class="logo"></div>
-         
+            <div class="brand-info">
+                <div class="brand-title">企业官网</div>
+                <div class="brand-sub">专业服务，品质保证</div>
+            </div>
         </div>
 
         <nav class="nav">
             <a href="/" class="active">首页</a>
             {eyou:models type="top" currentstyle="active" id='field'}
-            <span class="{$current}"><a href="##">{$field.typename}</a></span>
+            <a href="{$field.typeurl}" class="{$field.currentstyle}">{$field.typename}</a>
             {/eyou:models}
         </nav>
     </div>
 </header>
 
-<!-- Hero -->
-<!-- 解决方案 begin -->
- 
-{eyou:artlist loop='10' typeid='10'}
-    <li> <a href="#">{$field.title}</a> </li>
-{/eyou:artlist}
- 
-<!-- 解决方案 end--> 
+<!-- Hero区域 -->
+<section class="hero">
+    <div class="wrap">
+        <div class="hero-grid">
+            <div class="card hero-main">
+                <div class="kicker">
+                    <span>专业服务</span>
+                    <span class="dot"></span>
+                </div>
+                <h1>致力于为客户提供优质的解决方案</h1>
+                <p class="desc">我们拥有专业的团队和丰富的经验，为您提供全方位的服务支持，帮助您实现业务目标。</p>
+                <div class="actions">
+                    <a href="#about" class="btn primary">了解更多</a>
+                    <a href="#" class="btn">联系我们</a>
+                </div>
+            </div>
+            <div class="card hero-side">
+                <div class="stat">
+                    <div class="label">服务客户</div>
+                    <div class="value">1000+</div>
+                </div>
+                <div class="stat">
+                    <div class="label">成功案例</div>
+                    <div class="value">500+</div>
+                </div>
+                <div class="stat">
+                    <div class="label">专业团队</div>
+                    <div class="value">50+</div>
+                </div>
+                <div class="stat">
+                    <div class="label">行业经验</div>
+                    <div class="value">10年</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 关于我们 -->
+<section id="about" class="section">
+    <div class="wrap">
+        <div class="section-head">
+            <div>
+                <div class="section-title">关于我们</div>
+                <div class="section-sub">了解我们的企业理念和发展历程</div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="panel">
+                <p>我们是一家专业的企业服务提供商，致力于为客户提供高质量的解决方案。自成立以来，我们始终坚持以客户为中心，不断创新和完善我们的服务体系。</p>
+                <div class="line"></div>
+                <p>我们的团队由行业资深专家组成，拥有丰富的实践经验和专业知识，能够为客户提供全方位的支持和服务。我们相信，通过我们的努力和专业能力，可以帮助客户实现更大的价值。</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 新闻列表 -->
+<section id="news" class="section">
+    <div class="wrap">
+        <div class="section-head">
+            <div>
+                <div class="section-title">新闻动态</div>
+                <div class="section-sub">最新行业资讯和公司动态</div>
+            </div>
+            <a href="#" class="btn">查看更多</a>
+        </div>
+        <div class="card">
+            <div class="list">
+                {eyou:artlist loop='10' typeid='10' id='field'}
+                <div class="item">
+                    <div class="badge">{$field.arcrank}</div>
+                    <div class="meta">
+                        <div class="title"><a href="{$field.arcurl}">{$field.title}</a></div>
+                        <div class="sub">{$field.add_time}</div>
+                    </div>
+                </div>
+                {/eyou:artlist}
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 友情链接 -->
+<section id="links" class="section">
+    <div class="wrap">
+        <div class="section-head">
+            <div>
+                <div class="section-title">友情链接</div>
+                <div class="section-sub">合作共赢，共同发展</div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="panel">
+                <a href="https://www.example.com" target="_blank" style="margin-right: 20px; color: var(--muted); text-decoration: none;">示例网站1</a>
+                <a href="https://www.example2.com" target="_blank" style="margin-right: 20px; color: var(--muted); text-decoration: none;">示例网站2</a>
+                <a href="https://www.example3.com" target="_blank" style="margin-right: 20px; color: var(--muted); text-decoration: none;">示例网站3</a>
+                <a href="https://www.example4.com" target="_blank" style="margin-right: 20px; color: var(--muted); text-decoration: none;">示例网站4</a>
+                <a href="https://www.example5.com" target="_blank" style="margin-right: 20px; color: var(--muted); text-decoration: none;">示例网站5</a>
+            </div>
+        </div>
+    </div>
+</section>
 
 <!-- 主体内容 -->
- 
- 
+
+<!-- 特色服务 -->
+<section class="section">
+    <div class="wrap">
+        <div class="section-head">
+            <div>
+                <div class="section-title">特色服务</div>
+                <div class="section-sub">专业的服务，卓越的品质</div>
+            </div>
+        </div>
+        <div class="grid">
+            <div class="col-4">
+                <div class="card">
+                    <div class="panel">
+                        <div class="badge">01</div>
+                        <div class="section-title" style="margin: 10px 0;">服务1</div>
+                        <p>专业的服务内容描述，为客户提供优质的解决方案。</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="card">
+                    <div class="panel">
+                        <div class="badge">02</div>
+                        <div class="section-title" style="margin: 10px 0;">服务2</div>
+                        <p>专业的服务内容描述，为客户提供优质的解决方案。</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-4">
+                <div class="card">
+                    <div class="panel">
+                        <div class="badge">03</div>
+                        <div class="section-title" style="margin: 10px 0;">服务3</div>
+                        <p>专业的服务内容描述，为客户提供优质的解决方案。</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 底部区域 -->
+<footer class="footer">
+    <div class="wrap">
+        <div class="footer-content">
+            <div class="footer-brand">
+                <div class="logo"></div>
+                <div class="brand-info">
+                    <div class="brand-title">企业官网</div>
+                    <div class="brand-sub">专业服务，品质保证</div>
+                </div>
+            </div>
+            <div class="footer-nav">
+                <h4>快速链接</h4>
+                <ul>
+                    <li><a href="/">首页</a></li>
+                    <li><a href="#about">关于我们</a></li>
+                    <li><a href="#news">新闻动态</a></li>
+                    <li><a href="#links">友情链接</a></li>
+                </ul>
+            </div>
+            <div class="footer-contact">
+                <h4>联系我们</h4>
+                <p>电话：400-123-4567</p>
+                <p>邮箱：contact@example.com</p>
+                <p>地址：北京市朝阳区某街道123号</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <div class="copyright">© 2024 企业官网. 保留所有权利.</div>
+            <div class="footer-links">
+                <a href="#">隐私政策</a>
+                <a href="#">服务条款</a>
+            </div>
+        </div>
+    </div>
+</footer>
+
     <style>
         :root{
             --bg: #0b1220;
@@ -182,8 +357,24 @@
         .panel .line{height:1px; background: var(--line); margin:14px 0}
 
         /* Footer */
-        .footer{margin:26px 0 14px; color: var(--muted); font-size:12px; text-align:center}
-        .footer a{color: rgba(255,255,255,.8); text-decoration: underline; text-underline-offset:3px}
+        .footer{margin-top:40px; border-top: 1px solid var(--line); padding:30px 0 20px; background: rgba(11,18,32,.65);}
+        .footer-content{display:grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap:30px; margin-bottom:20px}
+        .footer-brand{display:flex; align-items:center; gap:12px}
+        .footer-nav h4, .footer-contact h4{margin:0 0 12px; color: var(--text); font-size:16px}
+        .footer-nav ul{list-style:none; padding:0; margin:0}
+        .footer-nav li{margin-bottom:8px}
+        .footer-nav a{color: var(--muted); text-decoration:none}
+        .footer-nav a:hover{color: var(--text); text-decoration:underline}
+        .footer-contact p{margin:6px 0; color: var(--muted); font-size:14px}
+        .footer-bottom{display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; padding-top:20px; border-top:1px solid var(--line); color: var(--muted); font-size:13px}
+        .footer-bottom .footer-links{display:flex; gap:16px}
+        .footer-bottom a{color: var(--muted); text-decoration:none}
+        .footer-bottom a:hover{color: var(--text); text-decoration:underline}
+        
+        @media (max-width: 768px){
+            .footer-content{grid-template-columns: 1fr}
+            .footer-bottom{flex-direction:column; align-items:flex-start}
+        }
     </style>
 </body>
 </html>
