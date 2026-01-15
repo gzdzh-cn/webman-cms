@@ -506,4 +506,57 @@ class Eyou extends TagLib
         }
         return;
     }
+
+    /**
+     * 静态资源标签
+     * @param array $tag
+     * @return string
+     */
+    public function tagstatic($tag)
+    {
+        $file = !empty($tag['file']) ? $tag['file'] : '';
+        $href = !empty($tag['href']) ? $tag['href'] : '';
+        $version = !empty($tag['version']) ? $tag['version'] : '';
+        
+        // 检查是否是外部链接
+        if (!empty($href) && preg_match('/^http(s)?:\/\//i', $href)) {
+            $url = $href;
+        } else if (!empty($file)) {
+            // 处理内部资源
+            $file = preg_replace('#^(/[/\w\-]+)?(/)#i', '$2', $file); // 支持子目录
+            $url = '/' . $file;
+        } else {
+            return '';
+        }
+        
+        // 添加版本号
+        if (!empty($version)) {
+            $url .= (strpos($url, '?') === false ? '?' : '&') . 'v=' . $version;
+        }
+        
+        // 根据文件扩展名判断是CSS还是JS
+        $ext = pathinfo($url, PATHINFO_EXTENSION);
+        if (strtolower($ext) == 'css') {
+            return '<link rel="stylesheet" href="' . $url . '" />';
+        } else if (strtolower($ext) == 'js') {
+            return '<script type="text/javascript" src="' . $url . '"></script>';
+        }
+        
+        return '';
+    }
+
+    /**
+     * php标签解析
+     * 格式：
+     * {eyou:php}echo $name{/eyou:php}
+     * @access public
+     * @param array $tag 标签属性
+     * @param string $content 标签内容
+     * @return string
+     */
+    public function tagPhp($tag, $content)
+    {
+        $parseStr = '<?php ' . $content . ' ?>';
+        return $parseStr;
+    }
 }

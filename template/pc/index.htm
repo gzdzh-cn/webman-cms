@@ -18,9 +18,13 @@
 <header class="topbar">
     <div class="wrap topbar-inner">
         <div class="brand">
-            <div class="logo"></div>
+            <div class="logo">
+                <img src="{eyou:global name='web_logo' /}" alt="{eyou:global name='web_name' /}">
+            </div>
+
+
             <div class="brand-info">
-                <div class="brand-title">企业官网</div>
+                <div class="brand-title">{eyou:global name='web_name' /}</div>
                 <div class="brand-sub">专业服务，品质保证</div>
             </div>
         </div>
@@ -33,6 +37,9 @@
         </nav>
     </div>
 </header>
+
+
+
 
 <!-- Hero区域 -->
 <section class="hero">
@@ -174,6 +181,64 @@
                         <div class="badge">03</div>
                         <div class="section-title" style="margin: 10px 0;">服务3</div>
                         <p>专业的服务内容描述，为客户提供优质的解决方案。</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- 全局标签测试区域 -->
+<section class="section">
+    <div class="wrap">
+        <div class="section-head">
+            <div>
+                <div class="section-title">全局标签测试</div>
+                <div class="section-sub">测试所有全局标签的输出结果</div>
+            </div>
+        </div>
+        <div class="card">
+            <div class="panel">
+                <div class="test-grid">
+                    <div class="test-item">
+                        <div class="test-label">网站网址</div>
+                        <div class="test-value">{eyou:global name='web_basehost' /}</div>
+                    </div>
+                    <div class="test-item">
+                        <div class="test-label">主页链接</div>
+                        <div class="test-value">{eyou:global name='web_cmsurl' /}</div>
+                    </div>
+                    <div class="test-item">
+                        <div class="test-label">根目录路径</div>
+                        <div class="test-value">{eyou:global name='web_cmspath' /}</div>
+                    </div>
+                    <div class="test-item">
+                        <div class="test-label">PC模板路径</div>
+                        <div class="test-value">{eyou:global name='web_templets_pc' /}</div>
+                    </div>
+                    <div class="test-item">
+                        <div class="test-label">Mobile模板路径</div>
+                        <div class="test-value">{eyou:global name='web_templets_m' /}</div>
+                    </div>
+                    <div class="test-item">
+                        <div class="test-label">CSS文件路径</div>
+                        <div class="test-value">{eyou:php}ob_start();{/eyou:php}{eyou:static file='skin/css/eyoucms.css' /}{eyou:php}echo htmlspecialchars(ob_get_clean());{/eyou:php}</div>
+                    </div>
+                    <div class="test-item">
+                        <div class="test-label">JS文件路径</div>
+                        <div class="test-value">{eyou:php}ob_start();{/eyou:php}{eyou:static file='skin/js/eyoucms.js' /}{eyou:php}echo htmlspecialchars(ob_get_clean());{/eyou:php}</div>
+                    </div>
+                    <div class="test-item">
+                        <div class="test-label">网站备案号</div>
+                        <div class="test-value">{eyou:global name='web_recordnum' /}</div>
+                    </div>
+                    <div class="test-item">
+                        <div class="test-label">公安备案号</div>
+                        <div class="test-value">{eyou:global name='web_garecordnum' /}</div>
+                    </div>
+                    <div class="test-item">
+                        <div class="test-label">版权信息</div>
+                        <div class="test-value">{eyou:global name='web_copyright' /}</div>
                     </div>
                 </div>
             </div>
@@ -382,6 +447,33 @@
         @media (max-width: 768px){
             .footer-content{grid-template-columns: 1fr}
             .footer-bottom{flex-direction:column; align-items:flex-start}
+        }
+
+        /* 测试区域样式 */
+        .test-grid{
+            display:grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap:16px;
+        }
+        .test-item{
+            padding:12px;
+            border-radius:var(--radius-sm);
+            background:var(--panel-2);
+            border:1px solid var(--line);
+        }
+        .test-label{
+            font-size:13px;
+            color:var(--muted);
+            margin-bottom:6px;
+        }
+        .test-value{
+            font-size:14px;
+            color:var(--text);
+            word-break:break-all;
+            background:rgba(255,255,255,.05);
+            padding:8px;
+            border-radius:8px;
+            border:1px solid var(--line);
         }
     </style>
 </body>
