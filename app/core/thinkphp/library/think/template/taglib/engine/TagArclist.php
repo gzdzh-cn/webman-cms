@@ -28,8 +28,8 @@ class TagArclist extends Base
             }
             
             // 添加调试信息
-            Log::debug("TagArclist Debug - typeid: $typeid");
-            Log::debug("TagArclist Debug - param: " . print_r($param, true));
+            // Log::debug("TagArclist Debug - typeid: $typeid");
+            // Log::debug("TagArclist Debug - param: " . print_r($param, true));
             
             // 构建查询，修复表名重复前缀问题
             $query = Db::table('archives');
@@ -145,7 +145,6 @@ class TagArclist extends Base
                 foreach ($resultArray as &$item) {
                     if (is_object($item)) {
                         $item = (array)$item;
-                        Log::debug("TagArclist Debug - item: " . $item['title']);
                     }
                     
                     // 处理图片路径，确保有默认图片

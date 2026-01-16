@@ -3,6 +3,7 @@
 namespace think\template\taglib\engine;
 
 use support\Db;
+use support\Log;
 use support\Request;
 
 
@@ -268,6 +269,7 @@ class TagChannel extends Base
                         }
                     } catch (\Throwable $e) {
                         // 忽略错误
+                        Log::error("TagChannel Db Error: " . $e->getMessage());
                     }
                     $self_channel['typeurl'] = typeurl('home/' . $ctl_name . '/lists', $self_channel);
                 }
@@ -373,6 +375,7 @@ class TagChannel extends Base
                     }
                 } catch (\Throwable $e) {
                     // 忽略错误
+                    Log::error("TagChannel getFirst: " . $e->getMessage());
                 }
                 $item['typeurl'] = typeurl('home/' . $ctl_name . '/lists', $item);
             }
