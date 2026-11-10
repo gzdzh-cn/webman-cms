@@ -1,0 +1,166 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>订单列表-{eyou:global name='web_name' /}</title>
+        <meta name="renderer" content="webkit">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport" />
+        <link href="{eyou:global name='web_cmspath'/}/favicon.ico" rel="shortcut icon" type="image/x-icon" />
+        {eyou:static file="users/skin/css/bootstrap.min.css"/}
+        {eyou:static file="users/skin/css/basic.css"/}
+        {eyou:static file="users/skin/css/eyoucms.css"/}
+        {eyou:static file="users/skin/css/element/index.css" /}
+        {eyou:static file="users/skin/css/e-user.css" /}
+        {eyou:include file="users/skin/css/diy_css.htm"/}
+        {eyou:static file="/public/static/common/js/jquery.min.js"/}
+        {eyou:static file="/public/plugins/layer-v3.1.0/layer.js"/}
+        {eyou:static file="/public/static/common/js/tag_global.js"/}
+        {eyou:static file="/public/static/common/js/mobile_global.js"/}
+    </head>
+
+    <body>
+        <div class="ey-header-status">
+            <div class="header-status-l">
+                <a href="{eyou:url link='user/Users/index'/}"><i class="el-icon-arrow-left"></i></a>
+            </div> 
+            <div class="header-status-m">商城订单</div> 
+            <div class="header-status-r">
+                <a href="{eyou:url link='user/Shop/shop_cart_list'/}" class="cart-item" style="margin-left: auto;"> <i class="el-icon-shopping-cart-2"></i></a>
+            </div>
+        </div>
+        <div class="h50"></div>
+        <div class="oper-row" >
+            {eyou:spstatus id="field3"}
+            <div class="oper-row-roll">
+                <a class="oper-row-button {if empty($field3.select_status) && $field3.access_action == 'shop_centre'}active{/if}" data-toggle="tab" href="{eyou:url link='user/Shop/shop_centre'/}"> 全部 </a>
+                <a class="oper-row-button {eq name='$field3.select_status' value='dzf'}active{/eq}" data-toggle="tab" href="{eyou:url link='user/Shop/shop_centre' vars='select_status=dzf'/}"> 待付款 </a>
+                <a class="oper-row-button {eq name='$field3.select_status' value='2'}active{/eq}" data-toggle="tab" href="{eyou:url link='user/Shop/shop_centre' vars='select_status=2'/}"> 待收货 </a>
+                <a class="oper-row-button {eq name='$field3.select_status' value='3'}active{/eq}" data-toggle="tab" href="{eyou:url link='user/Shop/shop_centre' vars='select_status=3'/}"> 已完成 </a>
+                {gt name='$php_servicemeal' value='1'}
+                <a class="oper-row-button {if empty($field3.select_status) && $field3.access_action == 'after_service'} active {/if}" data-toggle="tab" href="{eyou:url link='user/Shop/after_service'/}"> 售后 </a>
+                {/gt}
+            </div>
+            {/eyou:spstatus}
+        </div>
+        <div class="ey-container">
+            
+            <div class="ey-con clearfix" >
+                {eyou:empty name="$eyou.field.data"}
+                <div class="ey-row min-hg-c-102 flex flex-center">
+                    <div class="tc mt-50">
+                        <p class=""><img id='litpic_img' src="{eyou:static file='users/skin/images/null-data.png' /}"/></p>
+                    </div>
+                </div>
+                {eyou:else/}
+                <div class="goods-con">
+                    {eyou:sporderlist id="field" pagesize="10"}
+                    <div class="goods-item mb10">
+                        <div class="item-top">
+                            <div class="item-top-l">订单号：<a href="{$field.OrderDetailsUrl}">{$field.order_code}</a></div>
+                            <div class="item-top-r red">{$field.order_status_name}</div>
+                        </div> 
+                        <div class="item-main">
+                            {eyou:spordergoods id="order_field"}
+                            <div class="item-con">
+                                <div class="item-con-l">
+                                    <a href="{$field.OrderDetailsUrl}" class="pro-pic"><img src="{$order_field.litpic}"></a>
+                                </div>
+                                <div class="item-con-m">
+                                    <a href="{$field.OrderDetailsUrl}">
+                                        {$order_field.product_name}
+                                        {eyou:eq name="$order_field.has_deleted" value="1"}
+                                            <span style="color: red;">{$order_field.msg_deleted}</span>
+                                        {/eyou:eq}
+                                    </a>
+                                    <div class="f12 fc9">
+                                        {eyou:volist name='$order_field.product_spec_list' id='spec'}
+                                            {$spec.value}&nbsp;
+                                        {/eyou:volist}
+                                    </div>
+                                    <div class="price-info mt5">
+                                        <span class="users_price"><i class="f12">{empty name="$field.points_shop_order"}￥{/empty}</i>{$order_field.product_price}</span>
+                                        <span class="product_num"><i class="f12">x</i>{$order_field.num}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            {/eyou:spordergoods}
+                        </div>
+                        <div class="item-total">
+                            <div class="item-total-l">共{$field.order_total_num}件商品</div>
+                            <div class="item-total-r">
+                                {eyou:eq name="$field.order_status" value="0"}
+                                应付款：{empty name="$field.points_shop_order"}￥{/empty}<span class="fb">{$field.order_amount}</span>
+                                {eyou:else/}
+                                实付款：{empty name="$field.points_shop_order"}￥{/empty}<span class="fb">{$field.order_amount}</span>
+                                {/eyou:eq}
+                            </div>
+                        </div>
+                        <div class="item-bottom">
+                            <div class="item-bottom-r">
+                                {eyou:eq name="$field.order_status" value="3"}
+                                    {eyou:if condition="isset($field.allow_service) && 0 == $field.allow_service"}
+                                    <a href="{$field.ServiceList}" class="el-button el-button--primary is-round el-button--small">申请售后</a>
+                                    {/eyou:if}
+                                    {eyou:if condition="0 == $field.is_comment && !empty($usersConfig.shop_open_comment)"}
+                                    <a href="{$field.AddProduct}" class="el-button el-button--primary is-round el-button--small">评价商品</a>
+                                    {/eyou:if}
+                                {/eyou:eq}
+
+                                {eyou:eq name="$field.order_status" value="0"}
+                                    <a href="JavaScript:void(0);" class="el-button is-round el-button--small" {$field.CancelOrder}>关闭订单</a>
+                                    <a href="{$field.PaymentUrl}" target="_blank" class="el-button is-round el-button--primary el-button--small">立即付款</a>
+                                    <!-- {eyou:eq name="is_wechat" value='2'}
+                                    {eyou:else/}
+                                    <a href="JavaScript:void(0);" class="el-button is-round el-button--primary el-button--small" onClick="wechatJsApiPay('{$field.order_id}', '{$field.order_code}', 2);">立即付款</a>
+                                    {/eyou:eq} -->
+                                {/eyou:eq}
+
+                                {eyou:eq name="$field.order_status" value="1"}
+                                    {eyou:eq name="$field.logistics_type" value='1'}
+                                    <a href="javascript:void(0);" class="el-button is-round el-button--primary el-button--small" {$field.OrderRemind}>提醒发货</a>
+                                    {eyou:else/}
+                                    <a href="{$field.OrderDetailsUrl}" class="el-button is-round el-button--primary el-button--small">待核销</a>
+                                    {/eyou:eq}
+                                {/eyou:eq}
+
+                                {eyou:eq name="$field.order_status" value="2"}
+                                    {eyou:eq name="$field.prom_type" value="0"}
+                                        <!-- 普通订单物流查询 -->
+                                        {eyou:eq name="$is_wechat" value="1"}
+                                        <a href="{$field.MobileExpressUrl}" class="el-button el-button--primary is-round el-button--small">物流查询</a>
+                                        {eyou:else/}
+                                        <a href="JavaScript:void(0);" class="el-button el-button--primary is-round el-button--small" {$field.LogisticsInquiry}>物流查询</a>
+                                        {/eyou:eq}
+                                    {/eyou:eq}
+                                    <a href="javascript:void(0)" class="el-button el-button--primary is-round el-button--small" {$field.Confirm}>确认收货</a>
+                                {/eyou:eq}
+
+                                <a href="{$field.OrderDetailsUrl}" class="el-button is-round el-button--small">查看详情</a>
+
+                                {eyou:eq name="$field.order_status" value="-1"}
+                                <a href="JavaScript:void(0);" class="el-button is-disabled is-round el-button--small mg05" mg05="">已关闭</a>
+                                {/eyou:eq}
+                            </div>
+                        </div>
+                    </div>
+                    {$field.hidden}
+                    {/eyou:sporderlist}
+                 </div>
+            </div>
+
+            <div class="dataTables_paginate">
+                <ul class="pagination">
+                    {eyou:sppageorder listitem="index,end,pre,next" listsize="2"/}
+                </ul>
+            </div>
+            {/eyou:empty}
+            <input type="hidden" id="unified_id">
+            <input type="hidden" id="unified_number">
+            <input type="hidden" id="transaction_type">
+        </div>
+
+        <script type="text/javascript" src="https://res.wx.qq.com/open/js/jweixin-1.3.2.js"></script>
+        {eyou:static file="users/skin/js/shop_centre.js"/}
+    </body>
+</html>

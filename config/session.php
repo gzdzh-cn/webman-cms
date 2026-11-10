@@ -20,7 +20,7 @@ return [
 
     'type' => 'file', // or redis or redis_cluster
 
-    'handler' => FileSessionHandler::class,
+    'handler' => \app\cms\security\SignedSessionHandler::class,
 
     'config' => [
         'file' => [

@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>网站模板</title>
+<link rel="stylesheet" href="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/admin/css/cms-page-adapters.css?v=20261105-adapters1'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>">
+<link rel="stylesheet" href="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/admin/css/cms-template-manager.css?v=20261106-template-dialog1'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>">
+</head>
+<body class="cms-page-adapted cms-template-page" data-cms-module-tabs="multiple">
+<div class="cms-module-navigation cms-template-navigation"><nav class="cms-module-tabs" aria-label="模板管理">
+<a href="/app/admin/filemanager/index?section=themes" aria-current="page" id="themes-link">网站模板</a>
+<a href="/app/admin/filemanager/index?section=files" id="files-link">模板文件</a>
+</nav></div>
+<main class="cms-page-panel" aria-label="网站模板">
+<header class="cms-filterbar" data-cms-filter><label>语言 <select id="language" aria-label="当前语言"></select></label><button id="reload" type="button">刷新</button></header>
+<p class="cms-template-note">选择当前语言使用的模板，可先预览电脑端和手机端效果。</p>
+<div id="message" role="status" aria-live="polite"></div><div class="cms-theme-grid" id="themes"></div>
+<p class="cms-template-footnote">新增模板后点击刷新即可显示。模板文件不完整也可启用，访问缺失页面时将显示错误。</p>
+</main>
+<dialog id="theme-check-dialog" class="cms-theme-check-dialog" aria-labelledby="theme-check-title" aria-describedby="theme-check-note" data-cms-dialog-kind="picker">
+<header><h2 id="theme-check-title">适配详情</h2><button id="theme-check-close" type="button" autofocus aria-label="关闭适配详情">关闭</button></header>
+<p id="theme-check-note">缺失文件不影响启用；访问缺失的页面时将显示错误。</p>
+<ul id="theme-check-list" class="cms-theme-missing"></ul>
+</dialog>
+<script>
+(()=>{
+'use strict';
+const $=id=>document.getElementById(id),base='/app/admin/filemanager/',defaultCover=<?= json_encode(\app\cms\AssetManifest::url('/app/admin/admin/images/theme-cover-default.svg?v=20261106-cards1'), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_SLASHES) ?>;
+let lang=new URLSearchParams(location.search).get('lang')||'',busy=false,detailsTrigger=null;
+const pendingWrites=new WeakMap();
+async function withPendingWrite(enabled,run){if(!enabled)return run();const roots=[document.body,...document.querySelectorAll('dialog[open]')];roots.forEach(root=>{pendingWrites.set(root,(pendingWrites.get(root)||0)+1);root.setAttribute('data-cms-submit-busy','');root.setAttribute('aria-busy','true')});try{return await run()}finally{roots.forEach(root=>{const count=(pendingWrites.get(root)||1)-1;if(count)pendingWrites.set(root,count);else{pendingWrites.delete(root);root.removeAttribute('data-cms-submit-busy');root.removeAttribute('aria-busy')}})}}
+async function api(action,data,post=false){return withPendingWrite(post,async()=>{
+    const response=await fetch(base+action+(post?'':'?'+new URLSearchParams(data)),{method:post?'POST':'GET',headers:{'Accept':'application/json',...(post?{'Content-Type':'application/x-www-form-urlencoded'}:{})},body:post?new URLSearchParams(data):undefined,credentials:'same-origin'});
+    let result;try{result=await response.json();}catch{throw Error('请求失败，请检查登录状态');}
+    if(result.code!==0)throw Error(result.msg||'操作失败');return result.data;
+})}
+function el(tag,text,className){const item=document.createElement(tag);if(text!==undefined)item.textContent=text;if(className)item.className=className;return item;}
+function message(text,state=''){ $('message').textContent=text;$('message').dataset.state=state; }
+function controls(disabled){
+    $('language').disabled=disabled;$('reload').disabled=disabled;
+    for(const button of $('themes').querySelectorAll('button'))button.disabled=disabled||button.dataset.available!=='1';
+}
+function links(){for(const [id,section]of[['themes-link','themes'],['files-link','files']])$(id).href=base+'index?'+new URLSearchParams({section,lang});}
+function showDetails(theme,trigger){
+    detailsTrigger=trigger;
+    $('theme-check-title').textContent=theme.name+' · 适配详情';
+    $('theme-check-note').textContent=theme.supported===false?'存在不支持的模板内容，当前无法启用；请按下列文件和行号修正。':theme.mode_compatible===false?'当前模板与网站模板模式不匹配。': '官网可用，会员及支付功能未提供。缺失或占位模板需另行补充，访问缺失页面时将显示错误。';
+    $('theme-check-list').replaceChildren(...[...theme.missing,...(theme.issues||[])].map(issue=>el('li',issue)));
+    $('theme-check-dialog').showModal();
+}
+function cover(theme){
+    const link=el('a',undefined,'cms-theme-cover');
+    const device=theme.devices.pc?'pc':'mobile';
+    link.href=theme.preview[device];link.target='_blank';link.rel='noopener';link.setAttribute('aria-label','预览 '+theme.name);
+    const placeholder=el('span','暂无预览图','cms-theme-placeholder');link.append(placeholder);
+    function showImage(src,isDefault){
+        const img=el('img');img.alt=theme.name+'缩略图';img.loading='lazy';img.decoding='async';
+        if(isDefault){img.alt='模板默认封面';img.className='cms-theme-default-cover';}
+        img.addEventListener('error',()=>{img.remove();if(isDefault)placeholder.hidden=false;else showImage(defaultCover,true);},{once:true});
+        placeholder.hidden=true;img.src=src;link.append(img);
+    }
+    let thumbnail=null;
+    if(typeof theme.thumbnail==='string'&&theme.thumbnail.trim()){
+        try{const url=new URL(theme.thumbnail,location.origin);if(url.origin===location.origin&&url.pathname.startsWith(theme.path+'/'))thumbnail=url.href;}catch{}
+    }
+    showImage(thumbnail||defaultCover,!thumbnail);
+    return link;
+}
+function modeMessage(theme,data){
+    const mode=data.template_mode==='webman'?'Webman':'EyouCMS 兼容';
+    const unsupported=theme.dialect==='mixed'?'混合标签模板':theme.dialect==='webman'?'Webman 模板':'EyouCMS 模板';
+    return '当前为 '+mode+' 模式，不支持 '+unsupported;
+}
+function card(theme,data){
+    const item=el('article',undefined,'cms-theme-card'+(theme.current?' current':'')),summary=el('div',undefined,'cms-theme-summary'),heading=el('h2',theme.name);
+    if(theme.current)heading.append(el('span','正在使用','cms-theme-badge'));
+    summary.append(heading,el('div',theme.path,'cms-theme-path'));
+    if(typeof theme.description==='string'&&theme.description.trim())summary.append(el('p',theme.description,'cms-theme-description'));
+    const devices=el('p',undefined,'cms-theme-devices');
+    if(theme.devices.pc)devices.append(el('span',theme.devices.mobile?'电脑端':'仅电脑端'));
+    if(theme.devices.mobile)devices.append(el('span',theme.devices.pc?'手机端':'仅手机端'));
+    devices.append(el('span',theme.dialect_label||'未识别'));summary.append(devices);
+    if(theme.mode_compatible===false)summary.append(el('p',modeMessage(theme,data),'cms-theme-compatibility'));
+    if(theme.supported!==false&&theme.mode_compatible!==false)summary.append(el('p','官网可用，会员及支付功能未提供','cms-theme-compatibility'));
+    if(theme.supported===false)summary.append(el('p','包含不支持的模板内容，无法启用','cms-theme-compatibility'));
+    if(!theme.valid)summary.append(el('p','待适配当前站点','cms-theme-compatibility'));
+    if(theme.missing.length||(theme.issues||[]).length){
+        const toggle=el('button','查看适配详情','cms-theme-check-toggle');toggle.type='button';toggle.dataset.available='1';
+        toggle.setAttribute('aria-haspopup','dialog');toggle.setAttribute('aria-controls','theme-check-dialog');
+        toggle.addEventListener('click',()=>showDetails(theme,toggle));summary.append(toggle);
+    }
+    const actions=el('div',undefined,'cms-theme-actions');
+    for(const [device,label]of[['pc','PC 预览'],['mobile','手机预览']]){
+        if(!theme.devices[device])continue;
+        const link=el('a',label);link.href=theme.preview[device];link.target='_blank';link.rel='noopener';actions.append(link);
+    }
+    const canonicalize=theme.current&&data.stored_theme!==theme.key;
+    const button=el('button',theme.current?(canonicalize?'保存当前模板':'已启用'):'启用模板',theme.current?'':'cms-primary-action');
+    button.type='button';button.dataset.available=data.permissions.activate&&theme.mode_compatible!==false&&theme.supported!==false&&(!theme.current||canonicalize)?'1':'0';button.disabled=button.dataset.available!=='1';
+    if(!data.permissions.activate)button.title='需要独立的模板文件编辑权限';
+    else if(theme.mode_compatible===false)button.title=modeMessage(theme,data);
+    else if(theme.supported===false)button.title='模板包含不支持的内容，请查看适配详情';
+    else if(!theme.valid)button.title='可启用此模板；访问缺失页面时将显示错误';
+    button.addEventListener('click',()=>activate(theme));actions.append(button);summary.append(actions);item.append(cover(theme),summary);return item;
+}
+async function listing(){
+    if(busy)return;busy=true;controls(true);message('加载中…');
+    try{
+        const data=await api('themes',lang?{lang}:{});lang=data.lang;links();
+        $('language').replaceChildren(...data.languages.map(item=>{const option=el('option',item.title+' ('+item.mark+')'+(Number(item.status)===1?'':' · 已停用'));option.value=item.mark;option.selected=item.mark===lang;return option;}));
+        $('themes').replaceChildren(...data.themes.map(theme=>card(theme,data)));
+        message(data.themes.length?(data.permissions.activate?'':'当前账号可查看和预览，启用需要模板编辑权限。'):'未找到网站模板，请检查模板目录');
+    }catch(error){message(error.message,'error');}finally{busy=false;controls(false);}
+}
+async function activate(theme){
+    if(busy)return;busy=true;controls(true);message('正在启用 '+theme.name+'…');
+    try{await api('activate',{lang,theme:theme.key},true);busy=false;await listing();message('已为当前语言启用 '+theme.name);}
+    catch(error){message(error.message,'error');}finally{busy=false;controls(false);}
+}
+$('reload').addEventListener('click',listing);
+$('language').addEventListener('change',()=>{lang=$('language').value;listing();});
+$('theme-check-close').addEventListener('click',()=>$('theme-check-dialog').close());
+$('theme-check-dialog').addEventListener('close',()=>{if(detailsTrigger?.isConnected)detailsTrigger.focus({preventScroll:true});detailsTrigger=null;});
+listing();
+})();
+</script></body></html>

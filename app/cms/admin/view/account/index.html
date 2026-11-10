@@ -1,0 +1,218 @@
+﻿<!DOCTYPE html>
+<html lang="zh-cn">
+    <head>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+        <meta charset="UTF-8">
+        <title>个人资料</title>
+        <link rel="stylesheet" href="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/component/layui/css/layui.css?v=2.8.12'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>" />
+        <link rel="stylesheet" href="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/component/pear/css/pear.css'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>" />
+        <link rel="stylesheet" href="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/admin/css/reset.css'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>" />
+    <link rel="stylesheet" href="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/admin/css/cms-page-adapters.css?v=20261105-adapters1'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>">
+</head>
+    <body class="pear-container cms-classic-settings-page cms-page-adapted">
+        <style>
+            body.cms-classic-settings-page .cms-settings-form .layui-input-block {min-width:0;}
+            body.cms-classic-settings-page .cms-settings-form .layui-input-block input:not([type="checkbox"]):not([type="radio"]) {box-sizing:border-box;width:300px;max-width:100%;}
+            @media(max-width:767px){
+                body.cms-classic-settings-page .layui-tab-content{padding:12px 0;}
+                body.cms-classic-settings-page .cms-settings-form{box-sizing:border-box;width:100%;min-width:0;}
+                body.cms-classic-settings-page .cms-settings-form .layui-form-label{box-sizing:border-box;float:none;width:auto;max-width:100%;padding:0 0 6px;text-align:left;}
+                body.cms-classic-settings-page .cms-settings-form .layui-input-block{box-sizing:border-box;margin-left:0;width:100%;min-width:0;max-width:100%;}
+                body.cms-classic-settings-page .cms-settings-form .layui-input-block input:not([type="checkbox"]):not([type="radio"]){width:100%;min-width:0;}
+                body.cms-classic-settings-page .cms-settings-form .layui-input-block:has(> button){display:flex;flex-wrap:wrap;align-items:center;gap:10px;}
+                body.cms-classic-settings-page .cms-settings-form .layui-input-block > button{margin:0;}
+                body.cms-classic-settings-page .cms-settings-form .layui-input-block > img{max-width:100%;height:auto;}
+            }
+        </style>
+
+        <div class="layui-card cms-page-panel">
+            <div class="layui-card-body">
+
+                <div class="layui-tab layui-tab-brief">
+                <ul class="layui-tab-title">
+                    <li class="layui-this">基本信息</li>
+                    <li>安全设置</li>
+                </ul>
+                <div class="layui-tab-content">
+
+                    <!-- 基本信息 -->
+                    <div class="layui-tab-item layui-show">
+
+                        <form id="account-base-form" class="layui-form cms-settings-form" lay-filter="baseInfo">
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">昵称</label>
+                                <div class="layui-input-block">
+                                    <input type="text" name="nickname" required  lay-verify="required" placeholder="请输入昵称" autocomplete="off" class="layui-input">
+                                </div>
+                            </div>
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">邮箱</label>
+                                <div class="layui-input-block">
+                                    <input type="text" name="email" placeholder="请输入邮箱" autocomplete="off" class="layui-input">
+                                </div>
+                            </div>
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">联系电话</label>
+                                <div class="layui-input-block">
+                                    <input type="text" name="mobile" placeholder="请输入联系电话" autocomplete="off" class="layui-input">
+                                </div>
+                            </div>
+                            <div class="layui-form-item">
+                                <div class="layui-input-block">
+                                    <button type="submit" class="pear-btn pear-btn-primary pear-btn-md cms-primary-action" lay-submit="" lay-filter="saveBaseInfo">
+                                        保存
+                                    </button>
+                                    <button id="account-base-restore" type="button" class="pear-btn pear-btn-md" disabled>
+                                        还原修改
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+
+                    </div>
+
+                    <div class="layui-tab-item">
+
+                        <form id="account-security-form" class="layui-form cms-settings-form" action="">
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">原始密码</label>
+                                <div class="layui-input-block">
+                                    <input type="password" name="old_password" required  lay-verify="required" placeholder="请输入原始密码" autocomplete="off" class="layui-input">
+                                </div>
+                            </div>
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">新密码</label>
+                                <div class="layui-input-block">
+                                    <input type="password" name="password" required  lay-verify="required" placeholder="请输入新密码" autocomplete="off" class="layui-input">
+                                </div>
+                            </div>
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">确认新密码</label>
+                                <div class="layui-input-block">
+                                    <input type="password" name="password_confirm" required  lay-verify="required" placeholder="请再次输入新密码" autocomplete="off" class="layui-input">
+                                </div>
+                            </div>
+                            <div class="layui-form-item">
+                                <div class="layui-input-block">
+                                    <button type="submit" class="pear-btn pear-btn-primary pear-btn-md cms-primary-action" lay-submit="" lay-filter="savePassword">
+                                        保存
+                                    </button>
+                                    <button id="account-security-clear" type="button" class="pear-btn pear-btn-md">
+                                        清空输入
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+
+                    </div>
+
+                </div>
+            </div>
+
+            </div>
+        </div>
+
+
+        <script src="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/component/layui/layui.js?v=2.13.12'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>"></script>
+        <script src="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/component/pear/pear.js'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>"></script>
+        <script src="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/admin/js/permission.js'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>"></script>
+        <script>
+
+            layui.use(["form", "pearPopup"], function () {
+                let form = layui.form;
+                let $ = layui.$;
+                const baseForm = document.querySelector('#account-base-form');
+                const securityForm = document.querySelector('#account-security-form');
+                const baseKeys = ['nickname', 'email', 'mobile'];
+                let baseSnapshot = null;
+                function rememberBase(values) {
+                    baseSnapshot = Object.fromEntries(baseKeys.map(key => [key, String(values[key] ?? '')]));
+                    form.val('baseInfo', baseSnapshot);
+                    window.CmsUI.clean(baseForm);
+                    document.querySelector('#account-base-restore').disabled = false;
+                }
+                function clearSecurity() {
+                    securityForm.querySelectorAll('input[type="password"]').forEach(input => {input.value = ''; input.defaultValue = '';});
+                    window.CmsUI.clean(securityForm);
+                }
+                document.querySelector('#account-base-restore').addEventListener('click', async function () {
+                    if (!baseSnapshot || baseForm.dataset.cmsSubmitting === '1') return;
+                    const changed = baseKeys.some(key => String(baseForm.elements.namedItem(key).value) !== baseSnapshot[key]);
+                    if (changed && !await window.CmsUI.confirm('将放弃未保存的修改，恢复最近读取或保存的基本信息。', {title:'还原修改', confirmText:'还原修改', cancelText:'继续编辑'})) return;
+                    form.val('baseInfo', baseSnapshot);
+                    window.CmsUI.clean(baseForm);
+                });
+                document.querySelector('#account-security-clear').addEventListener('click', async function () {
+                    if (securityForm.dataset.cmsSubmitting === '1') return;
+                    const hasInput = Array.from(securityForm.querySelectorAll('input[type="password"]')).some(input => input.value !== '');
+                    if (hasInput && !await window.CmsUI.confirm('将清空尚未保存的密码输入。', {title:'清空输入', confirmText:'清空输入', cancelText:'继续编辑'})) return;
+                    clearSecurity();
+                    securityForm.querySelector('input[type="password"]')?.focus();
+                });
+                // 也阻止脚本/浏览器触发的原生 reset 清空已读取资料。
+                baseForm.addEventListener('reset', event => {event.preventDefault(); document.querySelector('#account-base-restore').click();});
+                securityForm.addEventListener('reset', event => {event.preventDefault(); document.querySelector('#account-security-clear').click();});
+                window.CmsUI.clean(securityForm);
+                $.ajax({
+                    url: "/app/admin/account/info",
+                    dataType: "json",
+                    error: function () {window.CmsUI.error(baseForm, '基本信息读取失败，请检查网络或登录状态后重试');},
+                    success: function (res) {
+                        if (res.code || !res.data || typeof res.data !== 'object') {
+                            window.CmsUI.error(baseForm, res.msg || '基本信息读取失败，请刷新后重试');
+                            return;
+                        }
+                        rememberBase(res.data);
+                    }
+                });
+
+                form.on("submit(saveBaseInfo)", function(data){
+                    var cmsForm=typeof data!=='undefined'&&data.form?data.form:document.querySelector('form');
+                    if(cmsForm.dataset.cmsSubmitting==='1')return false;
+                    cmsForm.dataset.cmsSubmitting='1';window.CmsUI.setBusy(cmsForm,true);
+                    $.ajax({
+                    error:function(){window.CmsUI.error(cmsForm,"保存失败，请检查网络或登录状态后重试");},
+                    complete:function(){delete cmsForm.dataset.cmsSubmitting;window.CmsUI.setBusy(cmsForm,false);},
+                        url: "/app/admin/account/update",
+                        dataType: "json",
+                        type: "POST",
+                        data: data.field,
+                        success: function (res) {
+                            if (res.code) {
+                                window.CmsUI.error(cmsForm,res.msg,res.fields||res.data?.fields);return false;
+                            }
+                            rememberBase(data.field);
+                            return layui.pearPopup.success("保存成功");
+                        }
+                    });
+                    return false;
+                });
+
+                form.on("submit(savePassword)", function(data){
+                    var cmsForm=typeof data!=='undefined'&&data.form?data.form:document.querySelector('form');
+                    if(cmsForm.dataset.cmsSubmitting==='1')return false;
+                    cmsForm.dataset.cmsSubmitting='1';window.CmsUI.setBusy(cmsForm,true);
+                    $.ajax({
+                    error:function(){window.CmsUI.error(cmsForm,"保存失败，请检查网络或登录状态后重试");},
+                    complete:function(){delete cmsForm.dataset.cmsSubmitting;window.CmsUI.setBusy(cmsForm,false);},
+                        url: "/app/admin/account/password",
+                        dataType: "json",
+                        type: "POST",
+                        data: data.field,
+                        success: function (res) {
+                            if (res.code) {
+                                window.CmsUI.error(cmsForm,res.msg,res.fields||res.data?.fields);return false;
+                            }
+                            clearSecurity();
+                            return layui.pearPopup.success("保存成功");
+                        }
+                    });
+                    return false;
+                });
+
+            });
+
+        </script>
+
+    </body>
+</html>

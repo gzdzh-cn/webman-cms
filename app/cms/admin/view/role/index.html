@@ -1,0 +1,427 @@
+﻿
+<!DOCTYPE html>
+<html lang="zh-cn">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width,initial-scale=1">
+        <title>角色权限</title>
+        <link rel="stylesheet" href="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/component/pear/css/pear.css'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>" />
+        <link rel="stylesheet" href="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/admin/css/reset.css'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>" />
+    <link rel="stylesheet" href="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/admin/css/cms-page-adapters.css?v=20261105-adapters1'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>">
+<link rel="stylesheet" href="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/admin/css/cms-module-navigation.css?v=20261106-basic2'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>"><script src="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/admin/js/cms-module-navigation.js?v=20261106-basic2'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>"></script>
+</head>
+    <body class="pear-container cms-page-adapted"><div data-cms-module-navigation></div>
+    
+        <!-- 顶部查询表单 -->
+        
+        
+        <!-- 数据表格 -->
+        <div class="layui-card cms-page-panel">
+            <div class="layui-card-body">
+                <table id="data-table" lay-filter="data-table"></table>
+            </div>
+        </div>
+
+        <!-- 表格顶部工具栏 -->
+        <script type="text/html" id="table-toolbar">
+            <button class="pear-btn pear-btn-primary pear-btn-xs cms-primary-action" lay-event="add" permission="app.admin.role.insert">
+                <i class="layui-icon layui-icon-add-1"></i>新增
+            </button>
+            <button class="pear-btn pear-btn-danger pear-btn-xs" lay-event="batchRemove" permission="app.admin.role.delete">
+                <i class="layui-icon layui-icon-delete"></i>删除
+            </button>
+            <button class="pear-btn pear-btn-normal pear-btn-xs" id="expand-fold-btn" lay-event="expandFold">
+                <i class="layui-icon layui-icon-shrink-right"></i><span class="btn-text">折叠</span>
+            </button>
+        </script>
+
+        <!-- 表格行工具栏 -->
+        <script type="text/html" id="table-bar">
+            {{# if(d.id!==1){ }}
+            <a class="pear-btn pear-btn-xs tool-btn" href="/app/admin/role/update?id={{ d.id }}&amp;lang=<?= htmlspecialchars(rawurlencode((string) request()->get('lang', '')), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>" permission="app.admin.role.update">编辑</a>
+            <button class="pear-btn pear-btn-xs tool-btn" lay-event="remove" permission="app.admin.role.delete">删除</button>
+            {{# } }}
+        </script>
+
+        <script src="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/component/layui/layui.js?v=2.13.12'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>"></script>
+        <script src="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/component/pear/pear.js'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>"></script>
+        <script src="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/admin/js/permission.js'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>"></script>
+        <script src="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/admin/js/common.js'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>"></script>
+        
+        <script>
+
+            // 相关常量
+            const PRIMARY_KEY = "id";
+            const SELECT_API = "/app/admin/role/select";
+            const UPDATE_API = "/app/admin/role/update";
+            const DELETE_API = "/app/admin/role/delete";
+            const INSERT_URL = "/app/admin/role/insert";
+            const UPDATE_URL = "/app/admin/role/update";
+            
+            // 表格渲染
+            layui.use(["table", "pearTreetable", "form", "pearCommon", "pearPopup", "util"], function() {
+                let treeTable = layui.pearTreetable;
+                let table = layui.table;
+                let form = layui.form;
+                let $ = layui.$;
+                let common = layui.pearCommon;
+                let util = layui.util;
+                // 树形表格展开/折叠状态（treeDefaultClose=false，初始为展开）
+                let isExpanded = true;
+                // 保存展开的节点 ID 集合（用于刷新后恢复部分展开状态）
+                let expandedNodeIds = new Set();
+
+                // 获取当前所有展开的节点 ID
+                function getExpandedNodeIds() {
+                    let ids = new Set();
+                    let $table = $('#data-table').next('.treeTable');
+                    if ($table.length > 0) {
+                        let openIcons = $table.find('.treeTable-icon.open');
+                        openIcons.each(function() {
+                            let nodeId = $(this).attr('lay-tid');
+                            if (nodeId) {
+                                ids.add(nodeId);
+                            }
+                        });
+                    }
+                    return ids;
+                }
+
+                // 展开指定的节点
+                function expandNodes(nodeIds) {
+                    if (!nodeIds || nodeIds.size === 0) {
+                        return;
+                    }
+                    let $table = $('#data-table').next('.treeTable');
+                    if ($table.length === 0) {
+                        return;
+                    }
+                    let attempts = 0;
+                    let maxAttempts = 10;
+                    let expandInterval = setInterval(function() {
+                        attempts++;
+                        let expanded = 0;
+                        $table.find('.treeTable-icon').each(function() {
+                            let $icon = $(this);
+                            let nodeId = $icon.attr('lay-tid');
+                            let ttype = $icon.attr('lay-ttype');
+                            let isOpen = $icon.hasClass('open');
+                            if (nodeId && nodeIds.has(nodeId) && ttype === 'dir' && !isOpen) {
+                                $icon.trigger('click');
+                                expanded++;
+                            }
+                        });
+                        if (expanded === 0 || attempts >= maxAttempts) {
+                            clearInterval(expandInterval);
+                        }
+                    }, 50);
+                }
+
+                // 更新展开/折叠按钮显示
+                function updateExpandFoldButton(expanded) {
+                    let $btn = $('#expand-fold-btn');
+                    let $icon = $btn.find('i');
+                    let $text = $btn.find('.btn-text');
+                    if (expanded) {
+                        $icon.removeClass('layui-icon-spread-left').addClass('layui-icon-shrink-right');
+                        $text.text('折叠');
+                    } else {
+                        $icon.removeClass('layui-icon-shrink-right').addClass('layui-icon-spread-left');
+                        $text.text('展开');
+                    }
+                }
+                
+				// 表头参数
+				let cols = [
+					{
+						type: "checkbox"
+					},{
+                        title: "角色组",
+                        field: "name",
+                        minWidth: 160,
+                    },{
+						title: "ID",
+						field: "id",
+					},{
+						title: "权限",
+						field: "rules",
+						templet: function (d) {
+							let field = "rules";
+							if (typeof d[field] == "undefined") return "";
+							let items = [];
+							layui.each((d[field] + "").split(","), function (k , v) {
+								items.push(apiResults[field][v] || v);
+							});
+							return util.escape(items.join(","));
+						},
+                        hide: true,
+					},{
+						title: "创建时间",
+						field: "created_at",
+					},{
+						title: "更新时间",
+						field: "updated_at",
+					},{
+						title: "父级",
+						field: "pid",
+						templet: function (d) {
+							let field = "pid";
+							if (typeof d[field] == "undefined") return "";
+							let items = [];
+							layui.each((d[field] + "").split(","), function (k , v) {
+								items.push(apiResults[field][v] || v);
+							});
+							return util.escape(items.join(","));
+						},
+                        hide: true,
+					},{
+						title: "操作",
+						toolbar: "#table-bar",
+						align: "center",
+                        minWidth: 120,
+					}
+				];
+				
+				// 渲染表格
+				function render()
+				{
+                    treeTable.render({
+                        elem: "#data-table",
+                        url: SELECT_API,
+                        treeColIndex: 1,
+                        treeIdName: "id",
+                        treePidName: "pid",
+                        treeDefaultClose: false,
+                        cols: [cols],
+                        skin: "line",
+                        size: "lg",
+                        page: false,
+                        id: "data-table",
+                        toolbar: "#table-toolbar",
+                        defaultToolbar: [{
+                            title: "刷新",
+                            layEvent: "refresh",
+                            icon: "layui-icon-refresh",
+                        }, "filter", "print", "exports"]
+                    });
+				}
+				
+				// 获取表格中下拉或树形组件数据
+				let apis = [];
+				apis.push(["rules", "/app/admin/rule/get?type=0,1,2"]);
+				apis.push(["pid", "/app/admin/role/select?format=tree"]);
+				let apiResults = {};
+				apiResults["rules"] = [];
+				apiResults["pid"] = [];
+				let count = apis.length;
+				layui.each(apis, function (k, item) {
+				    let [field, url] = item;
+				    $.ajax({
+				        url: url,
+				        dateType: "json",
+				        success: function (res) {
+                            if (res.code) {
+                                return layui.pearPopup.failure(res.msg);
+                            }
+				            function travel(items) {
+				                for (let k in items) {
+				                    let item = items[k];
+				                    apiResults[field][item.value] = item.name;
+				                    if (item.children) {
+				                        travel(item.children);
+				                    }
+				                }
+				            }
+				            travel(res.data);
+				        },
+				        complete: function () {
+				            if (--count === 0) {
+				                render();
+				            }
+				        }
+				    });
+				});
+				if (!count) {
+				    render();
+				}
+				
+                // 编辑或删除行事件
+                table.on("tool(data-table)", function(obj) {
+                    if (obj.event === "remove") {
+                        remove(obj);
+                    } else if (obj.event === "edit") {
+                        edit(obj);
+                    }
+                });
+
+                // 表格顶部工具栏事件
+                table.on("toolbar(data-table)", function(obj) {
+                    if (obj.event === "add") {
+                        add();
+                    } else if (obj.event === "refresh") {
+                        refreshTable();
+                    } else if (obj.event === "batchRemove") {
+                        batchRemove(obj);
+                    } else if (obj.event === "expandFold") {
+                        // 切换展开/折叠状态
+                        if (isExpanded) {
+                            treeTable.foldAll("#data-table");
+                            isExpanded = false;
+                            expandedNodeIds.clear();
+                            updateExpandFoldButton(false);
+                        } else {
+                            treeTable.expandAll("#data-table");
+                            isExpanded = true;
+                            expandedNodeIds.clear();
+                            updateExpandFoldButton(true);
+                        }
+                    }
+                });
+
+                // 表格顶部搜索事件
+                form.on("submit(table-query)", function(data) {
+                    table.reload("data-table", {
+                        page: {
+                            curr: 1
+                        },
+                        where: data.field
+                    })
+                    return false;
+                });
+                
+                // 表格顶部搜索重置事件
+                form.on("submit(table-reset)", function(data) {
+                    table.reload("data-table", {
+                        where: []
+                    })
+                });
+
+                // 表格排序事件
+                table.on("sort(data-table)", function(obj){
+                    table.reload("data-table", {
+                        initSort: obj,
+                        scrollPos: "fixed",
+                        where: {
+                            field: obj.field,
+                            order: obj.type
+                        }
+                    });
+                });
+
+                // 表格新增数据
+                let add = function() {
+                    const target = new URL(INSERT_URL, location.origin);
+                    const lang = new URLSearchParams(location.search).get('lang');
+                    if (lang) target.searchParams.set('lang', lang);
+                    location.assign(target.pathname + target.search);
+                }
+
+                // 表格编辑数据
+                let edit = function(obj) {
+                    let value = obj.data[PRIMARY_KEY];
+                    const target = new URL(UPDATE_URL, location.origin);
+                    target.searchParams.set(PRIMARY_KEY, value);
+                    const lang = new URLSearchParams(location.search).get('lang');
+                    if (lang) target.searchParams.set('lang', lang);
+                    location.assign(target.pathname + target.search);
+                }
+
+                // 删除一行
+                let remove = function(obj) {
+                    return doRemove(obj.data[PRIMARY_KEY]);
+                }
+
+                // 删除多行
+                let batchRemove = function(obj) {
+                    let checkIds = common.checkField(obj, PRIMARY_KEY);
+                    if (checkIds === "") {
+                        layui.pearPopup.warning("未选中数据");
+                        return false;
+                    }
+                    doRemove(checkIds.split(","));
+                }
+
+                // 执行删除
+                let doRemove = function (ids) {
+                    let data = {};
+                    data[PRIMARY_KEY] = ids;
+                    window.CmsUI.confirm("确认删除所选角色？已分配该角色的账号可能受到影响，请先核对。", {title: "删除角色", danger: true, confirmText: "确认删除"}).then(function(approved) {
+                        if (!approved) return;
+                        let loading = layer.load();
+                        $.ajax({
+                            url: DELETE_API,
+                            data: data,
+                            dataType: "json",
+                            type: "post",
+                            success: function(res) {
+                                layer.close(loading);
+                                if (res.code) {
+                                    return layui.pearPopup.failure(res.msg);
+                                }
+                                return layui.pearPopup.success("操作成功", refreshTable);
+                            },
+                            error: function() { layui.pearPopup.failure("请求失败，请稍后重试"); },
+                            complete: function() { layer.close(loading); }
+                        })
+                    });
+                }
+
+                // 刷新表格数据
+                // 监听节点展开/折叠事件，更新展开节点集合
+                $(document).on('click', '.treeTable .treeTable-icon', function() {
+                    setTimeout(function() {
+                        let $table = $('#data-table').next('.treeTable');
+                        if ($table.length > 0) {
+                            let totalDirs = $table.find('.treeTable-icon[lay-ttype="dir"]').length;
+                            let openDirs = $table.find('.treeTable-icon[lay-ttype="dir"].open').length;
+                            expandedNodeIds = getExpandedNodeIds();
+                            let allExpanded = (totalDirs > 0 && openDirs === totalDirs);
+                            if (allExpanded) {
+                                expandedNodeIds.clear();
+                                isExpanded = true;
+                            } else {
+                                isExpanded = false;
+                            }
+                            updateExpandFoldButton(isExpanded);
+                        }
+                    }, 50);
+                });
+
+                // 刷新表格数据（保持展开状态）
+                window.refreshTable = function() {
+                    let wasExpanded = isExpanded;
+                    let savedExpandedNodeIds = getExpandedNodeIds();
+                    treeTable.reload("#data-table");
+                    setTimeout(function() {
+                        if (wasExpanded) {
+                            treeTable.expandAll("#data-table");
+                            isExpanded = true;
+                            expandedNodeIds.clear();
+                            updateExpandFoldButton(true);
+                        } else if (savedExpandedNodeIds.size > 0) {
+                            expandedNodeIds = savedExpandedNodeIds;
+                            expandNodes(expandedNodeIds);
+                            setTimeout(function() {
+                                let $table = $('#data-table').next('.treeTable');
+                                if ($table.length > 0) {
+                                    let totalDirs = $table.find('.treeTable-icon[lay-ttype="dir"]').length;
+                                    let openDirs = $table.find('.treeTable-icon[lay-ttype="dir"].open').length;
+                                    isExpanded = (totalDirs > 0 && openDirs === totalDirs);
+                                    if (isExpanded) {
+                                        expandedNodeIds.clear();
+                                    }
+                                    updateExpandFoldButton(isExpanded);
+                                }
+                            }, 200);
+                        } else {
+                            isExpanded = false;
+                            expandedNodeIds.clear();
+                            updateExpandFoldButton(false);
+                        }
+                    }, 50);
+                }
+            })
+
+        </script>
+    </body>
+</html>

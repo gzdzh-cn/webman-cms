@@ -1,0 +1,37 @@
+[
+    {
+        "source": "application/function.php",
+        "sha256": "a14fffb4f44f35cb090da087228387502bc98576f43d40a2f4311ab00bb062af",
+        "target": "function.php"
+    },
+    {
+        "source": "application/common.php",
+        "sha256": "f9b9b7f45794c8d1c45e626dcbb862cfa75c18c0bb938d736e8ae547862a3a97",
+        "target": "common.php"
+    },
+    {
+        "source": "application/helper.php",
+        "sha256": "af4d1af72ffd5b6edc9be246062e7ea10e3ba26a51d1cab6b856ad33e36e680a",
+        "target": "helper.php"
+    },
+    {
+        "source": "application/home/common.php",
+        "sha256": "c5149f9d56272c78578d353edfeeb0bba0ae9b9aeca6eead0a6ca2d84202f11b",
+        "target": "home.php"
+    },
+    {
+        "source": "core/helper.php",
+        "sha256": "1b4501b120821d2e3551c211cb3b5aa37464ba219762dfdf6449c7aeabf355c2",
+        "target": "core.php"
+    },
+    {
+        "source": "extend/function.php",
+        "sha256": "dacbab35efc2cf0885b9ca7241d0509dfe04e9650bbed21f1558b92302a6ef2c",
+        "target": "custom.php"
+    },
+    {
+        "source": "application/extra/global.php",
+        "sha256": "9cf7bf9fa69e98c4492d4e60a5179744191a8d06768d796d1a87b1b8c85055cb",
+        "target": "global.php"
+    }
+]

@@ -1,0 +1,91 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>售后订单-{eyou:global name='web_name' /}</title>
+        <meta name="renderer" content="webkit">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport" />
+        <link href="{eyou:global name='web_cmspath'/}/favicon.ico" rel="shortcut icon" type="image/x-icon" />
+        {eyou:static file="users/skin/css/bootstrap.min.css"/}
+        {eyou:static file="users/skin/css/basic.css"/}
+        {eyou:static file="users/skin/css/eyoucms.css"/}
+        {eyou:static file="users/skin/css/element/index.css" /}
+        {eyou:static file="users/skin/css/e-user.css" /}
+        {eyou:include file="users/skin/css/diy_css.htm"/}
+        {eyou:static file="/public/static/common/js/jquery.min.js"/}
+        {eyou:static file="/public/plugins/layer-v3.1.0/layer.js"/}
+        {eyou:static file="/public/static/common/js/tag_global.js"/}
+        {eyou:static file="/public/static/common/js/mobile_global.js"/}
+    </head>
+
+    <body>
+        <div class="ey-header-status">
+            <div class="header-status-l"><a href="{eyou:url link='user/Users/index'/}"><i class="el-icon-arrow-left"></i></a></div>
+            <div class="header-status-m">售后</div> 
+            <div class="header-status-r">
+                <a href="{eyou:url link='user/Shop/shop_cart_list'/}" class="cart-item" style="margin-left: auto;"> <i class="el-icon-shopping-cart-2"></i></a>
+            </div>
+        </div>
+        <div class="h50"></div>
+
+        <div class="ey-container">
+            <div class="ey-con">
+                <div class="ey-row pd0">
+                    <div class="el-col-24 oper-row" >
+                        {eyou:spstatus id="field3"}
+                        <div class="el-button-group z_roll">
+                            <a class="el-button el-button--default el-button--small {if empty($field3.select_status) && $field3.access_action == 'shop_centre'}active{/if}" data-toggle="tab" href="{eyou:url link='user/Shop/shop_centre'/}"> 全部 </a>
+                            <a class="el-button el-button--default el-button--small {eq name='$field3.select_status' value='dzf'}active{/eq}" data-toggle="tab" href="{eyou:url link='user/Shop/shop_centre' vars='select_status=dzf'/}"> 待付款 </a>
+                            <a class="el-button el-button--default el-button--small {eq name='$field3.select_status' value='2'}active{/eq}" data-toggle="tab" href="{eyou:url link='user/Shop/shop_centre' vars='select_status=2'/}"> 待收货 </a>
+                            <a class="el-button el-button--default el-button--small {eq name='$field3.select_status' value='3'}active{/eq}" data-toggle="tab" href="{eyou:url link='user/Shop/shop_centre' vars='select_status=3'/}"> 已完成 </a>
+                            {gt name='$php_servicemeal' value='1'}
+                            <a class="el-button el-button--default el-button--small {if empty($field3.select_status) && $field3.access_action == 'after_service'} active {/if}" data-toggle="tab" href="{eyou:url link='user/Shop/after_service'/}"> 售后 </a>
+                            {/gt}
+                        </div>
+                        {/eyou:spstatus}
+                    </div>
+                </div>
+            </div>
+
+            <div class="el-col-24 clearfix" >
+                {eyou:empty name="$eyou.field.service"}
+                <div class="ey-row min-hg-c-102 flex flex-center">
+                    <div class="tc mt-50">
+                        <p class=""><img id='litpic_img' src="{eyou:static file='users/skin/images/null-data.png' /}"/></p>
+                    </div>
+                </div>
+                {eyou:else/}
+                <div class="goods-con">
+                    {eyou:volist name="eyou.field.service" id="field"}
+                    <div class="goods-item mb10 bor-5">
+                        <div class="item-top">
+                            <div class="item-top-l">订单号：<a href="{$field.OrDetailsUrl}">{$field.order_code}</a></div>
+                            <div class="item-top-r"><a href="{$field.SeDetailsUrl}">查看详情</a></div>
+                        </div>
+                        <div class="item-main">
+                            <div class="item-con">
+                                <div class="item-con-l"><a href="{$field.ArchivesUrl}" class="pro-pic"> <img src="{$field.product_img}"> </a></div>
+                                <div class="item-con-m"> 
+                                    <a href="{$field.ArchivesUrl}">{$field.product_name}</a> 
+                                    <div class="f12 fc9">{eyou:volist name='$field.product_spec_list' id='spec'}{$spec.value}&nbsp;{/eyou:volist}</div>
+                                    <div class="price-info mt5">
+                                        <span class="users_price"><i class="f12">￥</i>{$field.refund_price}</span>
+                                        <span class="product_num"><i class="f12">x</i>{$field.product_num}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="item-bottom">
+                            <div class="item-bottom-l">售后类型：<span>{$field.service_type}</span></div>
+                            <div class="item-bottom-r">售后状态：<span {eyou:if condition='in_array($field.status_old, $eyou.statusArrEd)'} style='color: #b0b0b0;' {eyou:else/} style='color: red;' {/eyou:if}>{$field.status}</span></div>
+                        </div>
+                    </div>
+                    {/eyou:volist}
+                    <div class="dataTables_paginate "><ul class="pagination">{$eyou.field.pageStr}</ul></div>
+                {/eyou:empty}
+                </div>
+            </div>
+        </div>
+    </body>
+</html>

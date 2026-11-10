@@ -1,0 +1,15 @@
+{
+  "name": "Webman CMS Admin",
+  "version": "2026.11.07",
+  "upstream": {
+    "package": "webman/admin",
+    "version": "2.1.7",
+    "source_reference": "44a6158fbac2475edca92d3fc0108221a93373b5",
+    "source_url": "https://github.com/webman-php/admin.git",
+    "license": "MIT",
+    "license_file": "app/cms/resources/licenses/webman-admin-MIT.txt",
+    "license_sha256": "54ee155458f5cf6041b5d8c8715dd461dfb19418826a912e536c92d7a3317ec4"
+  },
+  "application_compatibility_version": "0.6.33",
+  "maintenance": "Application-owned CMS backend; Composer package removed; legacy class identities retained by explicit PSR-4 mapping."
+}

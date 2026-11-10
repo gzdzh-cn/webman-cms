@@ -1,0 +1,8 @@
+{
+  "name": "Webman 官方默认模板",
+  "description": "以连接创造价值。现代企业科技风格，包含响应式电脑与手机页面、产品展示、新闻资讯、品牌介绍、联系与留言。",
+  "version": "2.0.0",
+  "template_mode": "webman",
+  "thumbnail": "thumbnail.png",
+  "author": "Webman CMS 项目"
+}

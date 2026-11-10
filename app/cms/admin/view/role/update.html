@@ -1,0 +1,193 @@
+<?php
+$cmsRoleCreating = ($cmsRoleCreating ?? false) === true;
+// Display names only: permission identities, IDs and saved grants remain unchanged.
+$cmsRolePermissionLabels = [];
+$cmsRolePermissionModules = [
+    'Account' => '个人资料', 'Ad' => '广告', 'Admin' => '管理员', 'Adposition' => '广告位置',
+    'Archive' => '文章', 'Arctype' => '栏目', 'Channelfield' => '自定义字段', 'Channeltype' => '内容模型',
+    'Citysite' => '城市分站', 'CmsData' => '后台记录', 'Config' => '后台外观', 'Dev' => '开发工具',
+    'Dict' => '数据字典', 'Downloadfile' => '下载附件', 'Emailtemplate' => '邮件模板', 'Faq' => '常见问题',
+    'Filemanager' => '模板文件', 'Form' => '表单', 'Formfield' => '表单字段', 'Globalvariable' => '自定义变量',
+    'Guestbook' => '留言', 'Index' => '工作台', 'Language' => '语言', 'Languagepack' => '本地语言包',
+    'Links' => '友情链接', 'Linksgroup' => '友情链接分组', 'Mediafile' => '视频附件',
+    'Navigation' => '网站导航', 'Navigationposition' => '导航位置', 'Operationlog' => '操作日志',
+    'Plugin' => '插件', 'Productparameter' => '产品参数', 'Recycle' => '回收站', 'Role' => '角色',
+    'Rule' => '菜单权限', 'Searchword' => '搜索词', 'Seo' => 'SEO设置', 'Sitemap' => '网站地图',
+    'Smsconfig' => '短信配置', 'Smslog' => '短信记录', 'Smstemplate' => '短信模板',
+    'Specialnode' => '专题节点', 'Staticgenerate' => '静态页面', 'Table' => '数据库表',
+    'Tags' => 'TAG标签', 'Uiset' => '可视化区域（已停用）', 'Upload' => '附件', 'User' => '用户',
+    'Websiteconfig' => '网站设置',
+];
+$cmsRolePermissionVerbs = [
+    'index' => '访问%s页面', 'select' => '查看%s列表', 'list' => '查看%s列表', 'detail' => '查看%s详情',
+    'insert' => '新增%s', 'create' => '新增%s', 'update' => '编辑%s', 'edit' => '编辑%s', 'modify' => '修改%s',
+    'save' => '保存%s', 'delete' => '删除%s', 'get' => '读取%s', 'read' => '读取%s内容',
+    'settings' => '读取%s配置', 'saveSettings' => '保存%s配置', 'configure' => '保存%s',
+    'preview' => '预览%s', 'export' => '导出%s', 'import' => '导入%s', 'restore' => '恢复%s',
+    'recycle' => '回收%s', 'purge' => '永久删除%s', 'updateStatus' => '修改%s状态',
+];
+$cmsRolePermissionActions = [
+    'Account' => ['info' => '查看个人资料', 'password' => '修改个人密码', 'avatar' => '修改个人头像', 'login' => '登录后台', 'logout' => '退出登录', 'captcha' => '读取登录验证码'],
+    'Archive' => ['view' => '预览文章', 'move' => '批量移动文档', 'singlePage' => '编辑单页正文', 'getContent' => '读取文档正文', 'getCommonTags' => '读取常用TAG标签', 'updateStatus' => '修改文档发布状态'],
+    'Arctype' => ['base' => '编辑栏目常规设置', 'advanced' => '编辑栏目高级设置', 'getTemplates' => '选择栏目模板'],
+    'Channelfield' => ['categoryFields' => '读取栏目自定义字段', 'ajaxGetRegionData' => '读取地区选项', 'getArctypeList' => '选择关联栏目', 'getFieldTypeList' => '读取字段类型', 'tagCall' => '查看字段调用标签'],
+    'Config' => ['get' => '读取后台外观配置'],
+    'Dev' => ['formBuild' => '生成表单代码'],
+    'Faq' => ['detail' => '查看分组问答', 'save' => '保存分组及问答', 'delete' => '永久删除分组及问答'],
+    'Filemanager' => ['themes' => '查看主题列表', 'activate' => '启用主题', 'select' => '查看模板目录', 'read' => '读取模板源文件', 'edit' => '编辑模板源文件（含JS）', 'newfile' => '新建模板源文件（含JS）', 'replace_img' => '替换模板图片'],
+    'Globalvariable' => ['groups' => '查看变量分组', 'groupSave' => '保存变量分组', 'groupDelete' => '删除变量分组'],
+    'Index' => ['dashboard' => '查看工作台', 'featuremap' => '查看功能地图'],
+    'Language' => ['state' => '读取语言状态', 'toggle' => '开启或关闭多语言', 'switch' => '切换后台编辑语言', 'settings' => '读取或保存多语言配置', 'preview' => '预检内容同步范围', 'sync' => '同步新文档', 'reset' => '全部同步文档', 'jobs' => '查看内容同步记录', 'associations' => '查看栏目关联', 'associate' => '保存栏目关联', 'restore' => '恢复同步前的内容', 'delete' => '永久删除语言及企业数据'],
+    'Languagepack' => ['batch' => '批量新增语言变量', 'preview' => '预览JSON导入差异', 'import' => '导入JSON语言包', 'export' => '导出JSON语言包', 'supplement' => '补齐缺失语言变量', 'rebuild' => '重建语言缓存', 'remoteCheck' => '旧联网语言包接口（已停用）', 'remoteSingle' => '旧单语言下载接口（已停用）', 'remoteList' => '旧语言包列表接口（已停用）'],
+    'Plugin' => ['getInstalledPlugins' => '查看已安装插件', 'install' => '安装插件', 'uninstall' => '卸载插件'],
+    'Productparameter' => ['metadata' => '读取参数定义及分组', 'product' => '读取产品参数值', 'saveDefinition' => '保存参数定义', 'saveGroup' => '保存参数组', 'saveProduct' => '保存产品参数值', 'recycle' => '回收旧参数定义', 'restore' => '恢复旧参数定义', 'purge' => '永久删除参数及值'],
+    'Role' => ['rules' => '读取可分配权限', 'languagescope' => '读取或保存角色语言范围'],
+    'Rule' => ['permission' => '读取当前账号权限'],
+    'Sitemap' => ['generate' => '生成网站地图', 'clean' => '清理受管网站地图'],
+    'Specialnode' => ['topics' => '选择专题', 'choices' => '选择专题文档', 'delete' => '永久删除专题节点'],
+    'Staticgenerate' => ['status' => '读取静态生成进度', 'start' => '创建静态生成任务', 'step' => '执行静态生成任务', 'clean' => '清理受管静态页面'],
+    'Table' => ['schema' => '查看数据库表结构', 'crud' => '生成模块代码', 'drop' => '删除数据库表', 'clear' => '清空数据库表'],
+    'Upload' => ['image' => '上传图片', 'file' => '上传文件', 'attachment' => '选择附件', 'types' => '读取附件类型'],
+    'Uiset' => ['select' => '读取可视化编辑区域（已停用）', 'save' => '保存可视化编辑区域（已停用）'],
+];
+foreach (\plugin\admin\app\model\Rule::query()->get(['id', 'key', 'title']) as $cmsRolePermissionRule) {
+    $cmsRolePermissionTitle = (string)($cmsRolePermissionRule->title ?? '');
+    // Preserve meaningful existing Chinese labels, including administrator custom wording.
+    if (preg_match('/\p{Han}/u', $cmsRolePermissionTitle)) continue;
+    $cmsRolePermissionKey = (string)$cmsRolePermissionRule->key;
+    if (!preg_match('/^plugin\\\\admin\\\\app\\\\controller\\\\([A-Za-z][A-Za-z0-9_]*)Controller(?:@([A-Za-z][A-Za-z0-9_]*))?$/', $cmsRolePermissionKey, $cmsRolePermissionParts)) continue;
+    $cmsRolePermissionModule = $cmsRolePermissionParts[1];
+    if (!isset($cmsRolePermissionModules[$cmsRolePermissionModule])) continue;
+    $cmsRolePermissionAction = $cmsRolePermissionParts[2] ?? '';
+    $cmsRolePermissionLabel = $cmsRolePermissionAction === '' ? $cmsRolePermissionModules[$cmsRolePermissionModule] : ($cmsRolePermissionActions[$cmsRolePermissionModule][$cmsRolePermissionAction] ?? null);
+    if ($cmsRolePermissionLabel === null && isset($cmsRolePermissionVerbs[$cmsRolePermissionAction])) {
+        $cmsRolePermissionLabel = sprintf($cmsRolePermissionVerbs[$cmsRolePermissionAction], $cmsRolePermissionModules[$cmsRolePermissionModule]);
+    }
+    if ($cmsRolePermissionLabel !== null) $cmsRolePermissionLabels[(string)$cmsRolePermissionRule->id] = $cmsRolePermissionLabel;
+}
+?>
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title><?= $cmsRoleCreating ? '新增角色' : '编辑角色' ?> · 角色权限</title>
+<link rel="stylesheet" href="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/component/pear/css/pear.css'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>">
+<script src="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/admin/js/cms-module-navigation.js'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>"></script>
+<style>
+body.role-editor{margin:0;background:#f4f6f9;color:#344054;font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}.role-editor *{box-sizing:border-box}.role-editor [hidden]{display:none!important}.role-editor button,.role-editor input,.role-editor select{font:inherit}.role-editor button,.role-editor select{cursor:pointer}.role-editor button,.role-editor .role-back{border:1px solid #dce3ed;background:#fff;color:#526174;border-radius:5px;min-height:34px;padding:6px 12px;white-space:nowrap}.role-editor button:hover,.role-editor .role-back:hover{border-color:#93b4f2;color:#2866d8;background:#f7faff}.role-editor button:disabled{opacity:.5;cursor:not-allowed}.role-editor :focus-visible{outline:2px solid #4a85ea;outline-offset:3px}.role-editor input[type=checkbox]{appearance:auto;width:15px;height:15px;flex:none;margin:0;accent-color:#3677df;cursor:pointer}.role-editor input[type=checkbox]:disabled{cursor:default}.role-editor .primary{background:#3677df;border-color:#3677df;color:#fff}.role-editor .primary:hover{background:#2868cd;color:#fff;border-color:#2868cd}.role-shell{padding:20px;max-width:1800px;margin:auto}.role-header{display:flex;align-items:center;gap:12px;margin-bottom:16px}.role-editor .role-back{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;padding:0;flex:none;text-decoration:none}.role-back svg{width:18px;height:18px}.role-header h1{font-size:18px;color:#253248;font-weight:600;margin:0}.role-subtitle{color:#8590a2;font-size:12px;margin:3px 0 0}.role-header .role-id{margin-left:auto;border:1px solid #e0e7f1;background:#edf2f9;border-radius:4px;color:#7d8a9d;padding:3px 8px;font-size:12px}.role-grid{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:16px;align-items:start}.role-main{min-width:0}.role-card{border:1px solid #e4e9f1;border-radius:8px;background:#fff;padding:18px;margin-bottom:16px}.role-card h2{font-size:14px;color:#2c3b50;font-weight:600;margin:0}.role-card-heading{display:flex;align-items:center;gap:12px;justify-content:space-between;margin-bottom:16px}.role-meta{display:grid;grid-template-columns:1fr 1fr;gap:16px}.role-field{display:flex;flex-direction:column;gap:7px;font-size:13px;color:#66758a}.role-field em{font-style:normal;color:#dc5a58;margin-right:3px}.role-field input,.role-field select,.role-search{border:1px solid #dbe2ed;border-radius:5px;color:#344054;padding:7px 10px;min-height:36px;background:#fff;max-width:100%;width:100%;min-width:0}.role-card .hint{font-size:12px;color:#8793a5;line-height:1.7;margin:8px 0 0}.role-name-preview{color:#6d7e94;font-size:12px;max-width:50%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.role-tools{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:14px}.role-search{flex:1;min-width:150px;max-width:300px}.role-tools button{font-size:12px;padding:5px 10px;min-height:32px}.role-selection{color:#748299;font-size:12px;white-space:nowrap}.permission-group{margin-top:12px;border:1px solid #e5eaf2;border-radius:6px;overflow:hidden}.permission-group>summary{list-style:none;display:flex;align-items:center;gap:10px;background:#f8fafd;padding:10px 12px;cursor:pointer;user-select:none}.permission-group>summary::-webkit-details-marker{display:none}.permission-group>summary:before{content:'›';font-size:20px;line-height:16px;color:#9ba8bc;transform:rotate(0deg);transition:transform .15s}.permission-group[open]>summary:before{transform:rotate(90deg)}.permission-group summary .permission-label{font-weight:600;color:#45556c}.permission-group .group-count{font-size:12px;color:#92a0b2;margin-left:auto;white-space:nowrap}.permission-label{display:inline-flex;align-items:center;gap:7px;font-size:13px;max-width:100%;line-height:22px;word-break:break-word;cursor:pointer}.permission-body{padding:3px 14px 10px}.permission-module{padding:11px 0;border-bottom:1px dashed #edf0f5}.permission-module:last-child{border-bottom:0}.permission-module>.permission-label{font-weight:500;color:#52647d}.permission-leaves{display:flex;flex-wrap:wrap;gap:7px 18px;margin:7px 0 0 22px}.permission-leaves>.permission-module{width:100%;padding:4px 0;border:0}.permission-leaves .permission-label{color:#7a879a;font-size:12px}.permission-body>.permission-label{margin:10px 16px 0 0}.permission-empty{padding:26px 12px;text-align:center;color:#94a0b1}.role-footer{position:sticky;bottom:0;z-index:2;background:#ffffffed;backdrop-filter:blur(8px);border:1px solid #e4e9f1;border-radius:7px;padding:12px 16px;display:flex;align-items:center;gap:8px}.role-footer .role-footer-note{font-size:12px;color:#8b98aa;margin-right:auto}.role-side{position:sticky;top:16px;min-width:0}.role-side .role-card{padding:16px}.role-language-list{display:flex;flex-direction:column;gap:10px;max-height:300px;overflow:auto;margin:16px 0}.role-language-list label{display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px}.role-language-list small{color:#97a3b4;margin-left:auto}.role-side .role-mini-actions{display:flex;gap:8px;flex-wrap:wrap}.role-side .role-mini-actions button{font-size:12px;min-height:32px;padding:5px 10px}.role-side .role-scope-note{font-size:12px;color:#7e8da1;line-height:1.8;padding-top:14px;margin-top:14px;border-top:1px solid #edf0f5}.role-side .role-scope-note strong{display:block;color:#60728b;font-weight:500;margin-bottom:3px}.role-feedback{font-size:13px;color:#287c55;overflow-wrap:anywhere;outline:0}.role-feedback:not(:empty){margin:12px 0}.role-feedback.error{color:#ce4d4d}.role-nav-notice .cms-module-notice{color:#b7791f;font-size:13px;margin:8px 0 14px}.role-nav-notice:empty{display:none}.role-loading{font-size:13px;color:#8392a7;padding:26px 0}.role-card .role-super-note{color:#9c702d;background:#fff8e9;border:1px solid #f4e6c9;padding:9px 12px;border-radius:5px;font-size:12px;margin:0 0 14px}
+@media(min-width:1600px){.role-grid{grid-template-columns:minmax(0,1fr) 300px}}@media(max-width:1050px){.role-grid{grid-template-columns:minmax(0,1fr) 250px}.role-shell{padding:16px}.role-tools .role-selection{width:100%}}@media(max-width:760px){.role-shell{padding:12px}.role-header{margin-bottom:12px}.role-header h1{font-size:16px}.role-subtitle{font-size:11px}.role-grid{display:flex;flex-direction:column;gap:0}.role-main,.role-side{width:100%}.role-side{position:static}.role-side .role-card{margin-bottom:12px}.role-side .role-language-list{flex-direction:row;flex-wrap:wrap;gap:8px 14px;margin:12px 0}.role-language-list small{margin-left:2px}.role-side .role-scope-note{display:none}.role-meta{grid-template-columns:1fr;gap:12px}.role-card{padding:14px;margin-bottom:12px}.role-card-heading{margin-bottom:12px}.role-name-preview{max-width:45%}.role-tools{gap:6px}.role-tools .role-search{max-width:none;flex-basis:100%}.role-footer{padding:10px;flex-wrap:wrap;gap:6px}.role-footer .role-footer-note{width:100%;margin:0 0 3px}.role-footer button{font-size:12px;padding:6px 10px}.permission-group>summary{padding:9px 10px;gap:6px}.permission-body{padding:2px 10px 8px}.permission-leaves{margin-left:18px;gap:8px 14px}.permission-group .group-count{font-size:11px}}@media(prefers-reduced-motion:reduce){.permission-group>summary:before{transition:none}}
+</style>
+</head>
+<body class="role-editor" data-role-create="<?= $cmsRoleCreating ? '1' : '0' ?>">
+<div class="role-shell">
+<header class="role-header"><a href="/app/admin/role/index" class="role-back" aria-label="返回角色列表" title="返回角色列表" data-role-back><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m14 6-6 6 6 6"/></svg></a><div><h1><?= $cmsRoleCreating ? '新增角色' : '编辑角色' ?></h1><p class="role-subtitle">角色信息、功能权限、栏目与语言范围</p></div><span class="role-id" id="role-id"></span></header>
+<div data-cms-module-navigation class="role-nav-notice"></div>
+<p id="page-status" class="role-feedback" role="status" aria-live="polite" tabindex="-1"></p>
+<div class="role-grid">
+<main class="role-main">
+<form id="role-form" autocomplete="off">
+<section class="role-card" aria-labelledby="role-info-title"><div class="role-card-heading"><h2 id="role-info-title">角色信息</h2><span id="role-name-preview" class="role-name-preview"></span></div><div class="role-meta"><label class="role-field"><span><em>*</em>角色名称</span><input name="name" id="role-name" maxlength="255" required disabled placeholder="请输入角色名称"></label><label class="role-field"><span><em>*</em>父级角色</span><select name="pid" id="role-parent" disabled aria-describedby="parent-note"><option value="">读取中…</option></select></label></div><p class="hint" id="parent-note">功能权限受父级角色约束；调整父级后，请核对可选权限。</p></section>
+<section class="role-card" aria-labelledby="permission-title"><div class="role-card-heading"><h2 id="permission-title">功能权限</h2><span id="selection-count" class="role-selection">正在读取…</span></div><p class="role-super-note" id="super-note" hidden>超级管理员拥有全部功能权限，权限与父级不可在此调整。</p><div class="role-tools" data-cms-filter><input type="search" id="permission-search" class="role-search" aria-label="搜索功能权限" placeholder="搜索权限，例如文章、SEO、上传"><button type="button" id="select-all" disabled>全选</button><button type="button" id="clear-all" disabled>清空</button><button type="button" id="invert" disabled>反选</button><button type="button" id="expand-all" disabled>展开全部</button><button type="button" id="fold-all" disabled>收起全部</button></div><div id="permission-groups"><p class="role-loading">正在读取角色与权限…</p></div><p class="permission-empty" id="permission-empty" hidden>没有匹配的功能权限</p><p class="hint">勾选组名可全选或取消整组；部分权限选中时显示半选状态。</p></section>
+<footer class="role-footer"><span id="save-note" class="role-footer-note">角色信息与功能权限一并保存</span><button type="submit" id="save-role" class="primary" disabled>保存角色</button><button type="button" id="reset-role" disabled>恢复已保存</button><button type="button" data-role-back>返回列表</button></footer>
+</form>
+</main>
+<aside class="role-side"><section class="role-card" aria-labelledby="language-title"><div class="role-card-heading"><h2 id="language-title">可管理语言</h2><span class="role-selection" id="language-count"></span></div><form id="language-form" <?= $cmsRoleCreating ? 'hidden' : '' ?>><div id="cms-role-languages" class="role-language-list"><?= $cmsRoleCreating ? '保存角色后可设置语言范围' : '正在读取语言范围…' ?></div><div class="role-mini-actions"><button type="submit" id="cms-role-languages-save" class="primary" disabled>保存语言范围</button><button type="button" id="reset-languages" disabled>恢复选择</button></div></form><?php if ($cmsRoleCreating): ?><p class="hint">新角色的初始语言范围按父级和当前账号的可管理范围建立。创建后可在编辑页面进一步调整。</p><?php endif; ?><p id="cms-role-languages-status" class="role-feedback" role="status" aria-live="polite"></p><p class="hint">语言范围单独保存，功能权限仍需同时满足；子角色不能超出父级和当前账号的语言范围。</p><div class="role-scope-note"><strong>设置说明</strong>功能权限与语言范围分别保存；调整父级后，请先保存角色，再设置语言范围。</div></section></aside>
+</div>
+</div>
+<template id="content-scope-card"><section class="role-card" aria-labelledby="content-scope-title"><div class="role-card-heading"><h2 id="content-scope-title">栏目与文档范围</h2></div><form id="content-scope-form" <?= $cmsRoleCreating ? 'hidden' : '' ?>><div id="content-scope-fields">正在读取内容范围…</div><div class="role-mini-actions"><button type="submit" id="save-content-scope" class="primary" disabled>保存内容范围</button><button type="button" id="reset-content-scope" disabled>恢复选择</button></div></form><?php if ($cmsRoleCreating): ?><p class="hint">保存角色后可细化栏目和本人文档范围，初始范围不会超出父级或当前账号。</p><?php endif; ?><p id="content-scope-status" class="role-feedback" role="status" aria-live="polite"></p><p class="hint">两组范围合并生效。指定栏目按所选栏目本身授权，不自动包含未来新增的子栏目；功能权限与语言范围仍须同时满足。</p><p class="hint">仅本人限制文档及其附件、参数和预览。栏目结构修改如涉及其他人的文档，会被拒绝。</p></section></template>
+<style>.role-side .content-scope-group{border:0;border-top:1px solid #e5eaf1;padding:14px 0;margin:0;min-width:0}.content-scope-group legend{font-size:13px;font-weight:600;padding:0 0 8px}.content-scope-group select{width:100%;min-height:36px;border:1px solid #d8e0e9;border-radius:5px;padding:6px;background:white}.content-scope-categories{display:grid;gap:8px;max-height:220px;overflow:auto;padding:12px 0}.content-scope-categories label{display:flex;align-items:flex-start;gap:7px;overflow-wrap:anywhere}.content-scope-categories input{flex:0 0 auto;margin-top:3px}.content-scope-categories small{color:#64748b}.content-scope-categories[hidden]{display:none!important}</style>
+<script>
+(function(){
+'use strict';
+document.querySelector('.role-side').append(document.getElementById('content-scope-card').content.cloneNode(true));
+const $=id=>document.getElementById(id),roleForm=$('role-form'),languageForm=$('language-form'),contentForm=$('content-scope-form'),parent=$('role-parent'),name=$('role-name');
+const creating=document.body.dataset.roleCreate==='1';
+const permissionNames=<?= json_encode($cmsRolePermissionLabels, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE) ?>;
+const permissionTitle=item=>permissionNames[String(item.value)]??String(item.name??item.value);
+const params=new URLSearchParams(location.search),id=creating?'':params.get('id')||'',lang=params.get('lang'),back='/app/admin/role/index'+(lang?'?'+new URLSearchParams({lang}):'');
+let role=null,parents=[],selected=new Set(),available=new Map(),groups=[],boxes=new Map(),branchRows=[],savedRole='',savedLanguages='',scope=null,returning=false,busy=false,loading=false,languageBusy=false,rulesBusy=false,ruleRevision=0,leaveApproved=false,currentParent='',superRole=false,contentScope=null,contentBusy=false,savedContent='';
+const node=(tag,text,className)=>{const element=document.createElement(tag);if(text!==undefined)element.textContent=text;if(className)element.className=className;return element};
+function status(message,error=false,target=$('page-status')){target.textContent=message;target.classList.toggle('error',error)}
+async function request(path,options={}){const response=await fetch('/app/admin/role/'+path,{cache:'no-store',...options,headers:{Accept:'application/json',...(options.headers||{})}});let result;try{result=await response.json()}catch(_){throw Error('响应无法读取，请检查登录状态后重试')}if(!response.ok||result.code!==0)throw Error(result.msg||'读取失败，请稍后重试');return result.data}
+function signature(){return JSON.stringify([name.value,parent.value,[...selected].sort()])}
+function languageSignature(){return JSON.stringify([...languageForm.querySelectorAll('input:checked')].map(box=>box.dataset.lang).sort())}
+function dirty(){return roleForm.dataset.cmsDirty==='1'||languageForm.dataset.cmsDirty==='1'||contentForm.dataset.cmsDirty==='1'}
+function clean(form){window.CmsUI?.clean(form);window.CmsModuleNavigation?.markClean(form);delete form.dataset.cmsDirty}
+function roleChanged(){if(savedRole&&signature()===savedRole)clean(roleForm);else roleForm.dataset.cmsDirty='1';$('save-note').textContent=roleForm.dataset.cmsDirty==='1'?'有未保存的角色修改':'角色信息与功能权限一并保存';summary()}
+function languageChanged(){if(languageSignature()===savedLanguages)clean(languageForm);else languageForm.dataset.cmsDirty='1';$('language-count').textContent=languageForm.querySelectorAll('input:checked').length+' 种'}
+function controls(){const blocked=busy||contentBusy||rulesBusy||!role||returning;name.disabled=blocked||superRole;parent.disabled=blocked||superRole||languageBusy;$('save-role').disabled=blocked||superRole||languageBusy;$('reset-role').disabled=blocked||languageBusy;['select-all','clear-all','invert'].forEach(key=>$(key).disabled=blocked||superRole);['expand-all','fold-all'].forEach(key=>$(key).disabled=blocked);boxes.forEach(box=>box.disabled=blocked||superRole);$('cms-role-languages-save').disabled=returning||!scope||scope.super||languageBusy||busy||contentBusy||rulesBusy||String(role?.pid)!==parent.value;$('reset-languages').disabled=returning||!scope||languageBusy||busy||contentBusy;languageForm.querySelectorAll('input').forEach(box=>box.disabled=returning||!scope||scope.super||languageBusy||busy||contentBusy||!scope.allowed.includes(box.dataset.lang));const contentBlocked=blocked||languageBusy||!contentScope||contentScope.super||String(role?.pid)!==parent.value;$('save-content-scope').disabled=contentBlocked;$('reset-content-scope').disabled=contentBlocked;contentForm.querySelectorAll('input,select').forEach(control=>control.disabled=contentBlocked||control.dataset.scopeAllowed==='0');$('save-role').textContent=loading?'正在读取…':busy?'正在保存…':creating?'创建角色':'保存角色';$('save-content-scope').textContent=contentBusy?'正在保存…':'保存内容范围'}
+function finishSave(message,target=$('page-status')){if(dirty()){status(message+'，还有未保存的修改，请保存后再返回列表。',false,target);return}returning=true;leaveApproved=true;controls();status(message+'，正在返回角色列表…',false,target);location.assign(back)}
+function collect(items){return items.flatMap(item=>[String(item.value),...collect(item.children||[])])}
+function summary(){
+    const count=[...available.keys()].filter(key=>selected.has(key)).length;
+    $('selection-count').textContent='已选 '+count+' / '+available.size+' 项';
+    boxes.forEach((box,key)=>{box.checked=selected.has(key);box.indeterminate=false});
+    groups.forEach(group=>{
+        const count=group.ids.filter(key=>selected.has(key)).length;
+        group.count.textContent=count+'/'+group.ids.length;
+        const box=boxes.get(group.key);
+        box.checked=count===group.ids.length;
+        box.indeterminate=count>0&&count<group.ids.length;
+        box.setAttribute('aria-checked',box.indeterminate?'mixed':String(box.checked));
+    });
+}
+function markRule(key,checked){if(checked)selected.add(key);else selected.delete(key);roleChanged();status('')}
+function checkbox(item,members=null){
+    const key=String(item.value),label=node('label',undefined,'permission-label'),box=node('input');
+    box.type='checkbox';box.setAttribute('lay-ignore','');box.dataset.rule=key;
+    if(members)box.dataset.permissionGroup='1';
+    box.checked=selected.has(key);box.disabled=superRole;
+    box.addEventListener('change',()=>{
+        if(box.disabled||busy||rulesBusy||returning||superRole){summary();return}
+        if(!members){markRule(key,box.checked);return}
+        const checked=box.checked;
+        members.forEach(id=>{if(checked)selected.add(id);else selected.delete(id)});
+        roleChanged();status('');
+    });
+    label.append(box,node('span',permissionTitle(item)));boxes.set(key,box);return label;
+}
+function branch(item){const children=item.children||[],label=checkbox(item);if(!children.length){branchRows.push({element:label,text:permissionTitle(item).toLowerCase()});return label}const section=node('div',undefined,'permission-module'),body=node('div',undefined,'permission-leaves');section.append(label,body);children.forEach(child=>body.append(branch(child)));branchRows.push({element:section,text:section.textContent.toLowerCase()});return section}
+function filter(){const query=$('permission-search').value.trim().toLowerCase();let matches=0;groups.forEach(group=>{const own=group.title.includes(query);group.element.hidden=!!query&&!own&&!group.text.includes(query);if(!group.element.hidden){matches++;if(query)group.element.open=true;}group.rows.forEach(row=>row.element.hidden=!!query&&!own&&!row.text.includes(query))});$('permission-empty').hidden=matches>0}
+function renderRules(items){
+    available=new Map();groups=[];boxes=new Map();branchRows=[];
+    const host=$('permission-groups');host.replaceChildren();
+    const index=rows=>rows.forEach(item=>{available.set(String(item.value),item);index(item.children||[])});index(items);
+    items.forEach(item=>{
+        const element=node('details',undefined,'permission-group');element.open=true;
+        const heading=node('summary'),ids=collect([item]),label=checkbox(item,ids),count=node('span',undefined,'group-count');
+        label.addEventListener('click',event=>event.stopPropagation());heading.append(label,count);
+        const body=node('div',undefined,'permission-body'),start=branchRows.length;
+        (item.children||[]).forEach(child=>body.append(branch(child)));
+        element.append(heading,body);host.append(element);
+        groups.push({element,count,ids,key:String(item.value),rows:branchRows.slice(start),title:permissionTitle(item).toLowerCase(),text:body.textContent.toLowerCase()});
+    });
+    if(!items.length)host.append(node('p','当前父级没有可分配的功能权限。','permission-empty'));
+    summary();filter();controls();
+}
+function fillParents(){parent.replaceChildren();parent.append(new Option('顶级角色','0'));const descendants=new Set([String(role.id)]);function mark(items,included=false){items.forEach(item=>{const within=included||String(item.value)===String(role.id);if(within)descendants.add(String(item.value));mark(item.children||[],within)})}mark(parents);function append(items,depth=0){items.forEach(item=>{const option=new Option('　'.repeat(depth)+String(item.name),String(item.value));option.disabled=descendants.has(String(item.value));parent.append(option);append(item.children||[],depth+1)})}append(parents);if(![...parent.options].some(option=>option.value===String(role.pid))){const option=new Option('当前父级 #'+role.pid,String(role.pid));parent.append(option)}parent.value=String(role.pid);currentParent=parent.value}
+async function fetchRules(pid,prune=false){const revision=++ruleRevision;rulesBusy=true;controls();try{const data=await request('rules?'+new URLSearchParams({id:superRole?role.id:String(pid)==='0'?1:pid}));if(revision!==ruleRevision)return false;if(!Array.isArray(data))throw Error('权限列表格式不正确');const allowed=new Set(collect(data));let removed=0;if(superRole)selected=new Set(allowed);else if(prune)for(const key of selected)if(!allowed.has(key)){selected.delete(key);removed++}renderRules(data);if(removed)status('已移除 '+removed+' 项超出新父级范围的权限，请核对后保存。');return true}finally{if(revision===ruleRevision){rulesBusy=false;controls()}}}
+async function loadLanguages(){scope=null;controls();if(creating)return;try{const data=await request('languagescope?'+new URLSearchParams({id}));scope=data;const root=$('cms-role-languages');root.replaceChildren();data.languages.forEach(language=>{const label=node('label'),box=node('input');box.type='checkbox';box.setAttribute('lay-ignore','');box.dataset.lang=language.mark;box.checked=data.selected.includes(language.mark);box.addEventListener('change',languageChanged);label.append(box,node('span',language.title),node('small',language.mark));root.append(label)});savedLanguages=languageSignature();clean(languageForm);languageChanged();status(data.super?'超级管理员始终拥有全部语言。':'',false,$('cms-role-languages-status'))}catch(error){status(error.message,true,$('cms-role-languages-status'));$('cms-role-languages').textContent='语言范围暂不可用'}finally{controls()}}
+function contentGrants(){const grants=[];contentForm.querySelectorAll('[data-content-kind]').forEach(group=>{const mode=group.querySelector('select').value;if(mode==='none')return;const categories=mode==='all'?null:[...group.querySelectorAll('input:checked')].map(box=>Number(box.value)).sort((a,b)=>a-b);if(categories===null||categories.length)grants.push({categories,ownership:group.dataset.contentKind})});return grants}
+function contentSignature(){return JSON.stringify(contentGrants())}
+function contentChanged(){if(contentSignature()===savedContent)clean(contentForm);else contentForm.dataset.cmsDirty='1'}
+function grantAllows(kind,id){return (contentScope?.allowed||[]).some(grant=>(kind==='own'||grant.ownership==='all')&&(id===null?grant.categories===null:grant.categories===null||grant.categories.includes(id)))}
+function renderContentScope(){const root=$('content-scope-fields');root.replaceChildren();for(const kind of ['all','own']){const group=node('fieldset',undefined,'content-scope-group');group.dataset.contentKind=kind;group.append(node('legend',kind==='all'?'可管理全部文档的栏目':'仅可管理本人文档的栏目'));const mode=node('select');mode.setAttribute('lay-ignore','');mode.setAttribute('aria-label',kind==='all'?'全部文档栏目范围':'本人文档栏目范围');mode.append(new Option('不授权','none'),new Option('指定栏目','selected'),new Option('所有栏目（含以后新增）','all'));mode.options[2].disabled=!grantAllows(kind,null);const grant=contentScope.grants.find(item=>item.ownership===kind);mode.value=!grant?'none':grant.categories===null?'all':'selected';const list=node('div',undefined,'content-scope-categories');contentScope.categories.forEach(category=>{const label=node('label'),box=node('input');box.type='checkbox';box.setAttribute('lay-ignore','');box.value=String(category.id);box.checked=!!grant?.categories?.includes(Number(category.id));box.dataset.scopeAllowed=grantAllows(kind,Number(category.id))?'1':'0';label.append(box,node('span',category.typename),node('small',category.lang+(Number(category.is_del)?' · 已回收':'')));list.append(label);box.addEventListener('change',contentChanged)});list.hidden=mode.value!=='selected';mode.addEventListener('change',()=>{list.hidden=mode.value!=='selected';contentChanged();controls()});group.append(mode,list);root.append(group)}savedContent=contentSignature();clean(contentForm);controls()}
+async function loadContentScope(){contentScope=null;controls();if(creating)return;try{contentScope=await request('languagescope?'+new URLSearchParams({id,scope_kind:'content'}));renderContentScope();status(contentScope.super?'超级管理员始终拥有全部栏目和文档。':'',false,$('content-scope-status'))}catch(error){$('content-scope-fields').textContent='内容范围暂不可用';status(error.message,true,$('content-scope-status'))}finally{controls()}}
+async function load(){loading=true;busy=true;controls();status('');try{if(!creating&&(!/^\d+$/.test(id)||Number(id)<1))throw Error('角色编号无效，请返回角色列表');const [rows,tree]=await Promise.all([creating?Promise.resolve([{id:0,name:'',pid:0,rules:''}]):request('select?'+new URLSearchParams({id})),request('select?format=tree')]);if(!Array.isArray(rows)||!rows.length)throw Error('角色不存在或无权访问');role={...rows[0],pid:rows[0].pid??0};parents=tree;superRole=role.rules==='*';name.value=role.name;$('role-name-preview').textContent=role.name;$('role-id').textContent=creating?'新角色':'#'+role.id;$('super-note').hidden=!superRole;fillParents();selected=new Set(String(role.rules||'').split(',').filter(value=>value&&value!=='*'));await fetchRules(role.pid);savedRole=signature();clean(roleForm);await loadLanguages();await loadContentScope();roleChanged()}catch(error){role=null;status(error.message,true);$('permission-groups').replaceChildren(node('p','角色资料未完整加载，请返回列表或刷新重试。','permission-empty'));$('selection-count').textContent='未加载'}finally{loading=false;busy=false;controls()}}
+parent.addEventListener('change',async()=>{if(languageForm.dataset.cmsDirty==='1'||contentForm.dataset.cmsDirty==='1'){parent.value=currentParent;status('请先保存语言或内容范围，或恢复选择后再调整父级。',true);roleChanged();return}const previous=currentParent;const next=parent.value;try{if(await fetchRules(next,true)){currentParent=next;roleChanged();if(next!==String(role.pid))status('父级已调整，请核对功能权限并先保存角色，再设置语言范围。',false,$('cms-role-languages-status'))}}catch(error){parent.value=previous;status(error.message,true);roleChanged()}controls()});
+name.addEventListener('input',roleChanged);$('permission-search').addEventListener('input',filter);
+['select-all','clear-all','invert'].forEach(key=>$(key).addEventListener('click',()=>{if(key==='clear-all')selected.clear();else available.forEach((item,id)=>{if(key==='invert'&&selected.has(id))selected.delete(id);else selected.add(id)});roleChanged()}));
+$('expand-all').addEventListener('click',()=>groups.forEach(group=>group.element.open=true));$('fold-all').addEventListener('click',()=>groups.forEach(group=>group.element.open=false));
+if(creating)$('reset-role').textContent='重置表单';
+$('reset-role').addEventListener('click',async()=>{if(dirty()&&!await window.CmsUI.confirm('放弃当前未保存的修改，重新读取已保存的角色？',{title:'还原角色修改',confirmText:'放弃修改',cancelText:'继续编辑'}))return;window.CmsUI.clean(roleForm);window.CmsUI.clean(languageForm);clean(contentForm);load()});
+$('reset-languages').addEventListener('click',()=>{if(!scope)return;languageForm.querySelectorAll('input').forEach(box=>box.checked=scope.selected.includes(box.dataset.lang));languageChanged();status('',false,$('cms-role-languages-status'))});
+roleForm.addEventListener('submit',async event=>{event.preventDefault();if(busy||contentBusy||rulesBusy||superRole||!role||languageBusy||returning)return;if(!roleForm.reportValidity())return;busy=true;controls();status('');const parentChanged=String(role.pid)!==parent.value;try{const body=new URLSearchParams({name:name.value,pid:parent.value,rules:[...selected].join(',')});if(!creating)body.set('id',id);await request(creating?'insert':'update',{method:'POST',body});role={...role,name:name.value,pid:parent.value,rules:[...selected].join(',')};savedRole=signature();clean(roleForm);$('role-name-preview').textContent=name.value;roleChanged();if(!creating&&parentChanged){await loadLanguages();await loadContentScope()}finishSave(creating?'角色已创建':'角色已保存')}catch(error){status(error.message,true);$('page-status').focus()}finally{busy=false;controls()}});
+languageForm.addEventListener('submit',async event=>{event.preventDefault();if(!scope||scope.super||languageBusy||busy||contentBusy||rulesBusy||String(role.pid)!==parent.value||returning)return;languageBusy=true;controls();const target=$('cms-role-languages-status');status('正在保存…',false,target);try{const body=new URLSearchParams({id,csrf:window.CmsLanguageInitial?.csrf||''});languageForm.querySelectorAll('input:checked').forEach(box=>body.append('languages[]',box.dataset.lang));await request('languagescope',{method:'POST',body});scope.selected=[...languageForm.querySelectorAll('input:checked')].map(box=>box.dataset.lang);savedLanguages=languageSignature();clean(languageForm);finishSave('语言范围已保存',target)}catch(error){status(error.message,true,target)}finally{languageBusy=false;controls()}});
+document.querySelectorAll('[data-role-back]').forEach(control=>{if(control.tagName==='A')control.href=back;control.addEventListener('click',async event=>{if(event.button||event.ctrlKey||event.metaKey||event.shiftKey||event.altKey)return;event.preventDefault();if(busy||languageBusy||contentBusy){status('正在保存，请稍候再返回。',true);return}if(dirty()&&!await window.CmsUI.confirm('有未保存的修改，确定返回角色列表？',{title:'返回角色列表',confirmText:'放弃修改',cancelText:'继续编辑'}))return;leaveApproved=true;clean(roleForm);clean(languageForm);clean(contentForm);location.assign(back)})});
+$('reset-content-scope').addEventListener('click',()=>{if(!contentScope)return;renderContentScope();status('',false,$('content-scope-status'))});
+contentForm.addEventListener('submit',async event=>{event.preventDefault();if(!contentScope||contentScope.super||contentBusy||languageBusy||busy||rulesBusy||String(role.pid)!==parent.value||returning)return;contentBusy=true;controls();const target=$('content-scope-status');status('正在保存…',false,target);try{const grants=contentGrants(),body=new URLSearchParams({id,scope_kind:'content',grants:JSON.stringify(grants),csrf:window.CmsLanguageInitial?.csrf||''});await request('languagescope',{method:'POST',body});contentScope.grants=grants;savedContent=contentSignature();clean(contentForm);finishSave('内容范围已保存',target)}catch(error){status(error.message,true,target)}finally{contentBusy=false;controls()}});
+window.addEventListener('beforeunload',event=>{if(!leaveApproved&&dirty()){event.preventDefault();event.returnValue=''}});
+load();
+})();
+</script>
+</body>
+</html>

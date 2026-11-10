@@ -1,0 +1,297 @@
+﻿<!DOCTYPE html>
+<html lang="zh-cn">
+    <head>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+        <meta charset="utf-8">
+        <title>数据库维护</title>
+        <link rel="stylesheet" href="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/component/layui/css/layui.css?v=2.8.12'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>" />
+        <link rel="stylesheet" href="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/component/pear/css/pear.css'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>" />
+        <link rel="stylesheet" href="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/admin/css/reset.css'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>" />
+    <style>
+@media(max-width:767px){
+    body.cms-classic-filter-page .cms-filterbar.top-search-from{width:100%;min-width:0;box-sizing:border-box;}
+    body.cms-classic-filter-page .cms-filterbar.top-search-from > .layui-form-item{box-sizing:border-box;display:block;flex:1 1 100%;width:100%;min-width:0;max-width:100%;margin-right:0;}
+    body.cms-classic-filter-page .cms-filterbar.top-search-from .layui-input-block{box-sizing:border-box;float:none;width:100%;min-width:0;max-width:100%;margin-left:0;margin-right:0;}
+    body.cms-classic-filter-page .cms-filterbar.top-search-from .layui-form-label{box-sizing:border-box;float:none;width:auto;max-width:100%;padding:0 0 6px;text-align:left;}
+    body.cms-classic-filter-page .cms-filterbar.top-search-from .layui-input{box-sizing:border-box;width:100%;max-width:100%;min-width:0;}
+    body.cms-classic-filter-page .cms-filterbar.top-search-from #created_at{display:flex;gap:6px;align-items:center;min-width:0;}
+    body.cms-classic-filter-page .cms-filterbar.top-search-from #created_at > input{flex:1 1 0;min-width:0;max-width:none;}
+    body.cms-classic-filter-page .cms-filterbar.top-search-from > .layui-form-item:has(> button[lay-submit]){display:flex;flex-wrap:wrap;gap:8px;align-items:center;}
+    body.cms-classic-filter-page .cms-filterbar.top-search-from > .layui-form-item:has(> button[lay-submit]) > .layui-form-label{display:none;}
+    body.cms-classic-filter-page .cms-filterbar.top-search-from > .layui-form-item > button{margin:0;}
+    body.cms-classic-filter-page #category,body.cms-classic-filter-page #category xm-select{box-sizing:border-box;min-width:0;max-width:100%;}
+}
+</style>
+</head>
+    <body class="pear-container cms-classic-filter-page">
+<?php if (in_array('*', array_merge(...array_map(static fn($v)=>explode(',',(string)$v), \plugin\admin\app\model\Role::whereIn('id',admin()['roles']??[])->pluck('rules')->all())),true)): ?><p style="padding:12px 16px"><a href="/app/admin/databasebackup/index">数据库备份与还原 →</a></p><?php endif; ?>
+
+
+    <!-- 顶部查询表单 -->
+    <div class="layui-card">
+        <div class="layui-card-body">
+            <form class="layui-form top-search-from cms-filterbar" data-cms-filter>
+
+                <div class="layui-form-item">
+                    <label class="layui-form-label">表名</label>
+                    <div class="layui-input-block">
+                        <input type="text" name="table_name" id="table_name" placeholder="请输入表名" class="layui-input">
+                    </div>
+                </div>
+
+                <div class="layui-form-item layui-inline">
+                    <label class="layui-form-label"></label>
+                    <button class="pear-btn pear-btn-xs pear-btn-primary" lay-submit lay-filter="table-query">
+                        <i class="layui-icon layui-icon-search"></i>查询
+                    </button>
+                    <button type="reset" class="pear-btn pear-btn-xs" lay-submit lay-filter="table-reset">
+                        <i class="layui-icon layui-icon-refresh"></i>重置
+                    </button>
+                </div>
+                <div class="toggle-btn">
+                    <a class="layui-hide">展开<i class="layui-icon layui-icon-down"></i></a>
+                    <a class="layui-hide">收起<i class="layui-icon layui-icon-up"></i></a>
+                </div>
+
+            </form>
+        </div>
+    </div>
+
+        <div class="layui-card">
+            <div class="layui-card-body">
+                <table id="data-table" lay-filter="data-table"></table>
+            </div>
+        </div>
+
+        <script type="text/html" id="table-toolbar">
+            <button class="pear-btn pear-btn-primary pear-btn-xs" lay-event="add" permission="app.admin.table.create">
+                <i class="layui-icon layui-icon-add-1"></i>创建数据表
+            </button>
+            <button class="pear-btn pear-btn-danger pear-btn-xs" lay-event="batchRemove" permission="app.admin.table.drop">
+                <i class="layui-icon layui-icon-delete"></i>删除数据表
+            </button>
+        </script>
+
+        <script type="text/html" id="table-bar">
+            <button class="pear-btn pear-btn-xs tool-btn" lay-event="edit" permission="app.admin.table.modify">编辑</button>
+            <button class="pear-btn pear-btn-xs tool-btn" lay-event="remove" permission="app.admin.table.drop">删除</button>
+            <button class="pear-btn pear-btn-xs tool-btn" lay-event="crud" permission="app.admin.table.crud">生成管理模块</button>
+        </script>
+
+        <script src="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/component/layui/layui.js?v=2.13.12'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>"></script>
+        <script src="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/component/pear/pear.js'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>"></script>
+        <script src="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/admin/js/permission.js'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>"></script>
+        <script src="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/admin/js/common.js'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>"></script>
+
+        <script>
+
+            // 相关接口
+            const SELECT_API = "/app/admin/table/show";
+            const DROP_API = "/app/admin/table/drop";
+            const VIEW_URL = "/app/admin/table/view";
+            const CREATE_URL = "/app/admin/table/create";
+            const MODIFY_URL = "/app/admin/table/modify";
+            const CRUD_URL = "/app/admin/table/crud";
+
+            layui.use(["table", "form", "pearCommon", "pearPopup"], function() {
+                let table = layui.table;
+                let form = layui.form;
+                let $ = layui.$;
+                let common = layui.pearCommon;
+
+                let cols = [
+                    {
+                        type: "checkbox"
+                    }, {
+                        title: "表名",
+                        field: "TABLE_NAME",
+                        templet: function (d) {
+                            return '<a class="tab-link" src="' + VIEW_URL + '?table=' + d.TABLE_NAME + '">' + d.TABLE_NAME + '</a>';
+                        }
+                    },
+                    {
+                        title: "备注",
+                        field: "TABLE_COMMENT",
+                    },
+                    {
+                        title: "记录数",
+                        field: "TABLE_ROWS",
+                        width: 100,
+                    },
+                    {
+                        title: "引擎",
+                        field: "ENGINE",
+                        width: 100,
+                    },
+                    {
+                        title: "字符集",
+                        field: "TABLE_COLLATION",
+                    },
+                    {
+                        title: "创建时间",
+                        field: "CREATE_TIME",
+                    },
+                    {
+                        title: "操作",
+                        toolbar: "#table-bar",
+                        align: "center",
+                        width: 200
+                    }
+                ];
+
+                table.render({
+                    elem: "#data-table",
+                    url: SELECT_API,
+                    page: true,
+                    cols: [cols],
+                    skin: "line",
+                    size: "lg",
+                    toolbar: "#table-toolbar",
+                    id: "data-table",
+                    defaultToolbar: [{
+                        title: "刷新",
+                        layEvent: "refresh",
+                        icon: "layui-icon-refresh",
+                    }, "filter", "print", "exports"]
+                });
+
+                $(document).on("click", ".tab-link", function () {
+                    let obj = $(this);
+                    let table = obj.html();
+                    let url = obj.attr("src");
+                    parent.layui.pearAdmin.addTab(table , table + "表", url);
+                })
+
+                table.on("tool(data-table)", function(obj) {
+                    if (obj.event === "remove") {
+                        remove(obj);
+                    } else if (obj.event === "edit") {
+                        edit(obj);
+                    } else if (obj.event === "crud") {
+                        crud(obj);
+                    }
+                });
+
+                table.on("toolbar(data-table)", function(obj) {
+                    if (obj.event === "add") {
+                        add();
+                    } else if (obj.event === "refresh") {
+                        refreshTable();
+                    } else if (obj.event === "batchRemove") {
+                        batchRemove(obj);
+                    }
+                });
+
+                form.on("submit(table-query)", function(data) {
+                    table.reload("data-table", {
+                        page: {
+                            curr: 1
+                        },
+                        where: data.field
+                    })
+                    return false;
+                });
+
+                let add = function() {
+                    cmsOpenTool(CREATE_URL);
+                }
+
+                let edit = function(obj) {
+                    let table = obj.data.TABLE_NAME;
+                    cmsOpenTool(MODIFY_URL + "?table=" + table);
+                }
+
+                let crud = function(obj) {
+                    let table = obj.data.TABLE_NAME;
+                    cmsOpenTool(CRUD_URL + "?table=" + table);
+                }
+
+                let remove = function(obj) {
+                    return doRemove([obj.data.TABLE_NAME]);
+                }
+
+                let batchRemove = function(obj) {
+                    var tables = common.checkField(obj, "TABLE_NAME");
+                    if (tables === "") {
+                        layui.pearPopup.warning("未选中数据");
+                        return false;
+                    }
+                    doRemove(tables.split(","));
+                }
+
+                let doRemove = function (tables) {
+                    window.CmsUI.confirm("将永久删除所选数据表及其中全部数据，无法通过回收站恢复。请确认已备份，并核对所选表名：" + tables.join("、"), {title: "确认删除", confirmText: "确认删除"}).then(function(approved) {
+                        if(!approved)return;
+                        let loading = layer.load();
+                        $.ajax({
+                            url: DROP_API,
+                            data: {tables: tables},
+                            dataType: "json",
+                            type: "post",
+                            success: function (res) {
+                                layer.close(loading);
+                                if (res.code) {
+                                    return layui.pearPopup.failure(res.msg);
+                                }
+                                return layui.pearPopup.success("操作成功", refreshTable);
+                            }
+                        })
+                    });
+                }
+
+                window.refreshTable = function() {
+                    table.reloadData("data-table", {
+                        scrollPos: "fixed",
+                        done: function (res, curr) {
+                            if (curr > 1 && res.data && !res.data.length) {
+                                curr = curr - 1;
+                                table.reloadData("data-table", {
+                                    page: {
+                                        curr: curr
+                                    },
+                                })
+                            }
+                        }
+                    });
+                }
+            })
+
+            // 获取选择组件配置项
+            function getControlProps(control_args)
+            {
+                if (!control_args) {
+                    return {};
+                }
+                let props = {};
+                let split = control_args.split(";");
+                for (let item of split) {
+                    let pos = item.indexOf(":");
+                    if (pos === -1) continue;
+                    let name = item.substring(0, pos).trim();
+                    let values = item.substring(pos + 1).trim();
+
+                    // values = a:v,c:d
+                    pos = values.indexOf(":");
+                    if (pos !== -1) {
+                        let options = values.split(",");
+                        values = {};
+                        for (const option of options) {
+                            let [value, name] = option.split(":");
+                            values[value] = name;
+                        }
+                    }
+                    props[name] = values;
+                }
+                return props;
+            }
+
+        </script>
+    <script>
+function cmsOpenTool(href){
+ const target=new URL(href,location.href);target.searchParams.set('return',location.pathname+location.search);
+ const lang=window.CmsEditContext?.get()?.edit||new URLSearchParams(location.search).get('lang')||window.CmsLanguageInitial?.lang;
+ if(lang)target.searchParams.set('lang',lang);window.CmsModuleNavigation?.capture();location.assign(target.pathname+target.search);
+}
+</script>
+</body>
+</html>

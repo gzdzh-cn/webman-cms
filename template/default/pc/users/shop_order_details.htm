@@ -1,0 +1,331 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>订单详情-{eyou:global name='web_name' /}</title>
+        <meta name="renderer" content="webkit">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport" />
+        <link href="{eyou:global name='web_cmspath'/}/favicon.ico" rel="shortcut icon" type="image/x-icon" />
+        {eyou:static file="users/skin/css/eyoucms.css" /}
+        {eyou:static file="users/skin/css/element/index.css" /}
+        {eyou:static file="users/skin/css/e-user.css" /}
+        {eyou:include file="users/skin/css/diy_css.htm"/}
+        {eyou:static file="/public/static/common/js/jquery.min.js"/}
+        {eyou:static file="/public/plugins/layer-v3.1.0/layer.js"/}
+        {eyou:static file="/public/static/common/js/tag_global.js"/}
+    </head>
+
+    <body class="centre">
+        {eyou:include file="users/users_header.htm" /}
+        <div class="breadcrumbs"></div>
+
+        <div class="ey-body-bg">
+            <div class="ey-body pd0">
+                <div class="ey-container w1226">
+                    {eyou:include file="users/users_left.htm" /}
+                    {eyou:sporder id="field"}
+                    <div class="ey-con fr">
+                        <div class="mi-uc-box main-bg">
+                            <div class="box-hd">
+                                <h1 class="title">订单详情</h1>
+                            </div>
+                            <div class="box-hd mt20">
+                                <div class="more clearfix">
+                                    <h2 class="subtitle">订单号：{$field.order_code}</h2>
+                                    <div class="actions">
+                                        <div class="status-btn-box">
+                                        {eyou:eq name='$field.order_status' value='0'}
+                                            <a href="JavaScript:void(0);" title="取消订单" class="btn-xin el-button btn-line-gray" {$field.CancelOrder}>取消订单</a>
+                                            <a href="{$field.PaymentUrl}" target="_blank" class="btn-xin el-button btn-primary">立即付款</a>
+                                        {/eyou:eq}
+                                        {eyou:eq name="$field.order_status" value="2"}
+                                            {eyou:eq name="$field.prom_type" value="0"}
+                                            <a href="JavaScript:void(0);" class="btn-xin el-button btn-line-gray" {$field.LogisticsInquiry} mg05>物流查询</a>
+                                            {/eyou:eq}
+                                            <a href="javascript:void(0)" class="btn-xin el-button btn-line-gray" {$field.Confirm}>确认收货</a>
+                                        {/eyou:eq}
+                                        {eyou:eq name="$field.order_status" value="3"}
+                                            {eyou:if condition="isset($field.allow_service) && 0 == $field.allow_service"}
+                                            <a href="{$field.ServiceList}" title="申请售后" class="btn-xin el-button btn-line-gray">申请售后</a>
+                                            {/eyou:if}
+                                            {eyou:if condition="0 == $field.is_comment && !empty($usersConfig.shop_open_comment)"}
+                                            <a href="{$field.AddProduct}" title="评价商品" class="btn-xin el-button btn-line-gray">评价商品</a>
+                                            {/eyou:if}
+                                        {/eyou:eq}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="box-bd">
+                                <div class="order-detail {eyou:eq name='$field.order_status' value='0'}uc-order-item-pay{/eyou:eq} {eyou:eq name='$field.order_status' value='1'}uc-order-item-shipping{/eyou:eq} {eyou:eq name='$field.order_status' value='2'}uc-order-item-shipping{/eyou:eq} {eyou:eq name='$field.order_status' value='3'}uc-order-item-finish{/eyou:eq} {eyou:eq name='$field.order_status' value='-1'}uc-order-item-finish{/eyou:eq}">
+                                    <div class="order-summary">
+                                        <div class="order-status">
+                                            
+                                            <div style="display: inline-block;">{$field.order_status_name}</div>
+                                            
+                                        </div>
+                                        {eyou:if condition="-1 != $field.order_status && 4 != $field.order_status"}
+                                        <div class="order-progress">
+                                            <ol class="progress-list clearfix">
+                                            {eyou:empty name="$field.add_time"}
+                                                <li class="step-xin step-first">
+                                                    <div class="progress-xin"><span class="text">下单</span></div>
+                                                    <div class="info">{$field.add_time|date='Y年m月d日 H:i:s',###}</div>
+                                                </li>
+                                            {eyou:else/}
+                                                <li class="step-xin step-active step-first">
+                                                    <div class="progress-xin"><span class="text">下单</span></div>
+                                                    <div class="info">{$field.add_time|date='Y年m月d日 H:i:s',###}</div>
+                                                </li>
+                                            {/eyou:empty}
+                                            {eyou:empty name="$field.pay_time"}
+                                                <li class="step-xin">
+                                                    <div class="progress-xin"><span class="text">付款</span></div>
+                                                    <div class="info"></div>
+                                                </li>
+                                            {eyou:else/}
+                                                <li class="step-xin step-active">
+                                                    <div class="progress-xin"><span class="text">付款</span></div>
+                                                    <div class="info">{$field.pay_time|date='Y年m月d日 H:i:s',###}</div>
+                                                </li>
+                                            {/eyou:empty}
+                                            {eyou:eq name="$field.logistics_type" value="1"}
+                                                {eyou:if condition="!empty($field.express_time)"}
+                                                <li class="step-xin step-active">
+                                                    <div class="progress-xin"><span class="text">发货</span></div>
+                                                    <div class="info">{$field.express_time|date='Y年m月d日 H:i:s',###}</div>
+                                                </li>
+                                                {eyou:elseif condition="empty($field.express_time)"}
+                                                <li class="step-xin">
+                                                    <div class="progress-xin"><span class="text">发货</span></div>
+                                                    <div class="info"></div>
+                                                </li>
+                                                {/eyou:if}
+                                            {eyou:else/}
+                                                {eyou:if condition="!empty($field.verifyData.verify_time)"}
+                                                <li class="step-xin step-active">
+                                                    <div class="progress-xin"><span class="text">核销</span></div>
+                                                    <div class="info">{$field.verifyData.verify_time|date='Y年m月d日 H:i:s',###}</div>
+                                                </li>
+                                                {eyou:elseif condition="empty($field.verifyData.verify_time)"}
+                                                <li class="step-xin">
+                                                    <div class="progress-xin"><span class="text">核销</span></div>
+                                                    <div class="info"></div>
+                                                </li>
+                                                {/eyou:if}
+                                            {/eyou:eq}
+                                            {eyou:if condition="!empty($field.confirm_time)"}
+                                            <li class="step-xin step-active">
+                                                <div class="progress-xin"><span class="text">完成</span></div>
+                                                <div class="info">{$field.confirm_time|date='Y年m月d日 H:i:s',###}</div>
+                                            </li>
+                                            {eyou:elseif condition="empty($field.confirm_time)"}
+                                            <li class="step-xin">
+                                                <div class="progress-xin"><span class="text">完成</span></div>
+                                                <div class="info"></div>
+                                            </li>
+                                            {/eyou:if}
+                                            </ol>
+                                        </div>
+                                        {/eyou:if}
+                                    </div>
+                                    
+                                    <div class="order-goods">
+                                        <table class="goods-table">
+                                            {eyou:spordergoods id="field2"}
+                                            <tr class="goods-box">
+                                                <td class="col col-thumb">
+                                                    <div class="figure figure-thumb">
+                                                        <a class="pro-pic" target="_blank" href="{$field2.arcurl}"><img src="{$field2.litpic}" alt="{$field2.product_name}"></a>
+                                                    </div> 
+                                                </td>
+                                                <td colspan="3" class="col col-info">
+                                                    <table class="col-info-box">
+                                                        <tr class="goods-box-info">
+                                                            <td class="col col-name">
+                                                                <div class="name">
+                                                                    <a target="_blank" href="{$field2.arcurl}"> 
+                                                                        {$field2.product_name}&nbsp;
+                                                                        {eyou:eq name="$field2.has_deleted" value="1"}<span style="color: red;">{$field2.msg_deleted}</span>{/eyou:eq}
+                                                                    </a>
+                                                                    <div>
+                                                                        {eyou:volist name='$field2.product_spec_list' id='spec'}{$spec.value}&nbsp;{/eyou:volist}
+                                                                    </div>
+                                                                </div>
+                                                            </td>
+                                                            <td class="col col-price">
+                                                                <p class="price">{$field2.product_price}{empty name="$field.points_shop_order"}元{/empty} × {$field2.num}</p>
+                                                            </td>
+                                                            <td class="col col-actions">{$field2.subtotal}{empty name="$field.points_shop_order"}元{/empty}</td>
+                                                        </tr>
+                                                    </table>
+                                                </td>
+                                            </tr>
+                                            {/eyou:spordergoods}
+                                        </table>
+                                    </div>
+                                </div>
+
+                                {eyou:if condition="2 == $field.logistics_type"}
+                                <div class="order-detail-info">
+                                    <h3>核销信息</h3>
+                                    <table class="info-table">
+                                        <tbody>
+                                            <tr>
+                                                <th>自提点：</th>
+                                                <td><span style="font-weight: 700;">{$field.verifyData.store_name}</span></td>
+                                            </tr>
+                                            <tr>
+                                                <th>核销码：</th>
+                                                <td>{$field.verifyData.verify_code}</td>
+                                            </tr>
+                                            <tr id="tr-qrcode">
+                                                <th></th>
+                                                <td><span id="qrcode" ></span></td>
+                                            </tr>
+                                            <tr>
+                                                <th>营业时间：</th>
+                                                <td>{$field.verifyData.store_business}</td>
+                                            </tr>
+                                            <tr>
+                                                <th>详细地址：</th>
+                                                <td>{$field.verifyData.store_address}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                    <!-- <div class="actions">
+                                        <a class="btn btn-small btn-line-gray">修改</a>
+                                    </div> -->
+                                </div>
+                                {/eyou:if}
+                                <div class="order-detail-info">
+                                    <h3>收货信息</h3>
+                                    <table class="info-table">
+                                        <tbody>
+                                            {eyou:if condition="1 == $field.prom_type"}
+                                            <tr>
+                                                <th>配送方式：</th>
+                                                <td>无需物流</td>
+                                            </tr>
+                                            {eyou:notempty name='$field.user_note' /}
+                                            <tr>
+                                                <th>买家留言：</th>
+                                                <td>{$field.user_note}</td>
+                                            </tr>
+                                            {/eyou:notempty}
+                                            {eyou:else/}
+                                            {eyou:if condition="1 == $field.logistics_type"}
+                                            <tr>
+                                                <th>配送方式：</th>
+                                                <td>快递配送</td>
+                                            </tr>
+                                            <tr>
+                                                <th>收货信息：</th>
+                                                <td>{$field.ConsigneeInfo}</td>
+                                            </tr>
+                                            {/eyou:if}
+                                            {eyou:if condition="1 == $field.logistics_type"}
+                                            {eyou:elseif condition="$field.logistics_type == 2"}
+                                                <tr>
+                                                    <th>配送方式：</th>
+                                                    <td>到店自提</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>姓&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;名：</th>
+                                                    <td>{$field.verifyData.buyer}</td>
+                                                </tr>
+                                                <tr>
+                                                    <th>手&nbsp;机&nbsp;号：</th>
+                                                    <td>{$field.verifyData.phone}</td>
+                                                </tr>
+                                            {eyou:else/}
+                                            {/eyou:if}
+                                            {eyou:notempty name='$field.user_note' /}
+                                            <tr>
+                                                <th>买家留言：</th>
+                                                <td>{$field.user_note}</td>
+                                            </tr>
+                                            {/eyou:notempty}
+                                            {/eyou:if}
+                                            {eyou:notempty name='$field.virtual_delivery' /}
+                                            <tr>
+                                                <th>商家回复：</th>
+                                                <td>{$field.virtual_delivery}</td>
+                                            </tr>
+                                            {/eyou:notempty}
+                                        </tbody>
+                                    </table>
+                                    <!-- <div class="actions">
+                                        <a class="btn btn-small btn-line-gray">修改</a>
+                                    </div> -->
+                                </div>
+                                {eyou:notempty name='$field.express_name' /}
+                                <div class="order-detail-info">
+                                    <h3>快递信息 </h3>
+                                    <table class="info-table">
+                                        <tbody>
+                                            <tr>
+                                                <th>快递公司：</th>
+                                                <td>{$field.express_name}</td>
+                                            </tr>
+                                            <tr>
+                                                <th>物流单号：</th>
+                                                <td>{$field.express_order}{eyou:if condition="'2' == $field.order_status or '3' == $field.order_status"}<a href="JavaScript:void(0);" {$field.LogisticsInquiry} class="fc-colours"> 物流查询 </a>{/eyou:if}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                    <!-- <div class="actions"></div> -->
+                                </div>
+                                {/eyou:notempty}
+                                <div class="order-detail-info">
+                                    <h3>支付方式 </h3>
+                                    <table class="info-table">
+                                        <tbody>
+                                            <tr>
+                                                <th>支付方式：</th>
+                                                <td>{$field.pay_name}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                    <!-- <div class="actions"></div> -->
+                                </div>
+                                <div class="order-detail-total">
+                                    <table class="total-table">
+                                        <tbody>
+                                            <tr>
+                                                <th>商品总价：</th>
+                                                {empty name="$field.points_shop_order"}
+                                                <td><span class="num">{$field.TotalAmount}</span>元</td>
+                                                {else/}
+                                                <td><span class="num">{$field.order_total_amount}</span></td>
+                                                {/empty}
+                                            </tr>
+                                            <tr>
+                                                <th>运费：</th>
+                                                <td><span class="num">{$field.shipping_fee}</span>元 </td>
+                                            </tr>
+                                            <tr>
+                                                <th class="total">应付金额：</th>
+                                                <td class="total"><span class="num">{$field.order_amount}</span>{empty name="$field.points_shop_order"}元{/empty}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {$field.hidden}
+                    {/eyou:sporder}
+                </div>
+            </div>
+        </div>
+        <script type="text/javascript">
+            // 判断是核销码否存在img子元素
+            if ($("#qrcode img").length === 0) {
+                // 隐藏代码
+                $("#tr-qrcode").hide();
+            }
+        </script>
+{eyou:include file="users/users_footer.htm" /}

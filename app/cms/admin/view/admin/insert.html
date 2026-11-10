@@ -1,0 +1,205 @@
+﻿<!DOCTYPE html>
+<html lang="zh-cn">
+    <head>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+        <meta charset="UTF-8">
+        <title>新增管理员</title>
+        <link rel="stylesheet" href="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/component/pear/css/pear.css'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>" />
+        <link rel="stylesheet" href="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/admin/css/reset.css'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>" />
+    
+<script>
+function cmsEditorReturn(){
+ const source=new URL(location.href),fallback=new URL(document.body.dataset.cmsReturnUrl,location.origin);
+ const language=window.CmsEditContext?.get()?.edit||source.searchParams.get('lang')||window.CmsLanguageInitial?.lang;
+ if(language)fallback.searchParams.set('lang',language);
+ if(source.searchParams.has('channel_id'))fallback.searchParams.set('channel_id',source.searchParams.get('channel_id'));
+ try{const target=new URL(source.searchParams.get('return')||fallback.href,location.origin);if(target.origin===location.origin&&target.pathname===fallback.pathname){if(language)target.searchParams.set('lang',language);return target.pathname+target.search;}}catch(_){}
+ return fallback.pathname+fallback.search;
+}
+</script>
+</head>
+    <body class="cms-editor-page" data-cms-return-url="/app/admin/admin/index">
+<header class="cms-editor-heading"><button type="button" data-cms-back aria-label="返回管理员列表">←</button><div><h1>新增管理员</h1><p>填写并保存后返回列表；取消不会保存本次修改。</p></div></header>
+
+        <form data-cms-page-editor class="layui-form" action="">
+
+            <div class="mainBox">
+                <div class="main-container mr-5">
+
+                    <div class="layui-form-item">
+                        <label class="layui-form-label required">角色</label>
+                        <div class="layui-input-block">
+                            <div name="roles" id="roles" value=""></div>
+                        </div>
+                    </div>
+                    
+                    <div class="layui-form-item">
+                        <label class="layui-form-label required">用户名</label>
+                        <div class="layui-input-block">
+                            <input type="text" name="username" value="" required lay-verify="required" class="layui-input">
+                        </div>
+                    </div>
+                    
+                    <div class="layui-form-item">
+                        <label class="layui-form-label required">昵称</label>
+                        <div class="layui-input-block">
+                            <input type="text" name="nickname" value="" required lay-verify="required" class="layui-input">
+                        </div>
+                    </div>
+                    
+                    <div class="layui-form-item">
+                        <label class="layui-form-label required">密码</label>
+                        <div class="layui-input-block">
+                            <div class="cms-password-control" style="display:flex;gap:8px;align-items:center"><input type="password" autocomplete="new-password" name="password" value="" required lay-verify="required" class="layui-input"><button type="button" class="pear-btn pear-btn-sm" data-cms-admin-password aria-label="显示密码" aria-pressed="false">显示</button></div>
+                        </div>
+                    </div>
+                    
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">头像</label>
+                        <div class="layui-input-block">
+                            <img class="img-3" src=""/>
+                            <input type="text" style="display:none" name="avatar" value="/app/admin/avatar.png" />
+                            <button type="button" class="pear-btn pear-btn-primary pear-btn-sm" id="avatar">
+                                <i class="layui-icon layui-icon-upload"></i>上传图片
+                            </button>
+                            <button type="button" class="pear-btn pear-btn-primary pear-btn-sm" id="attachment-choose-avatar">
+                                <i class="layui-icon layui-icon-align-left"></i>选择图片
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">邮箱</label>
+                        <div class="layui-input-block">
+                            <input type="text" name="email" value="" class="layui-input">
+                        </div>
+                    </div>
+                    
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">手机</label>
+                        <div class="layui-input-block">
+                            <input type="text" name="mobile" value="" class="layui-input">
+                        </div>
+                    </div>
+                    
+                </div>
+            </div>
+
+            <div class="bottom">
+                <div class="button-container">
+                    <button type="submit" class="pear-btn pear-btn-primary pear-btn-md" lay-submit=""
+                        lay-filter="save">
+                        保存
+                    </button>
+                    <button type="button" class="pear-btn pear-btn-md" data-cms-back>返回列表</button>
+                </div>
+            </div>
+            
+        </form>
+
+        <script src="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/component/layui/layui.js?v=2.13.12'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>"></script>
+        <script src="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/component/pear/pear.js'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>"></script>
+        <script src="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/admin/js/permission.js'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>"></script>
+        <script>
+
+            // 相关接口
+            const INSERT_API = "/app/admin/admin/insert";
+            
+            // 字段 头像 avatar
+            layui.use(["upload", "layer"], function() {
+                let input = layui.$("#avatar").prev();
+                input.prev().attr("src", input.val());
+                layui.$("#attachment-choose-avatar").on("click", function() {
+                    window.CmsUI.layer({
+                        type: 2,
+                        title: "选择附件",
+                        content: "/app/admin/upload/attachment?ext=jpg,jpeg,png,gif,bmp",
+                        kind: "picker", area: ["1040px", "85vh"],
+                        success: function (layero, index) {
+                            layui.$("#layui-layer" + index).data("callback", function (data) {
+                                input.val(data.url).prev().attr("src", data.url);
+                                input[0]?.dispatchEvent(new Event('change', {bubbles:true}));
+                            });
+                        }
+                    });
+                });
+                layui.upload.render({
+                    elem: "#avatar",
+                    url: "/app/admin/upload/avatar",
+                    value: "/app/admin/avatar.png",
+                    acceptMime: "image/gif,image/jpeg,image/jpg,image/png",
+                    field: "__file__",
+                    done: function (res) {
+                        if (res.code > 0) return layui.layer.msg(res.msg);
+                        this.item.prev().val(res.data.url).prev().attr("src", res.data.url);
+                        this.item.prev()[0]?.dispatchEvent(new Event('change', {bubbles:true}));
+                    }
+                });
+            });
+            
+            // 字段 角色 roles
+            layui.use(["jquery", "xmSelect", "pearPopup"], function() {
+                layui.$.ajax({
+                    url: "/app/admin/role/select?format=tree",
+                    dataType: "json",
+                    success: function (res) {
+                        if (res.code || !Array.isArray(res.data)) {layui.pearPopup.failure(res.msg || '角色读取失败，请重试');return;}
+                        let value = layui.$("#roles").attr("value");
+                        let initValue = value ? value.split(",") : [];
+                        if (!<?= \app\cms\admin\support\Auth::isSuperAdmin() ? 'true' : 'false' ?>) {
+                            layui.each(res.data, function (k, v) {
+                                v.disabled = true;
+                            });
+                        }
+                        layui.xmSelect.render({
+                            el: "#roles",
+                            name: "roles",
+                            initValue: initValue,
+                            data: res.data,
+                            layVerify: "required",
+                            tree: {"show":true, expandedKeys:true, strict:false},
+                            toolbar: {show:true, list:["ALL","CLEAR","REVERSE"]},
+                        });
+                        if (res.code) {
+                            layui.pearPopup.failure(res.msg);
+                        }
+                    }
+                });
+            });
+            
+            //提交事件
+            layui.use(["form", "pearPopup"], function () {
+                layui.form.on("submit(save)", function (data) {
+                    var cmsForm=data.form||document.querySelector('form[data-cms-page-editor]');
+                if(cmsForm.dataset.cmsSubmitting==='1')return false;
+                cmsForm.dataset.cmsSubmitting='1';window.CmsUI.setBusy(cmsForm,true);
+                layui.$.ajax({
+                        error:function(){window.CmsUI.error(cmsForm,"保存失败，请检查网络或登录状态后重试");},
+                    complete:function(){delete cmsForm.dataset.cmsSubmitting;window.CmsUI.setBusy(cmsForm,false);},
+                    url: INSERT_API,
+                        type: "POST",
+                        dateType: "json",
+                        data: data.field,
+                        success: function (res) {
+                            if (res.code) {
+                                window.CmsUI.error(cmsForm,res.msg,res.fields||res.data?.fields);return false;
+                            }
+                            return layui.pearPopup.success("操作成功", function () {
+                                window.CmsUI.saved(cmsEditorReturn());
+                            });
+                        }
+                    });
+                    return false;
+                });
+            });
+
+        </script>
+
+    <script>
+document.querySelector('[data-cms-admin-password]').addEventListener('click',function(){
+ const input=this.parentElement.querySelector('input[name="password"]'),show=input.type==='password';
+ input.type=show?'text':'password';this.textContent=show?'隐藏':'显示';this.setAttribute('aria-label',show?'隐藏密码':'显示密码');this.setAttribute('aria-pressed',String(show));
+});
+</script>
+</body>
+</html>

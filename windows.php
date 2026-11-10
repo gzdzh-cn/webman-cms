@@ -4,21 +4,15 @@
  */
 chdir(__DIR__);
 require_once __DIR__ . '/vendor/autoload.php';
+\app\cms\config\Environment::initialize();
 
-use Dotenv\Dotenv;
-use support\App;
+use app\cms\secure\App;
 use Workerman\Worker;
 
 ini_set('display_errors', 'on');
 error_reporting(E_ALL);
 
-if (class_exists('Dotenv\Dotenv') && file_exists(base_path() . '/.env')) {
-    if (method_exists('Dotenv\Dotenv', 'createUnsafeImmutable')) {
-        Dotenv::createUnsafeImmutable(base_path())->load();
-    } else {
-        Dotenv::createMutable(base_path())->load();
-    }
-}
+
 
 App::loadAllConfig(['route']);
 
@@ -30,8 +24,7 @@ if (isset($errorReporting)) {
 $runtimeProcessPath = runtime_path() . DIRECTORY_SEPARATOR . '/windows';
 $paths = [
     $runtimeProcessPath,
-    runtime_path('logs'),
-    runtime_path('views')
+    runtime_path('logs')
 ];
 foreach ($paths as $path) {
     if (!is_dir($path)) {
@@ -72,7 +65,7 @@ require_once __DIR__ . '/../../vendor/autoload.php';
 use Workerman\Worker;
 use Workerman\Connection\TcpConnection;
 use Webman\Config;
-use support\App;
+use app\cms\secure\App;
 
 ini_set('display_errors', 'on');
 error_reporting(E_ALL);

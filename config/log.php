@@ -12,42 +12,13 @@
  * @license   http://www.opensource.org/licenses/mit-license.php MIT License
  */
 
-// 辅助函数：从环境变量读取布尔值
-$getEnvBool = function($key, $default = false) {
-    // 优先使用 $_ENV，因为 webman 使用 Dotenv 加载 .env 文件到 $_ENV
-    $value = $_ENV[$key] ?? $_SERVER[$key] ?? getenv($key);
-    if ($value === false || $value === null) {
-        return $default;
-    }
-    // 移除可能的注释（# 及其后面的内容）
-    if (($pos = strpos($value, '#')) !== false) {
-        $value = trim(substr($value, 0, $pos));
-    }
-    return in_array(strtolower(trim($value)), ['1', 'true', 'yes', 'on'], true);
-};
-
-// 辅助函数：从环境变量读取整数值
-$getEnvInt = function($key, $default = 0) {
-    $value = $_ENV[$key] ?? $_SERVER[$key] ?? getenv($key);
-    return $value !== false && $value !== null ? (int)trim($value) : $default;
-};
-
-// 辅助函数：从环境变量读取字符串值
-$getEnvString = function($key, $default = '') {
-    // 优先使用 $_ENV，因为 webman 使用 Dotenv 加载 .env 文件到 $_ENV
-    $value = $_ENV[$key] ?? $_SERVER[$key] ?? getenv($key);
-    if ($value === false || $value === null) {
-        return $default;
-    }
-    // 移除可能的注释（# 及其后面的内容）
-    if (($pos = strpos($value, '#')) !== false) {
-        $value = trim(substr($value, 0, $pos));
-    }
-    return trim($value);
-};
+// Shared .env / explicit process / PHP defaults; never read request $_SERVER.
+$getEnvBool = static fn($key, $default = false) => \app\cms\config\Environment::boolean($key, $default);
+$getEnvInt = static fn($key, $default = 0) => \app\cms\config\Environment::integer($key, $default);
+$getEnvString = static fn($key, $default = '') => (string)\app\cms\config\Environment::value($key, $default);
 
 /**
- * 默认日志配置项（从 .env 读取，提供默认值）
+ * 正式日志配置（本地 .env 可按项覆盖）
  * 
  * 环境变量说明：
  * - LOG_ENABLE: 是否启用日志（true/false，默认：true）
@@ -57,7 +28,7 @@ $getEnvString = function($key, $default = '') {
  *   如果只指定目录（如 'logs'），会自动添加 'webman.log' 文件名
  *   注意：路径必须位于 runtime 目录下，不能使用绝对路径或超出 runtime 目录
  * - LOG_MAX_FILES: 日志文件保留天数（整数，默认：7）
- * - LOG_LEVEL: 日志级别（整数，默认：\Monolog\Logger::DEBUG）
+ * - LOG_LEVEL: 日志级别（整数，默认：\Monolog\Logger::INFO）
  *   日志级别常量：
  *   - DEBUG = 100
  *   - INFO = 200
@@ -105,14 +76,14 @@ $defaultLogConfig = [
     'print_to_file' => $getEnvBool('LOG_PRINT_TO_FILE', true), // 是否写入日志文件
     'log_file' => $logFile, // 日志文件完整路径
     'max_files' => $getEnvInt('LOG_MAX_FILES', 7), // 日志文件保留天数
-    'level' => $getEnvInt('LOG_LEVEL', \Monolog\Logger::DEBUG), // 日志级别
+    'level' => $getEnvInt('LOG_LEVEL', \Monolog\Logger::INFO), // 日志级别
 ];
 
 /**
  * SQL 查询日志配置项（从 .env 读取，提供默认值）
  * 
  * 环境变量说明：
- * - SQL_LOG_ENABLE: 是否启用 SQL 日志（true/false，默认：true）
+ * - SQL_LOG_ENABLE: 是否启用 SQL 日志（true/false，默认：false）
  * - SQL_LOG_PRINT_TO_CONSOLE: 是否打印到终端（true/false，默认：true）
  * - SQL_LOG_PRINT_TO_FILE: 是否写入日志文件（true/false，默认：true）
  * - SQL_LOG_FILE: SQL 日志文件目录路径（相对 runtime 目录，默认：'logs'，文件名会自动添加日期后缀）
@@ -144,7 +115,7 @@ if ($realLogDir === false || strpos($realLogDir, $realRuntimePath) !== 0) {
 $sqlLogFile = rtrim($sqlLogDir, '/\\') . '/sql-' . date('Y-m-d') . '.log';
 
 $sqlLogConfig = [
-    'enable' => $getEnvBool('SQL_LOG_ENABLE', true), // 是否启用 SQL 日志
+    'enable' => $getEnvBool('SQL_LOG_ENABLE', false), // 是否启用 SQL 日志
     'print_to_console' => $getEnvBool('SQL_LOG_PRINT_TO_CONSOLE', false), // 是否打印到终端
     'print_to_file' => $getEnvBool('SQL_LOG_PRINT_TO_FILE', true), // 是否写入日志文件
     'log_file' => $sqlLogFile, // SQL 日志文件完整路径（包含日期文件名）

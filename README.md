@@ -1,72 +1,42 @@
-# webman-cms
+# Webman CMS
 
-一个基于 **Webman(Workerman)** 的高性能 CMS 项目，目标是 **复用并兼容 EyouCMS(易优CMS)** 的核心能力与模板生态：
+基于 Webman 重构 EyouCMS 1.7.7 企业官网，兼容受支持的原模板标签、业务 ID 与资源 URL。支持文章、单页、展示产品、栏目、表单、多语言、模板管理及 SEO；会员和商城交易不在范围内。
 
-- 运行在常驻内存的 Workerman 事件循环之上，具备 **高并发、低延迟、低资源占用** 的优势
-- 尽可能复用 EyouCMS 的数据结构/后台思路/前台模板标签（如 `{eyou:channel}`、`{eyou:arclist}`）
-- 通过 ThinkTemplate + 自定义 TagLib，在 Webman 里实现对 EyouCMS 模板的“直接兼容”
+2026-11-07：开发站 8787 已完成本轮停机迁移并重启，新架构已运行。旧状态已逐项核验入库，整个 runtime 已清除并自动重建；8793 保留副本未改动、未同步。迁移后 HTTP 复查与当前管理员登录后的主要页面读取、筛选和打开／返回验收已通过。本轮架构迁移验收完成；未扩大为全部角色、业务写入或 EyouCMS 严格兼容验收。
 
-<h1>webman官网</h1>
-<ul>
+当前安全边界：业务插件市场与运行时加载、可视化编辑和通过 Web 生成 PHP 代码均已关闭；`plugin\admin` 只是保留的后台兼容身份。模板在安装和启用前扫描，企业官网模板中的不支持内容会阻止启用；旧会员／支付页面的问题仅提示，访问时仍受模板安全策略限制。历史数据保留。Composer 框架依赖及其配置继续使用。
 
-  <li>
-    <a href="https://webman.workerman.net" target="__blank">文档 / Document</a>
-  </li>
- 
-</ul>
+## 启动与安装
 
+运行需要 PHP ≥ 8.2、Composer 锁定依赖和 MySQL。本机显式使用以下 PHP，避免 shell 默认旧版本：
 
-## 特性亮点
+```sh
+cd /Volumes/disk/site/php/dzhcms/dzhcms002/webman-cms
+/Users/lizheng/Library/FlyEnv/env/php/bin/php start.php start
+```
 
-- **高性能**：Webman 基于 Workerman，常驻内存、无需反复引导框架，适合高并发场景
-- **模板生态复用**：直接使用 `template/pc/*.htm` 等 EyouCMS 风格模板
-- **标签兼容**：通过 think-template 的 TagLib 机制支持 `{eyou:xxx}` 模板标签
+开发站为 `http://127.0.0.1:8787/`，后台为 `/app/admin`。新站通过 `/install` 安装，默认空站，由安装者设置管理员账号和密码；已有站使用迁移流程，禁止重新导入基线覆盖。部署、停机迁移和缓存清理见[部署说明](docs/deployment.md)与[数据库说明](docs/database.md)。
 
----
+## 目录约定
 
+- `app/cms/` 集中业务、标签兼容、安装、维护和私有资源；框架接入层及后台视图集中维护；业务插件不再加载。
+- `template/<主题>/pc|mobile/` 保存原版主题，官方默认主题为 `default`。
+- `public/uploads/` 保存上传实体，兼容旧 URL；`public/html/` 专放生成 HTML。
+- `install/` 保存安装页面、资源及初始 SQL，安装完成可删除；后续升级代码在 `app/cms/database/`。
+- `runtime/` 在状态迁移完成后可停机整删，启动自动重建；会话失效，业务与发布状态在数据库中保留。
+- `docs/` 不参与运行；`.git` 留在项目内，运行版本不受旧 10MB 源码包限制。
 
+根目录不再保留 `data`、`resources`、`scripts`、`sql`。完整职责与路径映射见[架构说明](docs/architecture.md)。
 
-## 演示截图
+## 开发与验收
 
-> 下图为本项目部分功能演示（以仓库图片为准）：
+- [协作规范](AGENTS.md)、[维护与外部归档](docs/maintenance-archive.md)。
+- [离线标签手册](docs/eyoucms/labels.md)、[六阶段路线](docs/eyoucms/roadmap.md)。
+- [当前交接](docs/eyoucms/current-handoff.md)、[剩余验收项](docs/eyoucms/acceptance-gaps.md)。
+- [历史源码包与资源恢复](docs/source-package.md)。
 
-|   | 预览 |
-|---|---|
-|   | ![](https://www.gzdzh.cn/public/dzh/t0.png) |
-|   | ![](https://www.gzdzh.cn/public/dzh/t1.png) |
-|   | ![](https://www.gzdzh.cn/public/dzh/t2.png) |
-|   | ![](https://www.gzdzh.cn/public/dzh/t3.png) |
-|   | ![](https://www.gzdzh.cn/public/dzh/t4.png) |
-|   | ![](https://www.gzdzh.cn/public/dzh/t5.png) |
+已有企业官网及具名模板的有限验收不代表全部官方主题完全兼容。T17、部分权限与富文本边界、未提供主题和最终综合回归继续开放。8793 保留副本独立管理，开发修改不自动发布。
 
----
+## 许可
 
-## 演示地址
-
->
-- 前台：http://webmancms.dzha.gzdazhihui.cn/
-- 后台：http://webmancms.dzha.gzdazhihui.cn/app/admin
-  * 账号：test
-  * 密码：123456
-
-## 交流 / 反馈
-
-- 扫码添加微信，沟通需求、问题排查、拉群交流：
-
-<img src="https://www.gzdzh.cn/public/dzh/weixin.jpg" width="360" alt="微信沟通/拉群" />
-
----
-
-## 请作者喝咖啡
-
-如果这个项目对你有帮助，欢迎赞助支持我持续维护与迭代：
-
-<img src="https://www.gzdzh.cn/public/dzh/qcode.png" width="360" alt="赞助/捐赠二维码" />
-
-> 你的支持会用于：功能完善、标签兼容扩展、性能优化、文档与示例补齐。
-
----
-
-## License
-
-MIT
+MIT，保留原版权及第三方组件许可；详见 `LICENSE` 和对应源码声明。

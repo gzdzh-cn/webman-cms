@@ -13,9 +13,35 @@
 *.tar.bz2
 *.tar.xz
 *.tar.lzma
+
 *.tar.lz
 *.tar.Z
 *.tar.bz
 *.tar.bz2
 *.tar.xz
 *.tar.lzma
+
+# CMS download attachments are part of the deployed website.
+!/public/uploads/**/*.zip
+!/public/uploads/**/*.tar.gz
+!/public/uploads/**/*.tar.bz2
+!/public/uploads/**/*.tar.xz
+
+# Compact source originals required by the source-package edition.
+!/app/cms/resources/admin-asset-sources.tar.xz
+
+# macOS Finder metadata
+.DS_Store
+
+# Private installation state; survives cache deletion.
+/config/cms-installed.json
+/config/cms-installer-archive.json
+/install_*/
+/config/cms-installing*
+/config/cms-install-*.json
+/config/cms-install-handoff*.lock
+/config/cms-install-history/
+
+# Private database restore coordination; never part of a source package.
+/config/cms-database-traffic.lock
+/config/cms-database-maintenance.json

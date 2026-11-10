@@ -13,6 +13,7 @@
  */
 
 return [
+    app\cms\bootstrap\RuntimeBootstrap::class,
     Webman\ThinkOrm\ThinkOrm::class,
     support\bootstrap\Session::class,
     support\SqlDebug::class,

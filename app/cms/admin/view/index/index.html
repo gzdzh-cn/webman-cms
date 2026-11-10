@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+        <title>主页</title>
+        <!-- 依 赖 样 式 -->
+        <link rel="stylesheet" href="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/component/pear/css/pear.css?v=20261105-sidebar2'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>" />
+        <!-- 加 载 样 式 -->
+        <link rel="stylesheet" href="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/admin/css/loader.css'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>" />
+        <!-- 布 局 样 式 -->
+        <link rel="stylesheet" href="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/admin/css/admin.css'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>" />
+        <!-- 重置样式 -->
+        <link rel="stylesheet" href="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/admin/css/reset.css'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>" />
+        <link rel="stylesheet" href="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/admin/css/cms-workspace.css?v=20261106-featuremap1'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>" />
+    </head>
+    <!-- 结 构 代 码 -->
+    <body class="layui-layout-body pear-admin cms-workspace">
+        <!-- 布 局 框 架 -->
+        <div class="layui-layout layui-layout-admin">
+            <!-- 顶 部 样 式 -->
+            <div class="layui-header">
+                <!-- 菜 单 顶 部 -->
+                <div class="layui-logo">
+                    <!-- 图 标 -->
+                    <img class="logo">
+                    <!-- 标 题 -->
+                    <span class="title"></span>
+                </div>
+                <!-- 顶 部 左 侧 功 能 -->
+                <ul class="layui-nav layui-layout-left">
+                    <li class="collapse layui-nav-item"><a href="#" title="展开或收起菜单" aria-label="展开或收起菜单" class="layui-icon layui-icon-shrink-right"></a></li>
+                    <li class="cms-breadcrumb" aria-label="当前位置"><span class="cms-crumb-group">工作台</span><strong></strong></li>
+                </ul>
+                <!-- 多 系 统 菜 单 -->
+                <div id="control" class="layui-layout-control"></div>
+                <!-- 顶 部 右 侧 菜 单 -->
+                <ul class="layui-nav layui-layout-right">
+                    <li class="layui-nav-item"><a href="#" class="cms-menu-search layui-icon layui-icon-search" title="搜索功能" aria-label="搜索功能"><span class="cms-top-label">搜索</span></a></li>
+                    <li class="layui-nav-item cms-language-menu" id="cms-language-menu">
+                        <button type="button" class="cms-language-picker" id="cms-edit-language" aria-label="当前编辑语言" aria-haspopup="true" aria-controls="cms-language-dropdown" aria-expanded="false" disabled><i class="layui-icon layui-icon-website" aria-hidden="true"></i><span id="cms-edit-language-value">读取中</span><span class="cms-language-chevron" aria-hidden="true">⌄</span></button>
+                        <div id="cms-language-dropdown" class="cms-language-options" hidden>
+                            <div class="cms-dropdown-heading">切换编辑语言</div>
+                            <div id="cms-language-options" role="listbox" aria-label="编辑语言列表"></div>
+                            <?php if (\plugin\admin\api\Auth::canAccess(\plugin\admin\app\controller\LanguageController::class, 'index')): ?>
+                            <a class="cms-language-manage" href="/app/admin/language/index"><i class="layui-icon layui-icon-edit" aria-hidden="true"></i>编辑语言<span aria-hidden="true">→</span></a>
+                            <?php endif; ?>
+                        </div>
+                        <span id="cms-language-message" class="cms-language-message" role="status" aria-live="polite"></span>
+                    </li>
+                    <li class="layui-nav-item cms-preview"><a href="/" target="_blank" rel="noopener" title="预览官网" aria-label="预览官网"><i class="layui-icon layui-icon-website" aria-hidden="true"></i></a></li>
+                    <li class="layui-nav-item layui-hide-xs message"></li>
+                    <li class="layui-nav-item user cms-account-menu" id="cms-account-menu">
+                        <!-- 头 像 -->
+                        <a href="#" id="cms-account-toggle" role="button" aria-label="管理员菜单" aria-haspopup="menu" aria-controls="cms-account-options" aria-expanded="false"><i class="layui-icon layui-icon-username" aria-hidden="true"></i><span class="cms-top-label cms-account-name">管理员</span></a>
+                        <!-- 功 能 菜 单 -->
+                        <dl class="layui-nav-child cms-account-options" id="cms-account-options" role="menu" hidden>
+                            <dd><a class="cms-account-link" role="menuitem" href="/app/admin/account/index"><i class="layui-icon layui-icon-username" aria-hidden="true"></i>个人资料</a></dd>
+                            <dd><a href="#" role="menuitem" class="refresh"><i class="layui-icon layui-icon-refresh" aria-hidden="true"></i>刷新当前页</a></dd>
+                            <dd><a href="#" role="menuitem" class="fullScreen"><i class="layui-icon layui-icon-screen-full" aria-hidden="true"></i>全屏显示</a></dd>
+                            <dd class="setting"><a href="#" role="menuitem"><i class="layui-icon layui-icon-set" aria-hidden="true"></i>外观偏好</a></dd>
+                            <dd class="cms-dropdown-divider" id="cms-restart-item" hidden><button type="button" id="cms-restart" role="menuitem"><i class="layui-icon layui-icon-refresh-3" aria-hidden="true"></i>重启程序</button></dd>
+                            <dd class="cms-dropdown-divider"><a href="javascript:void(0);" role="menuitem" class="logout"><i class="layui-icon layui-icon-logout" aria-hidden="true"></i>退出登录</a></dd>
+                        </dl>
+                    </li>
+                </ul>
+            </div>
+            <!-- 侧 边 区 域 -->
+            <div class="layui-side light-theme" aria-label="主导航">
+                <!-- 菜 单 顶 部 -->
+                <div class="layui-logo">
+                    <!-- 图 标 -->
+                    <img class="logo">
+                    <!-- 标 题 -->
+                    <a href="/"><span class="title"></span></a>
+                </div>
+                <!-- 菜 单 内 容 -->
+                <div class="layui-side-scroll">
+                    <div id="sideMenu"></div>
+                </div>
+            </div>
+            <!-- 视 图 页 面 -->
+            <div class="layui-body">
+                <!-- 内 容 页 面 -->
+                <div id="content" aria-label="后台工作区"></div>
+            </div>
+            <!-- 页脚 -->
+            <div class="layui-footer layui-text">
+                <span class="left">
+                    Released under the MIT license.
+                </span>
+                <span class="center"></span>
+            </div>
+            <!-- 遮 盖 层 -->
+            <div class="pear-cover"></div>
+            <!-- 加 载 动 画 -->
+            <div class="loader-main" role="status" aria-label="正在加载后台，请稍候">
+                <!-- 动 画 对 象 -->
+                <div class="loader"></div>
+            </div>
+        </div>
+        <!-- 移 动 端 便 捷 操 作 -->
+        <div class="pear-collapsed-pe collapse">
+            <a href="#" class="layui-icon layui-icon-shrink-right"></a>
+        </div>
+        <!-- 依 赖 脚 本 -->
+        <script src="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/component/layui/layui.js?v=2.13.2-64cf8ffb71a4'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>"></script>
+        <script src="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/component/pear/pear.js?v=20261106-compact2'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>"></script>
+        <script src="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/admin/js/cms-shortcuts.js?v=20261106-featuremap1'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>"></script>
+        <script src="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/admin/js/cms-workspace.js?v=20261106-basic2'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>" data-page-layout="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/admin/css/cms-page-layout.css'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>"></script>
+        <!-- 框 架 初 始 化 -->
+        <script>
+
+            // Admin
+            window.Admin = {
+                Account: {}
+            };
+
+            layui.use(["pearAdmin","jquery","pearPopup","pearDrawer"], function() {
+                var $ = layui.$;
+                var admin = layui.pearAdmin;
+                var popup = layui.pearPopup;
+
+                admin.setConfigType("json");
+                admin.setConfigPath("/app/admin/config/get");
+
+                window.CmsNavigation.start(admin);
+
+                // 登出逻辑
+                admin.logout(function(){
+                    $.ajax({
+                        url: "/app/admin/account/logout",
+                        dataType: "json",
+                        success: function (res) {
+                            if (res.code) {
+                                return popup.failure(res.msg);
+                            }
+                            popup.success("已退出登录",function(){
+                                location.reload();
+                            })
+                        }
+                    });
+                    return false;
+                })
+
+                $.ajax({
+                    url: "/app/admin/account/info",
+                    dataType: 'json',
+                    success: function (res) {
+                        window.Admin.Account = res.data;
+                        $('.cms-account-name').text(res.data.nickname || res.data.username || '账户');
+                    }
+                });
+
+                // 消息点击回调
+                //admin.message(function(id, title, context, form) {});
+            });
+
+        </script>
+    </body>
+</html>

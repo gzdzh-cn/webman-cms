@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+	<head>
+		<meta charset="utf-8">
+		<title></title>
+		<link href="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/component/pear/css/pear.css'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>" rel="stylesheet" />
+		<link href="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/admin/css/pages/error.css'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>" rel="stylesheet" />
+	</head>
+	<body>
+		<div class="content">
+			<img src="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/admin/images/403.svg'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>" alt="">
+			<div class="content-r">
+				<h1>403</h1>
+				<p>抱歉，你无权访问该页面</p>
+			</div>
+		</div>
+		<script src="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/component/layui/layui.js?v=2.13.12'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>"></script>
+		<script src="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/component/pear/pear.js'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>"></script>
+        <script src="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/admin/js/permission.js'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>"></script>
+	</body>
+</html>

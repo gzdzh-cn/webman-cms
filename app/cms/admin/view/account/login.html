@@ -1,0 +1,98 @@
+﻿<!DOCTYPE html>
+<html lang="zh-cn">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+        <title>登录</title>
+        <!-- 样 式 文 件 -->
+        <link rel="stylesheet" href="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/component/pear/css/pear.css'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>" />
+        <link rel="stylesheet" href="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/admin/css/pages/login.css'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>" />
+    </head>
+    <!-- 代 码 结 构 -->
+    <body background="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/admin/images/background.svg'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>" style="background-size: cover;">
+        <form class="layui-form">
+            <div class="layui-form-item">
+                <img class="logo" src="<?=$logo?>" />
+                <div class="title pear-text"><?=$title?></div>
+            </div>
+            <div class="layui-form-item">
+                <input lay-verify="required" hover class="layui-input" type="text" name="username" value="" placeholder="用户名" />
+            </div>
+            <div class="layui-form-item">
+                <input lay-verify="required" hover class="layui-input" type="password" name="password" value="" placeholder="密码" />
+            </div>
+            <div class="layui-form-item">
+                <input hover  lay-verify="required" class="code layui-input layui-input-inline" name="captcha" placeholder="验证码" />
+                <img class="codeImage" width="120px"/>
+            </div>
+            <div class="layui-form-item">
+                <button type="submit" class="pear-btn pear-btn-primary login" lay-submit lay-filter="login">
+                    登 入
+                </button>
+            </div>
+        </form>
+        <script>
+            var color = localStorage.getItem("theme-color-color");
+            var second = localStorage.getItem("theme-color-second");
+            if (!color || !second) {
+                localStorage.setItem("theme-color-color", "#2d8cf0");
+                localStorage.setItem("theme-color-second", "#ecf5ff");
+            }
+        </script>
+        <!-- 资 源 引 入 -->
+        <script src="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/component/layui/layui.js?v=2.13.12'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>"></script>
+        <script src="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/component/pear/pear.js'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>"></script>
+        <script>
+         
+            layui.use(['form', 'pearButton', 'pearPopup', 'layer', 'pearTheme', 'pearAdmin'], function() {
+                console.log('layui.use', layui);
+                
+                var $ = layui.$, layer = layui.layer, form = layui.form;
+                function switchCaptcha() {
+                    $('.codeImage').attr("src", "/app/admin/account/captcha/login?v=" + new Date().getTime());
+                }
+                switchCaptcha();
+                var loginPending = false;
+                // 登 录 提 交
+                form.on('submit(login)', function (data) {
+                    if (loginPending) return false;
+                    var submitButton = $(data.elem), loginSucceeded = false;
+                    loginPending = true;
+                    submitButton.prop('disabled', true).attr('aria-busy', 'true');
+                    var loadingIndex = layer.load();
+                    $.ajax({
+                        url: '/app/admin/account/login',
+                        type: "POST",
+                        dataType: 'json',
+                        timeout: 15000,
+                        data: data.field,
+                        success: function (res) {
+                            if (res && res.code === 0) {
+                                loginSucceeded = true;
+                                layui.pearPopup.success('登录成功', function () {
+                                    location.reload();
+                                });
+                            } else {
+                                layui.pearPopup.failure(res && res.msg || '登录失败，请重试');
+                                switchCaptcha();
+                            }
+                        },
+                        error: function (xhr, status) {
+                            layui.pearPopup.failure(status === 'timeout' ? '登录请求超时，请重试' : '登录请求失败，请检查网络后重试');
+                            switchCaptcha();
+                        },
+                        complete: function () {
+                            layer.close(loadingIndex);
+                            loginPending = loginSucceeded;
+                            submitButton.prop('disabled', loginSucceeded).attr('aria-busy', 'false');
+                        }
+                    });
+                    return false;
+                });
+                $('.codeImage').on('click', function () {
+                    switchCaptcha();
+                });
+            })
+        </script>
+    </body>
+</html>

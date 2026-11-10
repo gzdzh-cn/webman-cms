@@ -1,0 +1,2735 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-11-03T06:45:53+08:00",
+  "directory": {
+    "url": "https://www.eyoucms.com/doc/label/",
+    "http_status": 200,
+    "fetched_at": "2026-11-03T02:41:37+08:00",
+    "retrieval": "cached",
+    "sha256": "adefb73e66568f3c746d8d313ba44dc1ae0048230a63ba67447fa9f91ef93137"
+  },
+  "expected_count": 79,
+  "fetched_count": 79,
+  "failures": [],
+  "documents": [
+    {
+      "url": "https://www.eyoucms.com/doc/label/all/491.html",
+      "category": "all",
+      "document_id": "491",
+      "title": "artlist 文章列表",
+      "http_status": 200,
+      "fetched_at": "2026-11-03T02:41:37+08:00",
+      "retrieval": "cached",
+      "sha256": "bd2155260be8602e74ca1dcc56b00776661eab876a03171a34e88284160b7dbb",
+      "upstream_updated": "2025-08-14 16:02:04",
+      "primary_tag": null,
+      "example_tags": [
+        "artlist",
+        "eq",
+        "tag"
+      ],
+      "first_example": "{eyou:artlist typeid='栏目ID' limit='0,10' flag='c' titlelen='30' infolen='160' orderby='add_time'}\n   <a href='{$field.arcurl}'>{$field.title}</a>\n{/eyou:artlist}",
+      "observed_attributes": [
+        "addfields",
+        "aid",
+        "arcrank",
+        "empty",
+        "flag",
+        "getall",
+        "id",
+        "idlist",
+        "idrange",
+        "infolen",
+        "keyword",
+        "limit",
+        "loop",
+        "mod",
+        "modelid",
+        "name",
+        "noflag",
+        "notypeid",
+        "orderby",
+        "ordermode",
+        "sort",
+        "tagid",
+        "thumb",
+        "titlelen",
+        "typeid",
+        "value"
+      ],
+      "observed_fields": [
+        "field.arcurl",
+        "field.level_name",
+        "field.level_value",
+        "field.title",
+        "field1.link",
+        "field1.tag",
+        "field1.title",
+        "field2.arcurl",
+        "field2.title"
+      ],
+      "tables": [
+        "ey_archives"
+      ],
+      "fetch_error": null
+    },
+    {
+      "url": "https://www.eyoucms.com/doc/label/all/492.html",
+      "category": "all",
+      "document_id": "492",
+      "title": "models 栏目列表",
+      "http_status": 200,
+      "fetched_at": "2026-11-03T02:41:37+08:00",
+      "retrieval": "cached",
+      "sha256": "9c9b98f938684e785ae856708f595a8a45979c79fd18db951664e06f1830d62e",
+      "upstream_updated": "2023-10-23 17:27:14",
+      "primary_tag": null,
+      "example_tags": [
+        "eq",
+        "models",
+        "notempty"
+      ],
+      "first_example": null,
+      "observed_attributes": [
+        "currentclass",
+        "empty",
+        "id",
+        "limit",
+        "loop",
+        "mod",
+        "name",
+        "offset",
+        "titlelen",
+        "type",
+        "typeid",
+        "value"
+      ],
+      "observed_fields": [
+        "field.currentclass",
+        "field.extends",
+        "field.title",
+        "field.typename",
+        "field.typeurl",
+        "field1.currentclass",
+        "field1.title",
+        "field1.typename",
+        "field1.typeurl",
+        "field2.typename",
+        "field2.typeurl",
+        "field3.typename",
+        "field3.typeurl"
+      ],
+      "tables": [
+        "ey_arctype"
+      ],
+      "fetch_error": null
+    },
+    {
+      "url": "https://www.eyoucms.com/doc/label/all/493.html",
+      "category": "all",
+      "document_id": "493",
+      "title": "modelsartlist 频道循环",
+      "http_status": 200,
+      "fetched_at": "2026-11-03T02:41:37+08:00",
+      "retrieval": "cached",
+      "sha256": "a92907ef6acf31ca97ce1310e3d8afe5e59804a1f2bf90208e33706bf81e3cf9",
+      "upstream_updated": "2023-10-23 17:25:52",
+      "primary_tag": "modelsartlist",
+      "example_tags": [
+        "artlist",
+        "field",
+        "models",
+        "modelsartlist",
+        "type"
+      ],
+      "first_example": null,
+      "observed_attributes": [
+        "currentclass",
+        "empty",
+        "id",
+        "infolen",
+        "limit",
+        "loop",
+        "mod",
+        "name",
+        "titlelen",
+        "type",
+        "typeid"
+      ],
+      "observed_fields": [
+        "field.arcurl",
+        "field.currentclass",
+        "field.litpic",
+        "field.title",
+        "field.typename",
+        "field.typeurl"
+      ],
+      "tables": [
+        "ey_arctype"
+      ],
+      "fetch_error": null
+    },
+    {
+      "url": "https://www.eyoucms.com/doc/label/all/494.html",
+      "category": "all",
+      "document_id": "494",
+      "title": "type 指定栏目",
+      "http_status": 200,
+      "fetched_at": "2026-11-03T02:41:37+08:00",
+      "retrieval": "cached",
+      "sha256": "a3809f1c1616cad0defa95d4a636cf45074e3a0e6e06023df035e99e0d5900f9",
+      "upstream_updated": "2023-10-23 17:23:32",
+      "primary_tag": "type",
+      "example_tags": [
+        "type"
+      ],
+      "first_example": null,
+      "observed_attributes": [
+        "addfields",
+        "empty",
+        "id",
+        "type",
+        "typeid"
+      ],
+      "observed_fields": [
+        "field.content",
+        "field.typename",
+        "field.typeurl",
+        "field1.typename"
+      ],
+      "tables": [
+        "ey_arctype"
+      ],
+      "fetch_error": null
+    },
+    {
+      "url": "https://www.eyoucms.com/doc/label/all/495.html",
+      "category": "all",
+      "document_id": "495",
+      "title": "include 引用模板",
+      "http_status": 200,
+      "fetched_at": "2026-11-03T02:41:38+08:00",
+      "retrieval": "cached",
+      "sha256": "540ea52ffa8b32609eda08c54c8a9296ac648d24c68c61a180feaec9c5ae16a5",
+      "upstream_updated": "2023-10-23 17:23:09",
+      "primary_tag": "include",
+      "example_tags": [
+        "include"
+      ],
+      "first_example": null,
+      "observed_attributes": [
+        "file"
+      ],
+      "observed_fields": [],
+      "tables": [],
+      "fetch_error": null
+    },
+    {
+      "url": "https://www.eyoucms.com/doc/label/all/498.html",
+      "category": "all",
+      "document_id": "498",
+      "title": "arcview 单条文档",
+      "http_status": 200,
+      "fetched_at": "2026-11-03T02:41:38+08:00",
+      "retrieval": "cached",
+      "sha256": "2bf09abee79ba8f6ceae591e510ce69f5d3cf8c9e688e21627bedc3a6d8a26ec",
+      "upstream_updated": "2023-10-23 17:22:38",
+      "primary_tag": "arcview",
+      "example_tags": [
+        "arcview"
+      ],
+      "first_example": null,
+      "observed_attributes": [
+        "addfields",
+        "aid",
+        "id",
+        "joinaid"
+      ],
+      "observed_fields": [
+        "field.arcurl",
+        "field.content",
+        "field.title",
+        "field1.title",
+        "view.test1",
+        "view.test2"
+      ],
+      "tables": [
+        "ey_archives"
+      ],
+      "fetch_error": null
+    },
+    {
+      "url": "https://www.eyoucms.com/doc/label/all/500.html",
+      "category": "all",
+      "document_id": "500",
+      "title": "position 面包屑",
+      "http_status": 200,
+      "fetched_at": "2026-11-03T02:41:38+08:00",
+      "retrieval": "cached",
+      "sha256": "a6225beedb29baa1eb60b0e139864d1770f986344bec0386cbc20f558eac89ea",
+      "upstream_updated": "2023-10-23 17:22:20",
+      "primary_tag": "position",
+      "example_tags": [
+        "position"
+      ],
+      "first_example": null,
+      "observed_attributes": [
+        "style"
+      ],
+      "observed_fields": [],
+      "tables": [],
+      "fetch_error": null
+    },
+    {
+      "url": "https://www.eyoucms.com/doc/label/all/503.html",
+      "category": "all",
+      "document_id": "503",
+      "title": "assign 定义变量",
+      "http_status": 200,
+      "fetched_at": "2026-11-03T02:41:38+08:00",
+      "retrieval": "cached",
+      "sha256": "df47e67c9deadb9831de8bce52ac74084cb26c1672b6a66e0db2281d782122fd",
+      "upstream_updated": "2023-10-23 17:21:54",
+      "primary_tag": null,
+      "example_tags": [
+        "assign",
+        "channel",
+        "type"
+      ],
+      "first_example": "{eyou:assign name='typeid' value='5' /}",
+      "observed_attributes": [
+        "name",
+        "type",
+        "typeid",
+        "value"
+      ],
+      "observed_fields": [
+        "field.typename",
+        "field.typeurl"
+      ],
+      "tables": [],
+      "fetch_error": null
+    },
+    {
+      "url": "https://www.eyoucms.com/doc/label/all/504.html",
+      "category": "all",
+      "document_id": "504",
+      "title": "empty 为空判断",
+      "http_status": 200,
+      "fetched_at": "2026-11-03T02:41:38+08:00",
+      "retrieval": "cached",
+      "sha256": "9ae3fc4f9d6309addbaead30fcfaa9bd8291ea59120d7a5c7adaaf4e6aa2be4a",
+      "upstream_updated": "2025-07-07 10:05:13",
+      "primary_tag": null,
+      "example_tags": [
+        "else",
+        "empty"
+      ],
+      "first_example": null,
+      "observed_attributes": [
+        "name"
+      ],
+      "observed_fields": [
+        "eyou.field.seo_title",
+        "eyou.field.title"
+      ],
+      "tables": [],
+      "fetch_error": null
+    },
+    {
+      "url": "https://www.eyoucms.com/doc/label/all/505.html",
+      "category": "all",
+      "document_id": "505",
+      "title": "notempty 不为空判断",
+      "http_status": 200,
+      "fetched_at": "2026-11-03T02:41:38+08:00",
+      "retrieval": "cached",
+      "sha256": "eaa255e6e68885e75906053e443de713c5410a330ce062fc2e3f208e3f623b89",
+      "upstream_updated": "2025-07-07 10:05:40",
+      "primary_tag": "notempty",
+      "example_tags": [
+        "else",
+        "notempty"
+      ],
+      "first_example": null,
+      "observed_attributes": [
+        "name"
+      ],
+      "observed_fields": [
+        "eyou.field.seo_title",
+        "eyou.field.title"
+      ],
+      "tables": [],
+      "fetch_error": null
+    },
+    {
+      "url": "https://www.eyoucms.com/doc/label/all/506.html",
+      "category": "all",
+      "document_id": "506",
+      "title": "foreach 循环输出",
+      "http_status": 200,
+      "fetched_at": "2026-11-03T02:41:38+08:00",
+      "retrieval": "cached",
+      "sha256": "d7a26ffc6a112a305442d1c591201b8a724a55c90d5d58a22a95d7cb0708c22b",
+      "upstream_updated": "2023-10-23 17:32:50",
+      "primary_tag": "foreach",
+      "example_tags": [
+        "channel",
+        "foreach",
+        "guestbookform"
+      ],
+      "first_example": null,
+      "observed_attributes": [
+        "item",
+        "name",
+        "type",
+        "typeid"
+      ],
+      "observed_fields": [
+        "field.action",
+        "field.attr_5",
+        "field.attr_6",
+        "field.attr_7",
+        "field.hidden",
+        "field.itemname_5",
+        "field.itemname_6",
+        "field.title",
+        "field1.title",
+        "field1.typename",
+        "field1.typeurl",
+        "field1.value"
+      ],
+      "tables": [],
+      "fetch_error": null
+    },
+    {
+      "url": "https://www.eyoucms.com/doc/label/all/507.html",
+      "category": "all",
+      "document_id": "507",
+      "title": "volist 数据循环",
+      "http_status": 200,
+      "fetched_at": "2026-11-03T02:41:38+08:00",
+      "retrieval": "cached",
+      "sha256": "a96e8a2559c1a61cfe27d1e0d4f9844c7f103effccf5bac19f2ae66addce6713",
+      "upstream_updated": "2023-10-23 17:30:05",
+      "primary_tag": "volist",
+      "example_tags": [
+        "channel",
+        "guestbookform",
+        "volist"
+      ],
+      "first_example": null,
+      "observed_attributes": [
+        "id",
+        "name",
+        "type",
+        "typeid"
+      ],
+      "observed_fields": [
+        "field.action",
+        "field.attr_5",
+        "field.attr_6",
+        "field.attr_7",
+        "field.hidden",
+        "field.itemname_5",
+        "field.itemname_6",
+        "field.title",
+        "field1.title",
+        "field1.typename",
+        "field1.typeurl",
+        "field1.value"
+      ],
+      "tables": [],
+      "fetch_error": null
+    },
+    {
+      "url": "https://www.eyoucms.com/doc/label/all/508.html",
+      "category": "all",
+      "document_id": "508",
+      "title": "if 条件判断",
+      "http_status": 200,
+      "fetched_at": "2026-11-03T02:41:38+08:00",
+      "retrieval": "cached",
+      "sha256": "220c8805b9b8d3f6e873dda2d7aefce1a683562c80328b9872a87c0f606c36d0",
+      "upstream_updated": "2023-10-23 17:30:30",
+      "primary_tag": "if",
+      "example_tags": [
+        "else",
+        "elseif",
+        "if"
+      ],
+      "first_example": null,
+      "observed_attributes": [
+        "condition"
+      ],
+      "observed_fields": [],
+      "tables": [],
+      "fetch_error": null
+    },
+    {
+      "url": "https://www.eyoucms.com/doc/label/all/509.html",
+      "category": "all",
+      "document_id": "509",
+      "title": "switch 条件判断",
+      "http_status": 200,
+      "fetched_at": "2026-11-03T02:41:38+08:00",
+      "retrieval": "cached",
+      "sha256": "0fbd64e2556409e98eeff8d436a601ee0040d3819ca2aa6eb940ad611944cada",
+      "upstream_updated": "2023-10-23 17:32:20",
+      "primary_tag": "switch",
+      "example_tags": [
+        "case",
+        "default",
+        "switch"
+      ],
+      "first_example": null,
+      "observed_attributes": [
+        "condition",
+        "name",
+        "value"
+      ],
+      "observed_fields": [],
+      "tables": [],
+      "fetch_error": null
+    },
+    {
+      "url": "https://www.eyoucms.com/doc/label/all/510.html",
+      "category": "all",
+      "document_id": "510",
+      "title": "compare 变量比较",
+      "http_status": 200,
+      "fetched_at": "2026-11-03T02:41:38+08:00",
+      "retrieval": "cached",
+      "sha256": "dcac3108913cf6244213a1126cdce3a82ce9237a0ce2eee5bea7529d7a6ef2bf",
+      "upstream_updated": "2023-10-23 17:31:29",
+      "primary_tag": "compare",
+      "example_tags": [
+        "egt",
+        "elt",
+        "eq",
+        "gt",
+        "heq",
+        "lt",
+        "neq",
+        "nheq"
+      ],
+      "first_example": null,
+      "observed_attributes": [
+        "name",
+        "value"
+      ],
+      "observed_fields": [
+        "eyou.field.typename"
+      ],
+      "tables": [],
+      "fetch_error": null
+    },
+    {
+      "url": "https://www.eyoucms.com/doc/label/all/511.html",
+      "category": "all",
+      "document_id": "511",
+      "title": "adv 广告列表",
+      "http_status": 200,
+      "fetched_at": "2026-11-03T02:41:38+08:00",
+      "retrieval": "cached",
+      "sha256": "421699dac65fe084aa1b6a66cf6ea6a15b0c111873da7d44db1fc6fb7b71973b",
+      "upstream_updated": "2023-10-23 17:33:02",
+      "primary_tag": "adv",
+      "example_tags": [
+        "adv",
+        "eq",
+        "list"
+      ],
+      "first_example": null,
+      "observed_attributes": [
+        "currentclass",
+        "empty",
+        "id",
+        "loop",
+        "mod",
+        "name",
+        "orderby",
+        "pagesize",
+        "pid",
+        "value",
+        "where"
+      ],
+      "observed_fields": [
+        "field.arcurl",
+        "field.currentclass",
+        "field.links",
+        "field.litpic",
+        "field.target",
+        "field.title",
+        "field1.title",
+        "field2.intro",
+        "field2.links",
+        "field2.litpic",
+        "field2.title"
+      ],
+      "tables": [
+        "ey_ad"
+      ],
+      "fetch_error": null
+    },
+    {
+      "url": "https://www.eyoucms.com/doc/label/all/513.html",
+      "category": "all",
+      "document_id": "513",
+      "title": "global 全局变量",
+      "http_status": 200,
+      "fetched_at": "2026-11-03T02:41:38+08:00",
+      "retrieval": "cached",
+      "sha256": "ad662ca508893366d687ba2c6e34dcad74e976d3c9515e3ae0e2d9241574a629",
+      "upstream_updated": "2023-10-23 17:29:18",
+      "primary_tag": "global",
+      "example_tags": [
+        "global"
+      ],
+      "first_example": null,
+      "observed_attributes": [
+        "name"
+      ],
+      "observed_fields": [
+        "eyou.global.web_description",
+        "eyou.global.web_title"
+      ],
+      "tables": [],
+      "fetch_error": null
+    },
+    {
+      "url": "https://www.eyoucms.com/doc/label/all/519.html",
+      "category": "all",
+      "document_id": "519",
+      "title": "field 字段值",
+      "http_status": 200,
+      "fetched_at": "2026-11-03T02:41:38+08:00",
+      "retrieval": "cached",
+      "sha256": "708f6477de992029b70c9e6a293f18ce46ae7272a56114747905fcaa752536b8",
+      "upstream_updated": "2023-10-23 17:28:50",
+      "primary_tag": "field",
+      "example_tags": [
+        "arclist",
+        "channelartlist",
+        "field"
+      ],
+      "first_example": null,
+      "observed_attributes": [
+        "limit",
+        "name",
+        "row",
+        "titlelen",
+        "type",
+        "typeid"
+      ],
+      "observed_fields": [
+        "field.arcurl",
+        "field.title"
+      ],
+      "tables": [
+        "ey_arctype"
+      ],
+      "fetch_error": null
+    },
+    {
+      "url": "https://www.eyoucms.com/doc/label/all/520.html",
+      "category": "all",
+      "document_id": "520",
+      "title": "tags 标签调用",
+      "http_status": 200,
+      "fetched_at": "2026-11-03T02:41:38+08:00",
+      "retrieval": "cached",
+      "sha256": "dcf62c71dc0d8b4280d365cdaf92d2e257f13a52e122fd514993bd653ac7f4fe",
+      "upstream_updated": "2022-08-04 17:31:56",
+      "primary_tag": "tags",
+      "example_tags": [
+        "tags"
+      ],
+      "first_example": null,
+      "observed_attributes": [
+        "aid",
+        "empty",
+        "getall",
+        "id",
+        "loop",
+        "mod",
+        "name",
+        "sort",
+        "type",
+        "typeid"
+      ],
+      "observed_fields": [
+        "field.link",
+        "field.tag",
+        "field.title",
+        "field.total",
+        "field1.title",
+        "field2.link",
+        "field2.tag"
+      ],
+      "tables": [
+        "ey_tagindex"
+      ],
+      "fetch_error": null
+    },
+    {
+      "url": "https://www.eyoucms.com/doc/label/all/521.html",
+      "category": "all",
+      "document_id": "521",
+      "title": "searchform 搜索标签",
+      "http_status": 200,
+      "fetched_at": "2026-11-03T02:41:38+08:00",
+      "retrieval": "cached",
+      "sha256": "52a91144c58861d83083a49841b1cbec4b19357ef31813ffc714779f027f02e9",
+      "upstream_updated": "2024-08-14 16:08:22",
+      "primary_tag": "searchform",
+      "example_tags": [
+        "searchform"
+      ],
+      "first_example": null,
+      "observed_attributes": [
+        "modelid",
+        "type",
+        "typeid"
+      ],
+      "observed_fields": [
+        "field.action",
+        "field.hidden"
+      ],
+      "tables": [],
+      "fetch_error": null
+    },
+    {
+      "url": "https://www.eyoucms.com/doc/label/all/546.html",
+      "category": "all",
+      "document_id": "546",
+      "title": "常用函数",
+      "http_status": 200,
+      "fetched_at": "2026-11-03T02:41:39+08:00",
+      "retrieval": "cached",
+      "sha256": "2dcaf3af9d10fcb9085f36e7259213ba783ae0bc4b32eef44fc40b8e54d894c5",
+      "upstream_updated": "2026-01-05 14:58:35",
+      "primary_tag": null,
+      "example_tags": [
+        "arclist",
+        "type"
+      ],
+      "first_example": null,
+      "observed_attributes": [
+        "limit",
+        "type",
+        "typeid"
+      ],
+      "observed_fields": [
+        "eyou.field",
+        "eyou.field.typeid",
+        "eyou.field.update_time",
+        "field.content",
+        "field.id",
+        "field.title",
+        "field.typename",
+        "field.update_time"
+      ],
+      "tables": [],
+      "fetch_error": null
+    },
+    {
+      "url": "https://www.eyoucms.com/doc/label/all/578.html",
+      "category": "all",
+      "document_id": "578",
+      "title": "links 友情链接",
+      "http_status": 200,
+      "fetched_at": "2026-11-03T02:41:39+08:00",
+      "retrieval": "cached",
+      "sha256": "d81d4b96452c22937dc96b09a0bb7a3cb09258d80a985d6e6bc9b19b5c154364",
+      "upstream_updated": "2023-10-23 17:20:48",
+      "primary_tag": "links",
+      "example_tags": [
+        "links"
+      ],
+      "first_example": null,
+      "observed_attributes": [
+        "empty",
+        "groupid",
+        "id",
+        "loop",
+        "mod",
+        "titlelen",
+        "type"
+      ],
+      "observed_fields": [
+        "field.logo",
+        "field.nofollow",
+        "field.target",
+        "field.title",
+        "field.url",
+        "field1.title",
+        "field2.title",
+        "field2.url"
+      ],
+      "tables": [
+        "ey_links"
+      ],
+      "fetch_error": null
+    },
+    {
+      "url": "https://www.eyoucms.com/doc/label/all/579.html",
+      "category": "all",
+      "document_id": "579",
+      "title": "SQL 数据查询",
+      "http_status": 200,
+      "fetched_at": "2026-11-03T02:41:39+08:00",
+      "retrieval": "cached",
+      "sha256": "268e6764b123db2f1f8906cbdc2644018c0580ae90ad625f358e6cd8f0d5e732",
+      "upstream_updated": "2023-10-23 17:20:27",
+      "primary_tag": "sql",
+      "example_tags": [
+        "sql"
+      ],
+      "first_example": null,
+      "observed_attributes": [
+        "cachetime",
+        "empty",
+        "id",
+        "mod",
+        "sql"
+      ],
+      "observed_fields": [
+        "field.title",
+        "field.typename",
+        "field1.title",
+        "field2.typename"
+      ],
+      "tables": [],
+      "fetch_error": null
+    },
+    {
+      "url": "https://www.eyoucms.com/doc/label/all/580.html",
+      "category": "all",
+      "document_id": "580",
+      "title": "weapp 应用插件",
+      "http_status": 200,
+      "fetched_at": "2026-11-03T02:41:39+08:00",
+      "retrieval": "cached",
+      "sha256": "93a5f9e008e797215220ffd60bf0902c51127998e72b06ad0cca29c47883a1ac",
+      "upstream_updated": "2023-10-23 17:19:45",
+      "primary_tag": "weapp",
+      "example_tags": [
+        "weapp"
+      ],
+      "first_example": null,
+      "observed_attributes": [
+        "type"
+      ],
+      "observed_fields": [],
+      "tables": [],
+      "fetch_error": null
+    },
+    {
+      "url": "https://www.eyoucms.com/doc/label/all/581.html",
+      "category": "all",
+      "document_id": "581",
+      "title": "range 范围判断",
+      "http_status": 200,
+      "fetched_at": "2026-11-03T02:41:39+08:00",
+      "retrieval": "cached",
+      "sha256": "132b2dac25e42971da7c94c75596b6e012de21359be44240b9fb1485e7d4cb2c",
+      "upstream_updated": "2023-10-23 17:19:28",
+      "primary_tag": "range",
+      "example_tags": [
+        "else",
+        "range"
+      ],
+      "first_example": null,
+      "observed_attributes": [
+        "name",
+        "type",
+        "value"
+      ],
+      "observed_fields": [],
+      "tables": [],
+      "fetch_error": null
+    },
+    {
+      "url": "https://www.eyoucms.com/doc/label/all/582.html",
+      "category": "all",
+      "document_id": "582",
+      "title": "for 数据循环",
+      "http_status": 200,
+      "fetched_at": "2026-11-03T02:41:39+08:00",
+      "retrieval": "cached",
+      "sha256": "7b350289ed2c1ea00cae42a96f8963afcb7432ef483e9773cf504e480c80f01a",
+      "upstream_updated": "2023-10-23 17:19:12",
+      "primary_tag": "for",
+      "example_tags": [
+        "for"
+      ],
+      "first_example": null,
+      "observed_attributes": [
+        "comparison",
+        "end",
+        "name",
+        "start",
+        "step"
+      ],
+      "observed_fields": [],
+      "tables": [],
+      "fetch_error": null
+    },
+    {
+      "url": "https://www.eyoucms.com/doc/label/all/836.html",
+      "category": "all",
+      "document_id": "836",
+      "title": "ad 单条广告",
+      "http_status": 200,
+      "fetched_at": "2026-11-03T02:41:39+08:00",
+      "retrieval": "cached",
+      "sha256": "fcac91eb97051d4022f64262b386d2993a911702d97e76094c7524dce2506d18",
+      "upstream_updated": "2023-10-23 17:18:30",
+      "primary_tag": "ad",
+      "example_tags": [
+        "ad"
+      ],
+      "first_example": null,
+      "observed_attributes": [
+        "aid",
+        "id"
+      ],
+      "observed_fields": [
+        "field.links",
+        "field.litpic",
+        "field.target",
+        "field.title",
+        "field1.title"
+      ],
+      "tables": [
+        "ey_ad"
+      ],
+      "fetch_error": null
+    },
+    {
+      "url": "https://www.eyoucms.com/doc/label/all/6394.html",
+      "category": "all",
+      "document_id": "6394",
+      "title": "attribute 栏目属性",
+      "http_status": 200,
+      "fetched_at": "2026-11-03T02:41:39+08:00",
+      "retrieval": "cached",
+      "sha256": "58e7f5e26163d8fef24b7abe336e251c6660c2c50c42c6aaf9cbd7578027de62",
+      "upstream_updated": "2023-10-23 17:30:16",
+      "primary_tag": "attribute",
+      "example_tags": [
+        "attribute"
+      ],
+      "first_example": null,
+      "observed_attributes": [
+        "aid",
+        "empty",
+        "id",
+        "mod",
+        "type"
+      ],
+      "observed_fields": [
+        "attr.name",
+        "attr.value",
+        "field.title",
+        "field1.title"
+      ],
+      "tables": [],
+      "fetch_error": null
+    },
+    {
+      "url": "https://www.eyoucms.com/doc/label/all/7171.html",
+      "category": "all",
+      "document_id": "7171",
+      "title": "user 会员信息",
+      "http_status": 200,
+      "fetched_at": "2026-11-03T02:41:39+08:00",
+      "retrieval": "cached",
+      "sha256": "af71e9fa3ae338d451ba8c12aeae776830452d6e2da9174cd26baab1c1751d53",
+      "upstream_updated": "2025-02-12 12:57:25",
+      "primary_tag": null,
+      "example_tags": [
+        "diyurl",
+        "user"
+      ],
+      "first_example": null,
+      "observed_attributes": [
+        "id",
+        "link",
+        "type"
+      ],
+      "observed_fields": [
+        "field.cartid",
+        "field.head_pic",
+        "field.hidden",
+        "field.htmlid",
+        "field.id",
+        "field.last_ip",
+        "field.loginurl",
+        "field.reg_time",
+        "field.regurl",
+        "field.url",
+        "field.username",
+        "field1.url",
+        "users.cart_num",
+        "users.email",
+        "users.head_pic",
+        "users.last_ip",
+        "users.level_name",
+        "users.level_value",
+        "users.mobile",
+        "users.nickname",
+        "users.scores",
+        "users.username",
+        "users.users_money"
+      ],
+      "tables": [
+        "ey_users",
+        "ey_users_level"
+      ],
+      "fetch_error": null
+    },
+    {
+      "url": "https://www.eyoucms.com/doc/label/all/8391.html",
+      "category": "all",
+      "document_id": "8391",
+      "title": "diyurl 内链调用",
+      "http_status": 200,
+      "fetched_at": "2026-11-03T02:41:39+08:00",
+      "retrieval": "cached",
+      "sha256": "f45cd5a5797bb0553ba7e9ae431dd44237abe55b7731df115f29a66531258c7e",
+      "upstream_updated": "2023-10-23 17:15:01",
+      "primary_tag": "diyurl",
+      "example_tags": [
+        "diyurl"
+      ],
+      "first_example": null,
+      "observed_attributes": [
+        "type"
+      ],
+      "observed_fields": [],
+      "tables": [],
+      "fetch_error": null
+    },
+    {
+      "url": "https://www.eyoucms.com/doc/label/all/8905.html",
+      "category": "all",
+      "document_id": "8905",
+      "title": "php标签",
+      "http_status": 200,
+      "fetched_at": "2026-11-03T02:41:39+08:00",
+      "retrieval": "cached",
+      "sha256": "141a42d5b8019a214694b3fb78df325a2a2d3463bef98a0b3c492ad7f4a801dd",
+      "upstream_updated": "2025-03-21 16:49:55",
+      "primary_tag": "php",
+      "example_tags": [
+        "php"
+      ],
+      "first_example": null,
+      "observed_attributes": [],
+      "observed_fields": [],
+      "tables": [],
+      "fetch_error": null
+    },
+    {
+      "url": "https://www.eyoucms.com/doc/label/all/10195.html",
+      "category": "all",
+      "document_id": "10195",
+      "title": "hotkeywords 热门搜索",
+      "http_status": 200,
+      "fetched_at": "2026-11-03T02:41:39+08:00",
+      "retrieval": "cached",
+      "sha256": "9e4d423512195c78684d6b3c7c0660835e75815530aeab5a653b4b182fa88c9d",
+      "upstream_updated": "2024-05-21 11:05:24",
+      "primary_tag": "hotkeywords",
+      "example_tags": [
+        "hotkeywords"
+      ],
+      "first_example": null,
+      "observed_attributes": [
+        "empty",
+        "id",
+        "maxlength",
+        "mod",
+        "num",
+        "orderby",
+        "screen",
+        "subday"
+      ],
+      "observed_fields": [
+        "field.url",
+        "field.word",
+        "field1.word"
+      ],
+      "tables": [
+        "ey_search_word"
+      ],
+      "fetch_error": null
+    },
+    {
+      "url": "https://www.eyoucms.com/doc/label/all/11112.html",
+      "category": "all",
+      "document_id": "11112",
+      "title": "notice 站内信",
+      "http_status": 200,
+      "fetched_at": "2026-11-03T02:41:40+08:00",
+      "retrieval": "cached",
+      "sha256": "c9425b990794222dc36563884d71e7ac812de55cff5268ed8d1653a5514b4cbc",
+      "upstream_updated": "2023-10-23 17:10:26",
+      "primary_tag": "notice",
+      "example_tags": [
+        "notice"
+      ],
+      "first_example": null,
+      "observed_attributes": [
+        "id"
+      ],
+      "observed_fields": [
+        "field.hidden",
+        "field.id",
+        "field.url",
+        "field1.url"
+      ],
+      "tables": [],
+      "fetch_error": null
+    },
+    {
+      "url": "https://www.eyoucms.com/doc/label/all/11336.html",
+      "category": "all",
+      "document_id": "11336",
+      "title": "asklist 问答列表",
+      "http_status": 200,
+      "fetched_at": "2026-11-03T02:41:40+08:00",
+      "retrieval": "cached",
+      "sha256": "daad3226376722e0ecdcf6a6d9efaad77e80b925bf04de004f37125f9ae28842",
+      "upstream_updated": "2023-10-23 17:08:28",
+      "primary_tag": "asklist",
+      "example_tags": [
+        "asklist",
+        "eq"
+      ],
+      "first_example": "{eyou:asklist id=\"field\" loop='20'}\n    <li>\n        <div class=\"date\">\n            <span class=\"dateline\" title=\"天\">{$field.add_time|MyDate='d',###}</span>\n            <em title=\"年-月\">{$field.add_time|MyDate='Y-m',###}</em>\n        </div>\n        <div class=\"txt\">\n            <a href=\"{$field.ask_url}\" title=\"{$field.ask_title}\">\n                <!-- 是否显示推荐字样 -->\n                {eyou:eq name=\"$field.is_recom\" value=\"1\"}\n                     <span style=\"color: red;\">[推荐]</span>\n                {/eyou:eq}\n                 <!-- 问答标题 -->\n                {$field.ask_title|html_msubstr=###, 0, 30, true}\n            </a>\n            <!-- 问答内容 -->\n            {$field.content|html_msubstr=###, 0, 35, true}\n        </div>\n        <div class=\"txt\">\n            <span>查看人数：{$field.click}</span>\n             | <span>回复人数：{$field.replies}</span>\n             | <span style=\"color: red;\" title=\"所属分类\"><a href=\"{$field.type_url}\">{$field.type_name}</a></span>\n             | <span title=\"完整发布时间显示\">{$field.add_time|MyDate='Y-m-d H:i:s',###}</span>\n        </div>\n    </li>\n{/eyou:asklist}",
+      "observed_attributes": [
+        "empty",
+        "id",
+        "limit",
+        "loop",
+        "mod",
+        "name",
+        "orderby",
+        "ordermode",
+        "row",
+        "titlelen",
+        "value"
+      ],
+      "observed_fields": [
+        "field.add_time",
+        "field.ask_title",
+        "field.ask_url",
+        "field.click",
+        "field.content",
+        "field.money",
+        "field.replies",
+        "field.title",
+        "field.type_name",
+        "field.type_url",
+        "field.users.head_pic",
+        "field.users.level_name",
+        "field.users.nickname",
+        "field.users.username",
+        "field1.title"
+      ],
+      "tables": [],
+      "fetch_error": null
+    },
+    {
+      "url": "https://www.eyoucms.com/doc/label/all/11842.html",
+      "category": "all",
+      "document_id": "11842",
+      "title": "citysite 城市站点",
+      "http_status": 200,
+      "fetched_at": "2026-11-03T02:41:40+08:00",
+      "retrieval": "cached",
+      "sha256": "ad80f533c176b93284b4f24d00e846ea838fde11b499834a6642febb6bd342a9",
+      "upstream_updated": "2025-10-14 11:07:37",
+      "primary_tag": "citysite",
+      "example_tags": [
+        "channel",
+        "citysite",
+        "eq",
+        "global",
+        "list",
+        "notempty"
+      ],
+      "first_example": null,
+      "observed_attributes": [
+        "currentclass",
+        "empty",
+        "id",
+        "limit",
+        "loop",
+        "mod",
+        "name",
+        "notypeid",
+        "offset",
+        "siteid",
+        "titlelen",
+        "type",
+        "value"
+      ],
+      "observed_fields": [
+        "eyou.site.name",
+        "eyou.site.seo_description",
+        "eyou.site.seo_keywords",
+        "eyou.site.seo_title",
+        "field.arcurl",
+        "field.area_name",
+        "field.city_name",
+        "field.currentclass",
+        "field.name",
+        "field.province_name",
+        "field.siteurl",
+        "field.title",
+        "field1.currentclass",
+        "field1.name",
+        "field1.siteurl",
+        "field2.name",
+        "field2.siteurl",
+        "field3.name",
+        "field3.siteurl"
+      ],
+      "tables": [
+        "ey_citysite"
+      ],
+      "fetch_error": null
+    },
+    {
+      "url": "https://www.eyoucms.com/doc/label/all/11849.html",
+      "category": "all",
+      "document_id": "11849",
+      "title": "navigation 导航菜单",
+      "http_status": 200,
+      "fetched_at": "2026-11-03T02:41:40+08:00",
+      "retrieval": "cached",
+      "sha256": "b5940ebb8abf8faecbffaafcc22aab036314ce0afdbbe3903f7a7d7190652eb3",
+      "upstream_updated": "2025-03-21 16:32:01",
+      "primary_tag": "navigation",
+      "example_tags": [
+        "navigation",
+        "notempty"
+      ],
+      "first_example": null,
+      "observed_attributes": [
+        "currentclass",
+        "empty",
+        "id",
+        "name",
+        "nav_id",
+        "position_id"
+      ],
+      "observed_fields": [
+        "field.currentclass",
+        "field.nav_name",
+        "field.nav_url",
+        "field.nofollow",
+        "field.target",
+        "field.title",
+        "field1.currentclass",
+        "field1.nav_name",
+        "field1.nav_url",
+        "field1.nofollow",
+        "field1.target",
+        "field1.title",
+        "field2.currentclass",
+        "field2.nav_name",
+        "field2.nav_url",
+        "field2.nofollow",
+        "field2.target",
+        "field3.currentclass",
+        "field3.nav_name",
+        "field3.nav_url",
+        "field3.nofollow",
+        "field3.target"
+      ],
+      "tables": [
+        "ey_nav_list"
+      ],
+      "fetch_error": null
+    },
+    {
+      "url": "https://www.eyoucms.com/doc/label/all/11919.html",
+      "category": "all",
+      "document_id": "11919",
+      "title": "static 静态资源文件引入",
+      "http_status": 200,
+      "fetched_at": "2026-11-03T02:41:40+08:00",
+      "retrieval": "cached",
+      "sha256": "4596f45fac9fc948e3b052571941353b458e4d706edac79e81ed29b8b446c49f",
+      "upstream_updated": "2025-07-07 17:15:45",
+      "primary_tag": "static",
+      "example_tags": [
+        "static"
+      ],
+      "first_example": null,
+      "observed_attributes": [
+        "file",
+        "href"
+      ],
+      "observed_fields": [],
+      "tables": [],
+      "fetch_error": null
+    },
+    {
+      "url": "https://www.eyoucms.com/doc/label/all/29780.html",
+      "category": "all",
+      "document_id": "29780",
+      "title": "会员信息(memberlist)",
+      "http_status": 200,
+      "fetched_at": "2026-11-03T02:41:40+08:00",
+      "retrieval": "cached",
+      "sha256": "135680127bbff0c82be975892453c605f0221144859eee8caf38c874796aa957",
+      "upstream_updated": "2024-12-20 16:42:05",
+      "primary_tag": "memberlist",
+      "example_tags": [
+        "memberlist"
+      ],
+      "first_example": null,
+      "observed_attributes": [
+        "id",
+        "orderby",
+        "row"
+      ],
+      "observed_fields": [
+        "field.email",
+        "field.head_pic",
+        "field.hidden",
+        "field.level",
+        "field.level_maturity_days",
+        "field.mobile",
+        "field.nickname",
+        "field.para_3",
+        "field.para_4",
+        "field.para_5",
+        "field.para_6",
+        "field.scores",
+        "field.txtid",
+        "field.username",
+        "field.users_id",
+        "field1.users_id"
+      ],
+      "tables": [],
+      "fetch_error": null
+    },
+    {
+      "url": "https://www.eyoucms.com/doc/label/all/30629.html",
+      "category": "all",
+      "document_id": "30629",
+      "title": "会员注销标签使用方法",
+      "http_status": 200,
+      "fetched_at": "2026-11-03T02:41:40+08:00",
+      "retrieval": "cached",
+      "sha256": "5dbe8b48317d21607912681f1d7e0e4cd1876635539058bbddb537b91812af31",
+      "upstream_updated": "2023-11-15 15:56:17",
+      "primary_tag": null,
+      "example_tags": [
+        "volist"
+      ],
+      "first_example": null,
+      "observed_attributes": [
+        "id",
+        "name"
+      ],
+      "observed_fields": [
+        "field.func",
+        "field.hidden",
+        "field.text"
+      ],
+      "tables": [],
+      "fetch_error": null
+    },
+    {
+      "url": "https://www.eyoucms.com/doc/label/list/496.html",
+      "category": "list",
+      "document_id": "496",
+      "title": "list 文档列表",
+      "http_status": 200,
+      "fetched_at": "2026-11-03T02:41:40+08:00",
+      "retrieval": "cached",
+      "sha256": "f94824b50ba3ca9f85bfa68f6ccbb20ebd54587c65999d5411b8608ef19f0707",
+      "upstream_updated": "2023-10-23 18:12:51",
+      "primary_tag": null,
+      "example_tags": [
+        "eq",
+        "list"
+      ],
+      "first_example": "{eyou:list loop='10' titlelen='30' infolen='160' orderby='add_time'}\n    <a href='{$field.arcurl}'>{$field.title}</a>\n    {/eyou:list}",
+      "observed_attributes": [
+        "addfields",
+        "arcrank",
+        "empty",
+        "flag",
+        "id",
+        "idlist",
+        "idrange",
+        "infolen",
+        "limit",
+        "loop",
+        "mod",
+        "modelid",
+        "name",
+        "noflag",
+        "notypeid",
+        "orderby",
+        "ordermode",
+        "thumb",
+        "titlelen",
+        "typeid",
+        "value"
+      ],
+      "observed_fields": [
+        "eyou.field.update_time",
+        "field.arcurl",
+        "field.level_name",
+        "field.level_value",
+        "field.title",
+        "field1.title",
+        "field2.arcurl",
+        "field2.title"
+      ],
+      "tables": [
+        "ey_archives"
+      ],
+      "fetch_error": null
+    },
+    {
+      "url": "https://www.eyoucms.com/doc/label/list/497.html",
+      "category": "list",
+      "document_id": "497",
+      "title": "pagelist 列表分页",
+      "http_status": 200,
+      "fetched_at": "2026-11-03T02:41:40+08:00",
+      "retrieval": "cached",
+      "sha256": "e91885c1a2db3ae57656fd6124c0e15cd1b5beb8da9dd1aae007d70ff5270740",
+      "upstream_updated": "2023-10-23 18:04:30",
+      "primary_tag": "pagelist",
+      "example_tags": [
+        "list",
+        "pagelist"
+      ],
+      "first_example": "{eyou:pagelist listitem='index,pre,pageno,next,end,info' listsize='2' /}",
+      "observed_attributes": [
+        "infolen",
+        "listitem",
+        "listsize",
+        "pagesize",
+        "titlelen"
+      ],
+      "observed_fields": [
+        "field.arcurl",
+        "field.title"
+      ],
+      "tables": [],
+      "fetch_error": null
+    },
+    {
+      "url": "https://www.eyoucms.com/doc/label/list/6279.html",
+      "category": "list",
+      "document_id": "6279",
+      "title": "artpagelist 瀑布流",
+      "http_status": 200,
+      "fetched_at": "2026-11-03T02:41:40+08:00",
+      "retrieval": "cached",
+      "sha256": "3e0f96de04a81c9746c20bc0608e6266f3ce78f051781b215125a7d79de449ca",
+      "upstream_updated": "2023-12-27 10:22:02",
+      "primary_tag": "artpagelist",
+      "example_tags": [
+        "artlist",
+        "artpagelist"
+      ],
+      "first_example": "{eyou:artpagelist tagid='与artlist标签的tagid名称一致' pagesize='3' tips='没有数据了'}\n    <a href=\"javascript:void(0);\" {$field.onclick}>点击加载更多</a>\n{/eyou:artpagelist}",
+      "observed_attributes": [
+        "id",
+        "loading",
+        "pagesize",
+        "row",
+        "tagid",
+        "tips",
+        "typeid"
+      ],
+      "observed_fields": [
+        "field.arcurl",
+        "field.onclick",
+        "field.title",
+        "field1.title"
+      ],
+      "tables": [],
+      "fetch_error": null
+    },
+    {
+      "url": "https://www.eyoucms.com/doc/label/list/7881.html",
+      "category": "list",
+      "document_id": "7881",
+      "title": "screening 文档筛选",
+      "http_status": 200,
+      "fetched_at": "2026-11-03T02:41:40+08:00",
+      "retrieval": "cached",
+      "sha256": "e7a548e81ce950894baaed4274df24649b3cb858395bb7e10e8cd68f3bb8b692",
+      "upstream_updated": "2023-10-23 17:50:40",
+      "primary_tag": "screening",
+      "example_tags": [
+        "screening",
+        "volist"
+      ],
+      "first_example": null,
+      "observed_attributes": [
+        "addfields",
+        "alltxt",
+        "currentclass",
+        "currentstyle",
+        "empty",
+        "id",
+        "name",
+        "typeid"
+      ],
+      "observed_fields": [
+        "field.hidden",
+        "field.resetUrl",
+        "field.title",
+        "field1.title",
+        "three.currentstyle",
+        "three.name",
+        "three.onClick",
+        "two.currentstyle",
+        "two.name",
+        "two.onClick",
+        "val.currentclass",
+        "val.currentstyle",
+        "val.name",
+        "val.onClick",
+        "vo.title"
+      ],
+      "tables": [
+        "ey_article_content",
+        "ey_channelfield"
+      ],
+      "fetch_error": null
+    },
+    {
+      "url": "https://www.eyoucms.com/doc/label/list/11823.html",
+      "category": "list",
+      "document_id": "11823",
+      "title": "diyurl 列表排序",
+      "http_status": 200,
+      "fetched_at": "2026-11-03T02:41:40+08:00",
+      "retrieval": "cached",
+      "sha256": "9abf8a19c92f17b8e838b1c76c4c9097459f0f22bd3b5b107a84c01c91fcc8f2",
+      "upstream_updated": "2023-10-23 17:35:45",
+      "primary_tag": "diyurl",
+      "example_tags": [
+        "diyurl"
+      ],
+      "first_example": null,
+      "observed_attributes": [
+        "class",
+        "type"
+      ],
+      "observed_fields": [],
+      "tables": [
+        "ey_active",
+        "ey_archives"
+      ],
+      "fetch_error": null
+    },
+    {
+      "url": "https://www.eyoucms.com/doc/label/list/31220.html",
+      "category": "list",
+      "document_id": "31220",
+      "title": "formreply 自由表单回复列表",
+      "http_status": 200,
+      "fetched_at": "2026-11-03T02:41:40+08:00",
+      "retrieval": "cached",
+      "sha256": "8c635cf05eb9a0f3dd05711a839c05df030ab7c676ed9385a35fbd27315027af",
+      "upstream_updated": "2026-03-23 17:00:23",
+      "primary_tag": null,
+      "example_tags": [
+        "formreply"
+      ],
+      "first_example": null,
+      "observed_attributes": [
+        "empty",
+        "id",
+        "ordermode",
+        "pagesize",
+        "typeid"
+      ],
+      "observed_fields": [
+        "field.add_time",
+        "field.attr",
+        "field.head_pic",
+        "field.hidden",
+        "field.nickname",
+        "field.onclick",
+        "field1.head_pic"
+      ],
+      "tables": [],
+      "fetch_error": null
+    },
+    {
+      "url": "https://www.eyoucms.com/doc/label/arc/499.html",
+      "category": "arc",
+      "document_id": "499",
+      "title": "arcclick 点击数",
+      "http_status": 200,
+      "fetched_at": "2026-11-03T02:41:41+08:00",
+      "retrieval": "cached",
+      "sha256": "d2d1452750b13d90d19985249a09387d028aa54a602ef0749d722355ac7c79e1",
+      "upstream_updated": "2023-10-24 11:05:17",
+      "primary_tag": "arcclick",
+      "example_tags": [
+        "arcclick"
+      ],
+      "first_example": null,
+      "observed_attributes": [],
+      "observed_fields": [],
+      "tables": [],
+      "fetch_error": null
+    },
+    {
+      "url": "https://www.eyoucms.com/doc/label/arc/502.html",
+      "category": "arc",
+      "document_id": "502",
+      "title": "guestbookform 栏目留言",
+      "http_status": 200,
+      "fetched_at": "2026-11-03T02:41:41+08:00",
+      "retrieval": "cached",
+      "sha256": "7b71e4d44e1e1d5226300e65d9425e788b9548dcafb3e35fd09fbe6c0ffff338",
+      "upstream_updated": "2026-04-24 14:25:09",
+      "primary_tag": "guestbookform",
+      "example_tags": [
+        "guestbookform",
+        "volist"
+      ],
+      "first_example": "{eyou:guestbookform type='default'}\n<form method=\"POST\" action=\"{$field.action}\"  {$field.formhidden} onsubmit=\"{$field.submit}\" >\n<input id=\"attr_1\" type=\"text\" value=\"\" name=\"{$field.attr_1}\" placeholder=\"{$field.itemname_1}\">\n<input id=\"attr_2\" type=\"text\" value=\"\" name=\"{$field.attr_2}\" placeholder=\"{$field.itemname_2}\">\n<textarea id=\"attr_3\" cols=\"40\" rows=\"3\" name=\"{$field.attr_3}\" placeholder=\"{$field.itemname_3}\"></textarea>\n<input type=\"submit\" value=\"提交\">\n{$field.hidden}\n</form>\n{/eyou:guestbookform}",
+      "observed_attributes": [
+        "empty",
+        "id",
+        "name",
+        "type",
+        "typeid"
+      ],
+      "observed_fields": [
+        "field.action",
+        "field.attr_1",
+        "field.attr_16",
+        "field.attr_2",
+        "field.attr_3",
+        "field.attr_5",
+        "field.attr_6",
+        "field.attr_7",
+        "field.formhidden",
+        "field.hidden",
+        "field.itemname_1",
+        "field.itemname_2",
+        "field.itemname_3",
+        "field.itemname_5",
+        "field.itemname_6",
+        "field.submit",
+        "field.title",
+        "field1.title",
+        "vo.value"
+      ],
+      "tables": [
+        "ey_guestbook",
+        "ey_guestbook_attr",
+        "ey_guestbook_attribute"
+      ],
+      "fetch_error": null
+    },
+    {
+      "url": "https://www.eyoucms.com/doc/label/arc/518.html",
+      "category": "arc",
+      "document_id": "518",
+      "title": "beafter 上下篇",
+      "http_status": 200,
+      "fetched_at": "2026-11-03T02:41:41+08:00",
+      "retrieval": "cached",
+      "sha256": "2f8f5f7449ea158b46fb355cf9a9be219d7776c4d07844653b29c663aad0f088",
+      "upstream_updated": "2023-10-25 16:00:52",
+      "primary_tag": "beafter",
+      "example_tags": [
+        "beafter",
+        "else"
+      ],
+      "first_example": null,
+      "observed_attributes": [
+        "get",
+        "id",
+        "titlelen"
+      ],
+      "observed_fields": [
+        "field.arcurl",
+        "field.title",
+        "field1.arcurl",
+        "field1.title"
+      ],
+      "tables": [
+        "ey_archives"
+      ],
+      "fetch_error": null
+    },
+    {
+      "url": "https://www.eyoucms.com/doc/label/arc/8392.html",
+      "category": "arc",
+      "document_id": "8392",
+      "title": "downcount 下载次数",
+      "http_status": 200,
+      "fetched_at": "2026-11-03T02:41:41+08:00",
+      "retrieval": "cached",
+      "sha256": "b51922f4020f09232f132977058009a62ac42c9037edefccad4fef6b58ec76ba",
+      "upstream_updated": "2023-10-24 10:57:15",
+      "primary_tag": "downcount",
+      "example_tags": [
+        "downcount"
+      ],
+      "first_example": null,
+      "observed_attributes": [],
+      "observed_fields": [],
+      "tables": [],
+      "fetch_error": null
+    },
+    {
+      "url": "https://www.eyoucms.com/doc/label/arc/8785.html",
+      "category": "arc",
+      "document_id": "8785",
+      "title": "relevarticle 相关文档",
+      "http_status": 200,
+      "fetched_at": "2026-11-03T02:41:41+08:00",
+      "retrieval": "cached",
+      "sha256": "a701468acc51ca17381d99105e957849e32ff95e020c82df18444e714a0d434e",
+      "upstream_updated": "2023-10-25 16:01:12",
+      "primary_tag": "relevarticle",
+      "example_tags": [
+        "relevarticle"
+      ],
+      "first_example": null,
+      "observed_attributes": [
+        "empty",
+        "id",
+        "infolen",
+        "limit",
+        "mod",
+        "modelid",
+        "thumb",
+        "titlelen",
+        "typeid"
+      ],
+      "observed_fields": [
+        "field.arcurl",
+        "field.title",
+        "field1.title"
+      ],
+      "tables": [
+        "ey_archives"
+      ],
+      "fetch_error": null
+    },
+    {
+      "url": "https://www.eyoucms.com/doc/label/arc/8812.html",
+      "category": "arc",
+      "document_id": "8812",
+      "title": "扩展标签",
+      "http_status": 200,
+      "fetched_at": "2026-11-03T02:41:41+08:00",
+      "retrieval": "cached",
+      "sha256": "f948a6c4bc403f7a18aa72e4291af1fc31ddd158c790d94921d1b6da0adcb24a",
+      "upstream_updated": "2023-10-24 10:55:01",
+      "primary_tag": null,
+      "example_tags": [
+        "volist"
+      ],
+      "first_example": null,
+      "observed_attributes": [
+        "id",
+        "name"
+      ],
+      "observed_fields": [
+        "field.extract_code",
+        "field.file_name",
+        "field.file_size",
+        "field.file_url",
+        "field.image_url",
+        "field.intro",
+        "field.server_name",
+        "field.title"
+      ],
+      "tables": [],
+      "fetch_error": null
+    },
+    {
+      "url": "https://www.eyoucms.com/doc/label/arc/9993.html",
+      "category": "arc",
+      "document_id": "9993",
+      "title": "videoplay 视频播放",
+      "http_status": 200,
+      "fetched_at": "2026-11-03T02:41:41+08:00",
+      "retrieval": "cached",
+      "sha256": "d698581e66b7b9333e21a50b8b27403ec225f60f1dca4fe5d34ad12fc68a8214",
+      "upstream_updated": "2023-10-25 16:01:23",
+      "primary_tag": "videoplay",
+      "example_tags": [
+        "memberinfos",
+        "videolist",
+        "videoplay"
+      ],
+      "first_example": "{eyou:videoplay aid='文档ID' autoplay='on' id='video'}\n    <video {$video.id} width=\"100%\" controls='true' preload=\"auto\">\n        <source src=\"{$video.file_url}\" type=\"video/mp4\">\n    </video>\n    {$video.hidden}\n{/eyou:videoplay}",
+      "observed_attributes": [
+        "aid",
+        "autoplay",
+        "empty",
+        "id",
+        "mid"
+      ],
+      "observed_fields": [
+        "eyou.field.courseware",
+        "field.title",
+        "field1.title",
+        "users.head_pic",
+        "users.hidden",
+        "users.nickname",
+        "video.file_time",
+        "video.file_title",
+        "video.file_url",
+        "video.hidden",
+        "video.id",
+        "video.onclick"
+      ],
+      "tables": [
+        "ey_media_file"
+      ],
+      "fetch_error": null
+    },
+    {
+      "url": "https://www.eyoucms.com/doc/label/arc/9994.html",
+      "category": "arc",
+      "document_id": "9994",
+      "title": "videolist 视频列表",
+      "http_status": 200,
+      "fetched_at": "2026-11-03T02:41:41+08:00",
+      "retrieval": "cached",
+      "sha256": "10d79f48d83b98c862a4d5dbfdb31419828ec465acc1b85727863b56a55e4f1f",
+      "upstream_updated": "2023-11-01 17:15:33",
+      "primary_tag": "videolist",
+      "example_tags": [
+        "memberinfos",
+        "videolist",
+        "videoplay"
+      ],
+      "first_example": "{eyou:videolist aid='文档ID' autoplay='on' id='video'}\n    <a href=\"javascript:void(0);\" {$video.onclick}>{$video.file_title} - {$video.file_time}</a><br/>\n    {$video.hidden}\n{/eyou:videolist}",
+      "observed_attributes": [
+        "aid",
+        "autoplay",
+        "empty",
+        "id",
+        "mid",
+        "mod"
+      ],
+      "observed_fields": [
+        "eyou.field.courseware",
+        "field.title",
+        "field1.title",
+        "users.head_pic",
+        "users.hidden",
+        "users.nickname",
+        "video.file_time",
+        "video.file_title",
+        "video.file_url",
+        "video.hidden",
+        "video.id",
+        "video.onclick"
+      ],
+      "tables": [
+        "ey_media_file"
+      ],
+      "fetch_error": null
+    },
+    {
+      "url": "https://www.eyoucms.com/doc/label/arc/10050.html",
+      "category": "arc",
+      "document_id": "10050",
+      "title": "memberinfos 文档关联的会员信息",
+      "http_status": 200,
+      "fetched_at": "2026-11-03T02:41:41+08:00",
+      "retrieval": "cached",
+      "sha256": "dd36cf9824a62a367954864d3b844a328dd4ea865d113d5df898763994cebe97",
+      "upstream_updated": "2024-12-20 16:42:07",
+      "primary_tag": null,
+      "example_tags": [
+        "memberinfos"
+      ],
+      "first_example": null,
+      "observed_attributes": [
+        "addfields",
+        "empty",
+        "id",
+        "mid"
+      ],
+      "observed_fields": [
+        "field.nickname",
+        "users.head_pic",
+        "users.hidden",
+        "users.level_name",
+        "users.nickname",
+        "users.para_这里请查阅后台会员属性的ID"
+      ],
+      "tables": [
+        "ey_users"
+      ],
+      "fetch_error": null
+    },
+    {
+      "url": "https://www.eyoucms.com/doc/label/arc/10108.html",
+      "category": "arc",
+      "document_id": "10108",
+      "title": "attribute 商品参数",
+      "http_status": 200,
+      "fetched_at": "2026-11-03T02:41:41+08:00",
+      "retrieval": "cached",
+      "sha256": "80deacfa3382e2bc94b22dac758d37656c634642628127b9c1533a3c23b4f80a",
+      "upstream_updated": "2025-03-21 16:46:06",
+      "primary_tag": "attribute",
+      "example_tags": [
+        "arclist",
+        "attribute"
+      ],
+      "first_example": null,
+      "observed_attributes": [
+        "aid",
+        "attrid",
+        "empty",
+        "id",
+        "mod",
+        "row",
+        "type"
+      ],
+      "observed_fields": [
+        "attr.name",
+        "attr.value",
+        "field.title",
+        "field1.title"
+      ],
+      "tables": [],
+      "fetch_error": null
+    },
+    {
+      "url": "https://www.eyoucms.com/doc/label/arc/10999.html",
+      "category": "arc",
+      "document_id": "10999",
+      "title": "specialnode 专题文档",
+      "http_status": 200,
+      "fetched_at": "2026-11-03T02:41:41+08:00",
+      "retrieval": "cached",
+      "sha256": "3e48d85ecf555d173f2972afc21f54688711c55d6420ad0ee3c89c7b59e749a3",
+      "upstream_updated": "2024-06-24 17:23:03",
+      "primary_tag": "specialnode",
+      "example_tags": [
+        "notempty",
+        "specialnode",
+        "specnode",
+        "specnodelist"
+      ],
+      "first_example": "{eyou:specialnode code='节点标识' id='field'}\n<a href='{$field.arcurl}'>{$field.title}</a>\n{/eyou:specialnode}",
+      "observed_attributes": [
+        "aid",
+        "code",
+        "empty",
+        "id",
+        "infolen",
+        "isauto",
+        "loop",
+        "mod",
+        "name",
+        "thumb",
+        "titlelen",
+        "typeid"
+      ],
+      "observed_fields": [
+        "field.add_time",
+        "field.arcurl",
+        "field.click",
+        "field.litpic",
+        "field.seo_description",
+        "field.title",
+        "field.typename",
+        "field.typeurl",
+        "field1.title",
+        "list.title"
+      ],
+      "tables": [
+        "ey_archives"
+      ],
+      "fetch_error": null
+    },
+    {
+      "url": "https://www.eyoucms.com/doc/label/arc/11113.html",
+      "category": "arc",
+      "document_id": "11113",
+      "title": "collect 文档收藏",
+      "http_status": 200,
+      "fetched_at": "2026-11-03T02:41:41+08:00",
+      "retrieval": "cached",
+      "sha256": "d415b4ad81757edce3269738cf4a039def124eb630ba72632b8abf6d508bbc4c",
+      "upstream_updated": "2023-10-24 09:24:41",
+      "primary_tag": "collect",
+      "example_tags": [
+        "collect"
+      ],
+      "first_example": null,
+      "observed_attributes": [
+        "aid",
+        "cancel",
+        "class",
+        "collect",
+        "id",
+        "src"
+      ],
+      "observed_fields": [
+        "collect.cancel",
+        "collect.hidden",
+        "collect.numId",
+        "collect.onclick",
+        "collect1.numId"
+      ],
+      "tables": [],
+      "fetch_error": null
+    },
+    {
+      "url": "https://www.eyoucms.com/doc/label/arc/11186.html",
+      "category": "arc",
+      "document_id": "11186",
+      "title": "collectnum 收藏数",
+      "http_status": 200,
+      "fetched_at": "2026-11-03T02:41:41+08:00",
+      "retrieval": "cached",
+      "sha256": "a6d63aad7cd5536b29b5cf2bfe6a3a47807a3ec71197b14f9ebc9c53f7a6983e",
+      "upstream_updated": "2023-10-24 09:22:31",
+      "primary_tag": "collectnum",
+      "example_tags": [
+        "collectnum"
+      ],
+      "first_example": null,
+      "observed_attributes": [],
+      "observed_fields": [],
+      "tables": [],
+      "fetch_error": null
+    },
+    {
+      "url": "https://www.eyoucms.com/doc/label/arc/11191.html",
+      "category": "arc",
+      "document_id": "11191",
+      "title": "comment 商品评价",
+      "http_status": 200,
+      "fetched_at": "2026-11-03T02:41:41+08:00",
+      "retrieval": "cached",
+      "sha256": "0b78bee33cfe3de70fb922789d651c5432e1bc4faa65086e6f52bafd5e0a0797",
+      "upstream_updated": "2025-03-21 16:39:43",
+      "primary_tag": "comment",
+      "example_tags": [
+        "comment"
+      ],
+      "first_example": "<div class=\"content overflow-x\">\n    <div class=\"layout\">\n    <!-- 评价展示区域：请参考评价标签手册，下载商品评价模板文件拷贝到模板目录 mobile/system 里,具体教程链接  -->\n    {eyou:comment aid='$eyou.field.aid' id='c_field'}\n        <div class=\"evalute\" {$c_field.CommentID}></div>\n        {$c_field.hidden}\n    {/eyou:comment}\n    <!-- END -->\n    </div>\n</div>",
+      "observed_attributes": [
+        "aid",
+        "id"
+      ],
+      "observed_fields": [
+        "c_field.CommentID",
+        "c_field.hidden"
+      ],
+      "tables": [],
+      "fetch_error": null
+    },
+    {
+      "url": "https://www.eyoucms.com/doc/label/arc/11810.html",
+      "category": "arc",
+      "document_id": "11810",
+      "title": "articlepay 文章付费",
+      "http_status": 200,
+      "fetched_at": "2026-11-03T02:41:42+08:00",
+      "retrieval": "cached",
+      "sha256": "17552a1b1d3b3e3b45ace3cb50eb15697352d7275cd8bef02d59c301a6e6cba6",
+      "upstream_updated": "2025-04-22 11:29:16",
+      "primary_tag": null,
+      "example_tags": [
+        "articlepay",
+        "else",
+        "elseif",
+        "eq",
+        "freebuynum",
+        "if"
+      ],
+      "first_example": "{eyou:articlepay id='field'}\n    <!-- 内容显示 -->\n    <div {$field.contentId}>\n        {$field.content}\n    </div>\n    <!-- 付费文档 -->\n    {eyou:if condition='$eyou.field.restric_type == 1'}\n        <div {$field.displayId}>\n            <div class=\"content-hide-tips\">\n                <div class=\"login-false\">当前隐藏内容需要支付<div class=\"coin\"><span class=\"label label-warning\">￥{$eyou.field.users_price}</span></div></div>\n                <p>已有<span class=\"red\">{eyou:freebuynum /}</span>人支付</p>\n                <div class=\"pc-button\">\n                    <a {$field.onclick} class=\"click-pay\" >支付查看</a>\n                </div>\n            </div>\n        </div>\n    {eyou:elseif condition='$eyou.field.restric_type == 4' /}\n        <div {$field.displayId}>\n            <div class=\"content-hide-tips\">\n                <div class=\"login-false\">当前隐藏内容需要支付<div class=\"coin\"><span class=\"label label-warning\">{$eyou.field.users_score}{$usersConfig.score_name}</span></div></div>\n                <p>已有<span class=\"red\">{eyou:freebuynum /}</span>人支付</p>\n                <div class=\"pc-button\"><a {$field.onclick} class=\"click-pay\" >支付查看</a></div>\n            </div>\n        </div>\n    {eyou:else /}\n        <!-- 会员限制 -->\n        <div {$field.vipDisplayId}>\n            <div class=\"content-hide-tips\">\n                {eyou:eq name='$eyou.field.restric_type' value='2'}加入VIP 永久免费浏览{/eyou:eq}\n                <div class=\"login-false\">\n                    {eyou:if condition='$eyou.field.restric_type == 2'}\n                        {eyou:eq name='$eyou.field.no_vip_pay' value='1'}\n                            <p>\n                                开通【<font color=\"red\">{$eyou.field.arc_level_id|getArcLevelName=###}</font>】免费查看\n                                <br/>\n                                <a {$field.onBuyVipClick} style=\"color: #ff9600;\">立即开通</a>\n                                <br/>\n                                该内容支持单独购买 ￥{$eyou.field.users_price}\n                                <br/>\n                                已有<span class=\"red\">{eyou:freebuynum /}</span>人支付\n                                <br/>\n                                <a {$field.onclick} class=\"click-pay\">立即购买</a>\n                            </p>\n                        {eyou:else /}\n                            <p>开通【<font color=\"red\">{$eyou.field.arc_level_id|getArcLevelName=###}</font>】免费查看</p>\n                            <div class=\"pc-button\">\n                                <a {$field.onBuyVipClick} class=\"click-pay\" >购买会员</a>",
+      "observed_attributes": [
+        "aid",
+        "condition",
+        "id",
+        "name",
+        "value"
+      ],
+      "observed_fields": [
+        "c_field.hidden",
+        "eyou.field.arc_level_id",
+        "eyou.field.content",
+        "eyou.field.users_price",
+        "eyou.field.users_score",
+        "field.content",
+        "field.contentId",
+        "field.displayId",
+        "field.hidden",
+        "field.onBuyVipClick",
+        "field.onclick",
+        "field.vipDisplayId",
+        "usersConfig.score_name"
+      ],
+      "tables": [],
+      "fetch_error": null
+    },
+    {
+      "url": "https://www.eyoucms.com/doc/label/arc/28561.html",
+      "category": "arc",
+      "document_id": "28561",
+      "title": "downloadpay 下载付费",
+      "http_status": 200,
+      "fetched_at": "2026-11-03T02:41:42+08:00",
+      "retrieval": "cached",
+      "sha256": "54dc8b8a9beb97db6632e97481ef9cef349f6d4662ce1d3d49f74c0e758b52f1",
+      "upstream_updated": "2024-01-31 14:31:04",
+      "primary_tag": null,
+      "example_tags": [
+        "downloadpay",
+        "else",
+        "elseif",
+        "eq",
+        "freebuynum",
+        "if",
+        "volist"
+      ],
+      "first_example": null,
+      "observed_attributes": [
+        "condition",
+        "id",
+        "name",
+        "value"
+      ],
+      "observed_fields": [
+        "eyou.field.arc_level_id",
+        "eyou.field.users_price",
+        "res.buyId",
+        "res.downloadId",
+        "res.downloadTipsId",
+        "res.hidden",
+        "res.onclick",
+        "vo.downurl",
+        "vo.extract_code",
+        "vo.server_name"
+      ],
+      "tables": [],
+      "fetch_error": null
+    },
+    {
+      "url": "https://www.eyoucms.com/doc/label/arc/29138.html",
+      "category": "arc",
+      "document_id": "29138",
+      "title": "form 自由表单",
+      "http_status": 200,
+      "fetched_at": "2026-11-03T02:41:42+08:00",
+      "retrieval": "cached",
+      "sha256": "682a41282f118143d153de6c89d3f85112314cb3ed05218512773878aa66e24e",
+      "upstream_updated": "2026-04-07 15:17:59",
+      "primary_tag": "form",
+      "example_tags": [
+        "form",
+        "volist"
+      ],
+      "first_example": "{eyou:form type='default' formid='表单ID' id='field'}\n<form method=\"POST\" action=\"{$field.action}\" {$field.formhidden} onsubmit=\"{$field.submit}\" >\n    <input id=\"attr_1\" type=\"text\" value=\"\" name=\"{$field.attr_1}\" placeholder=\"{$field.itemname_1}\">\n    <input id=\"attr_2\" type=\"text\" value=\"\" name=\"{$field.attr_2}\" placeholder=\"{$field.itemname_2}\">\n    <textarea id=\"attr_3\" cols=\"40\" rows=\"3\" name=\"{$field.attr_3}\" placeholder=\"{$field.itemname_3}\"></textarea>\n    <input type=\"submit\" value=\"提交\">\n    {$field.hidden}\n</form>\n{/eyou:form}",
+      "observed_attributes": [
+        "empty",
+        "formid",
+        "id",
+        "name",
+        "type"
+      ],
+      "observed_fields": [
+        "attr.attr_html",
+        "attr.attr_name",
+        "field.action",
+        "field.attr_1",
+        "field.attr_2",
+        "field.attr_3",
+        "field.attr_45",
+        "field.attr_5",
+        "field.attr_6",
+        "field.attr_7",
+        "field.formhidden",
+        "field.hidden",
+        "field.itemname_1",
+        "field.itemname_2",
+        "field.itemname_3",
+        "field.itemname_5",
+        "field.itemname_6",
+        "field.submit",
+        "field.title",
+        "field1.title",
+        "vo.value"
+      ],
+      "tables": [
+        "ey_form",
+        "ey_guestbook",
+        "ey_guestbook_attr",
+        "ey_guestbook_attribute"
+      ],
+      "fetch_error": null
+    },
+    {
+      "url": "https://www.eyoucms.com/doc/label/arc/31362.html",
+      "category": "arc",
+      "document_id": "31362",
+      "title": "sppurchase 商品购买",
+      "http_status": 200,
+      "fetched_at": "2026-11-03T02:41:42+08:00",
+      "retrieval": "cached",
+      "sha256": "b60b85ba2753412d6275a20e9ec60b6fd06be731520f6eb35ac90dc747c6b2d2",
+      "upstream_updated": "2024-05-07 16:51:15",
+      "primary_tag": "sppurchase",
+      "example_tags": [
+        "sppurchase",
+        "volist"
+      ],
+      "first_example": "<!--商品购买组件start-->\n{eyou:sppurchase id='field' currentstyle='btn-danger'}\n    <!-- 价格 标签开始 这里列出所有，请按需删除 -->\n    <div class=\"ey-price\">\n        <!-- 原价 -->\n        <span>￥{$field.old_price}</span> \n    </div>\n    <div class=\"ey-price\">\n        <!-- 规格价 -->\n        <span>￥{$field.spec_price}</span> \n    </div>\n    <div class=\"ey-price\">\n        <!-- 会员价 设置会员折扣时会规格价+原价-->\n        <span>￥{$field.users_price}</span> \n    </div>\n    <div class=\"ey-price\">\n        <!-- 划线价 -->\n        <span>￥{$field.crossed_price}</span> \n    </div>\n    <div class=\"ey-price\">\n        <!-- 商品总价 -->\n        <span>￥{$field.totol_price}</span> \n    </div>\n    <!-- 价格 标签结束 -->\n    <!-- 规格 标签开始 -->\n    <div class=\"ey-spec\">\n    {eyou:volist name=\"$field.ReturnData\" id='field2'}\n        <div class=\"row m-t-15\">\n            <label class=\"form-control-label col-sm-7\">{$field2.spec_name}</label>\n            <div class=\"col-sm-10\">\n            {eyou:volist name=\"$field2.spec_value\" id='field3'}\n                <a href=\"JavaScript:void(0);\" {$field3.SpecData} class=\"btn btn-default btn-selected {$field3.SpecClass}\">\n                    <!-- 规格图片 标签开始 -->\n                    {notempty name=\"$field3.spec_image\"}\n                        <img src=\"{$field3.spec_image}\" style=\"width: 20px; height: 20px;\">\n                    {/notempty}\n                    <!-- 规格图片 标签结束 -->\n                    {$field3.spec_value}\n                </a>\n            {/eyou:volist} \n            </div>\n        </div>\n    {/eyou:volist}\n    </div>\n    <!-- 规格 标签结束 -->\n    <!-- 数量操作 标签开始 -->\n    <div class=\"ey-number\">\n        <label>数量</label>\n        <div class=\"btn-input\">\n            <button class=\"layui-btn\" {$field.ReduceQuantity}>-</button>\n            <input type=\"text\" class=\"layui-input\" {$field.UpdateQuantity}>\n            <button class=\"layui-btn\" {$field.IncreaseQuantity}>+</button>\n        </div>\n    </div>\n    <!-- 数量操作 标签结束 -->\n    <!-- 库存量 标签开始 -->\n    <span {$field.stock_show}>库存量：{$field.stock_count} 件</span>\n    <!-- 库存量 标签结束 -->\n    <!-- 购买按钮 标签开始 -->\n    <div class=\"ey-buyaction\">\n        <a class=\"ey-joinin\" href=\"JavaScript:void(0);\" {$field.ShopAddCart}>加入购物车</a>\n        <a class=\"ey-joinbuy\" href=\"JavaScript:void(0);\" {$field.BuyNow}>立即购买</a>\n    </div>\n    <!-- 购买按钮 标签结束 -->\n    {$field.hidden}\n{/eyou:sppurchase}\n<!--购物车组件end-->",
+      "observed_attributes": [
+        "currentstyle",
+        "id",
+        "name"
+      ],
+      "observed_fields": [
+        "field.BuyNow",
+        "field.IncreaseQuantity",
+        "field.ReduceQuantity",
+        "field.ShopAddCart",
+        "field.UpdateQuantity",
+        "field.crossed_price",
+        "field.hidden",
+        "field.old_price",
+        "field.spec_price",
+        "field.stock_count",
+        "field.stock_show",
+        "field.title",
+        "field.totol_price",
+        "field.users_price",
+        "field1.title",
+        "field2.spec_name",
+        "field3.SpecClass",
+        "field3.SpecData",
+        "field3.spec_image",
+        "field3.spec_value"
+      ],
+      "tables": [],
+      "fetch_error": null
+    },
+    {
+      "url": "https://www.eyoucms.com/doc/label/arc/31557.html",
+      "category": "arc",
+      "document_id": "31557",
+      "title": "商品其它标签栏",
+      "http_status": 200,
+      "fetched_at": "2026-11-03T02:41:42+08:00",
+      "retrieval": "cached",
+      "sha256": "4a59f10a6fb4c499dd73a8394e1b25941a33081e05331866d033a7e9cc1acbaf",
+      "upstream_updated": "2025-04-15 13:38:58",
+      "primary_tag": null,
+      "example_tags": [
+        "volist"
+      ],
+      "first_example": null,
+      "observed_attributes": [
+        "id",
+        "name"
+      ],
+      "observed_fields": [
+        "field.crossed_price",
+        "field.label_intro",
+        "field.label_pic",
+        "field.label_title"
+      ],
+      "tables": [],
+      "fetch_error": null
+    },
+    {
+      "url": "https://www.eyoucms.com/doc/label/arc/32091.html",
+      "category": "arc",
+      "document_id": "32091",
+      "title": "couponslist 优惠券标签",
+      "http_status": 200,
+      "fetched_at": "2026-11-03T02:41:42+08:00",
+      "retrieval": "cached",
+      "sha256": "7080413adc6a37fd3fc703197ec4c92dba8b2e8d7f062dd832290f426eb3604d",
+      "upstream_updated": "2026-08-11 10:15:00",
+      "primary_tag": "couponslist",
+      "example_tags": [
+        "couponslist",
+        "else",
+        "eq",
+        "if"
+      ],
+      "first_example": null,
+      "observed_attributes": [
+        "aid",
+        "condition",
+        "empty",
+        "id",
+        "key",
+        "limit",
+        "loop",
+        "mod",
+        "name",
+        "row",
+        "value"
+      ],
+      "observed_fields": [
+        "cft.center_url",
+        "cft.receive_url",
+        "chd.center_url",
+        "coupon.center_url",
+        "coupon.conditions_use",
+        "coupon.conditions_use_text",
+        "coupon.coupon_discount",
+        "coupon.coupon_form_name",
+        "coupon.coupon_id",
+        "coupon.coupon_intro",
+        "coupon.coupon_name",
+        "coupon.coupon_price",
+        "coupon.coupon_stock",
+        "coupon.coupon_type_name",
+        "coupon.coupon_value_text",
+        "coupon.geted",
+        "coupon.receive_url",
+        "coupon.valid_text",
+        "field.coupon_name"
+      ],
+      "tables": [
+        "ey_weapp_coupons",
+        "ey_weapp_coupons_use"
+      ],
+      "fetch_error": null
+    },
+    {
+      "url": "https://www.eyoucms.com/doc/label/ui/571.html",
+      "category": "ui",
+      "document_id": "571",
+      "title": "ui 开关标签",
+      "http_status": 200,
+      "fetched_at": "2026-11-03T02:41:42+08:00",
+      "retrieval": "cached",
+      "sha256": "4f60a000f2870f0c9fe50685bd71a57de3244235e48d63e1abd1fc00edade77b",
+      "upstream_updated": "2023-10-24 11:58:04",
+      "primary_tag": "ui",
+      "example_tags": [
+        "ui"
+      ],
+      "first_example": null,
+      "observed_attributes": [
+        "open"
+      ],
+      "observed_fields": [],
+      "tables": [],
+      "fetch_error": null
+    },
+    {
+      "url": "https://www.eyoucms.com/doc/label/ui/572.html",
+      "category": "ui",
+      "document_id": "572",
+      "title": "uitext 纯文本",
+      "http_status": 200,
+      "fetched_at": "2026-11-03T02:41:42+08:00",
+      "retrieval": "cached",
+      "sha256": "75c44a686368d0b1475c800d360c86bb8c27bf3d47593c322b2ac8d5ef8e6693",
+      "upstream_updated": "2023-10-24 11:58:13",
+      "primary_tag": "uitext",
+      "example_tags": [
+        "else",
+        "ui",
+        "uitext"
+      ],
+      "first_example": null,
+      "observed_attributes": [
+        "e-id",
+        "e-page",
+        "id",
+        "open"
+      ],
+      "observed_fields": [
+        "field.value",
+        "field1.value"
+      ],
+      "tables": [],
+      "fetch_error": null
+    },
+    {
+      "url": "https://www.eyoucms.com/doc/label/ui/573.html",
+      "category": "ui",
+      "document_id": "573",
+      "title": "uihtml 富文本",
+      "http_status": 200,
+      "fetched_at": "2026-11-03T02:41:42+08:00",
+      "retrieval": "cached",
+      "sha256": "ab626de8029b676d29ff820cd183b1b86789ce1d8861603ff2b7d33a9ccb1d76",
+      "upstream_updated": "2023-10-24 11:58:31",
+      "primary_tag": "uihtml",
+      "example_tags": [
+        "else",
+        "ui",
+        "uihtml"
+      ],
+      "first_example": null,
+      "observed_attributes": [
+        "e-id",
+        "e-page",
+        "id",
+        "open"
+      ],
+      "observed_fields": [
+        "field.value",
+        "field1.value"
+      ],
+      "tables": [],
+      "fetch_error": null
+    },
+    {
+      "url": "https://www.eyoucms.com/doc/label/ui/574.html",
+      "category": "ui",
+      "document_id": "574",
+      "title": "uiupload 图片上传",
+      "http_status": 200,
+      "fetched_at": "2026-11-03T02:41:42+08:00",
+      "retrieval": "cached",
+      "sha256": "d63cc7feaf0989d4c05a25be354d3e23bd8c74416e1949bd2630cf1765ac4bfc",
+      "upstream_updated": "2023-10-24 11:58:40",
+      "primary_tag": "uiupload",
+      "example_tags": [
+        "else",
+        "ui",
+        "uiupload"
+      ],
+      "first_example": null,
+      "observed_attributes": [
+        "e-id",
+        "e-page",
+        "id",
+        "open"
+      ],
+      "observed_fields": [
+        "field.value",
+        "field1.value"
+      ],
+      "tables": [],
+      "fetch_error": null
+    },
+    {
+      "url": "https://www.eyoucms.com/doc/label/ui/575.html",
+      "category": "ui",
+      "document_id": "575",
+      "title": "uitype 栏目调用",
+      "http_status": 200,
+      "fetched_at": "2026-11-03T02:41:42+08:00",
+      "retrieval": "cached",
+      "sha256": "315b20810117d6b7760eaa59c3bc896ba8379bca181c492a6c5941f084224a30",
+      "upstream_updated": "2023-10-24 11:59:55",
+      "primary_tag": "uitype",
+      "example_tags": [
+        "type",
+        "ui",
+        "uitype"
+      ],
+      "first_example": null,
+      "observed_attributes": [
+        "e-id",
+        "e-page",
+        "empty",
+        "id",
+        "open",
+        "type",
+        "typeid"
+      ],
+      "observed_fields": [
+        "field.typename",
+        "field.typeurl",
+        "field.value",
+        "field1.value"
+      ],
+      "tables": [],
+      "fetch_error": null
+    },
+    {
+      "url": "https://www.eyoucms.com/doc/label/ui/576.html",
+      "category": "ui",
+      "document_id": "576",
+      "title": "uiarclist 文档列表",
+      "http_status": 200,
+      "fetched_at": "2026-11-03T02:41:42+08:00",
+      "retrieval": "cached",
+      "sha256": "9c4640c64311f28851cad93b711d388fae90cd84703cab794efd35192ae81497",
+      "upstream_updated": "2023-10-24 12:01:34",
+      "primary_tag": "uiarclist",
+      "example_tags": [
+        "arclist",
+        "type",
+        "ui",
+        "uiarclist"
+      ],
+      "first_example": null,
+      "observed_attributes": [
+        "e-id",
+        "e-page",
+        "empty",
+        "id",
+        "limit",
+        "open",
+        "titlelen",
+        "type",
+        "typeid"
+      ],
+      "observed_fields": [
+        "field.arcurl",
+        "field.title",
+        "field.typename",
+        "field.typeurl",
+        "field.value",
+        "field1.value"
+      ],
+      "tables": [],
+      "fetch_error": null
+    },
+    {
+      "url": "https://www.eyoucms.com/doc/label/ui/577.html",
+      "category": "ui",
+      "document_id": "577",
+      "title": "uichannel 栏目菜单",
+      "http_status": 200,
+      "fetched_at": "2026-11-03T02:41:42+08:00",
+      "retrieval": "cached",
+      "sha256": "394561971a896e7bd3398b929a28fc899eeac759c2809f6c45f0bcc46808ada6",
+      "upstream_updated": "2023-10-24 12:01:23",
+      "primary_tag": "uichannel",
+      "example_tags": [
+        "channel",
+        "type",
+        "ui",
+        "uichannel"
+      ],
+      "first_example": null,
+      "observed_attributes": [
+        "e-id",
+        "e-page",
+        "empty",
+        "id",
+        "open",
+        "row",
+        "type",
+        "typeid"
+      ],
+      "observed_fields": [
+        "field.typename",
+        "field.typeurl",
+        "field.value",
+        "field1.value"
+      ],
+      "tables": [],
+      "fetch_error": null
+    },
+    {
+      "url": "https://www.eyoucms.com/doc/label/ui/11518.html",
+      "category": "ui",
+      "document_id": "11518",
+      "title": "uicode 源代码",
+      "http_status": 200,
+      "fetched_at": "2026-11-03T02:41:43+08:00",
+      "retrieval": "cached",
+      "sha256": "fbb509f94fee7300f25a0b61cf997abf1e07dc474581144874cdf172f3aa11ec",
+      "upstream_updated": "2023-10-24 11:08:31",
+      "primary_tag": "uicode",
+      "example_tags": [
+        "else",
+        "ui",
+        "uicode"
+      ],
+      "first_example": null,
+      "observed_attributes": [
+        "e-id",
+        "e-page",
+        "id",
+        "open"
+      ],
+      "observed_fields": [
+        "field.value",
+        "field1.value"
+      ],
+      "tables": [],
+      "fetch_error": null
+    },
+    {
+      "url": "https://www.eyoucms.com/doc/label/ui/11540.html",
+      "category": "ui",
+      "document_id": "11540",
+      "title": "uibackground 背景图片",
+      "http_status": 200,
+      "fetched_at": "2026-11-03T02:41:43+08:00",
+      "retrieval": "cached",
+      "sha256": "74e068bd7dca2b6311cc33c722f2d2a65a43a80493abc2195f1c37eeb63a90bd",
+      "upstream_updated": "2023-10-24 11:08:15",
+      "primary_tag": "uibackground",
+      "example_tags": [
+        "ui",
+        "uibackground"
+      ],
+      "first_example": null,
+      "observed_attributes": [
+        "e-id",
+        "e-img",
+        "e-page",
+        "open"
+      ],
+      "observed_fields": [],
+      "tables": [],
+      "fetch_error": null
+    },
+    {
+      "url": "https://www.eyoucms.com/doc/label/ui/11541.html",
+      "category": "ui",
+      "document_id": "11541",
+      "title": "uimap 地图定位",
+      "http_status": 200,
+      "fetched_at": "2026-11-03T02:41:43+08:00",
+      "retrieval": "cached",
+      "sha256": "fb17e4ee1e389ebad8ca7b0f6ff8e477d612122759a665ed099f19a43dfdd7be",
+      "upstream_updated": "2023-10-24 11:06:08",
+      "primary_tag": "uimap",
+      "example_tags": [
+        "ui",
+        "uimap"
+      ],
+      "first_example": null,
+      "observed_attributes": [
+        "e-id",
+        "e-page",
+        "height",
+        "id",
+        "open",
+        "width"
+      ],
+      "observed_fields": [
+        "field.value",
+        "field1.value"
+      ],
+      "tables": [],
+      "fetch_error": null
+    },
+    {
+      "url": "https://www.eyoucms.com/doc/label/ui/31154.html",
+      "category": "ui",
+      "document_id": "31154",
+      "title": "功能开启方法",
+      "http_status": 200,
+      "fetched_at": "2026-11-03T02:41:43+08:00",
+      "retrieval": "cached",
+      "sha256": "eb172fce9049c2550715af8c2bddbce431999036f2bc113302bb084b549eddef",
+      "upstream_updated": "2024-01-04 09:26:20",
+      "primary_tag": null,
+      "example_tags": [],
+      "first_example": null,
+      "observed_attributes": [],
+      "observed_fields": [],
+      "tables": [],
+      "fetch_error": null
+    },
+    {
+      "url": "https://www.eyoucms.com/doc/label/language/6058.html",
+      "category": "language",
+      "document_id": "6058",
+      "title": "language 语言列表",
+      "http_status": 200,
+      "fetched_at": "2026-11-03T02:41:43+08:00",
+      "retrieval": "cached",
+      "sha256": "1a6ff678c23e2821c2c8dbf397d879adaf4e22a871cb315a42ab4bf7f469bb1f",
+      "upstream_updated": "2023-10-24 12:05:05",
+      "primary_tag": "language",
+      "example_tags": [
+        "language"
+      ],
+      "first_example": null,
+      "observed_attributes": [
+        "empty",
+        "id",
+        "limit",
+        "mod",
+        "titlelen",
+        "type"
+      ],
+      "observed_fields": [
+        "field.logo",
+        "field.title",
+        "field.url",
+        "field1.title"
+      ],
+      "tables": [
+        "ey_language"
+      ],
+      "fetch_error": null
+    },
+    {
+      "url": "https://www.eyoucms.com/doc/label/language/6059.html",
+      "category": "language",
+      "document_id": "6059",
+      "title": "lang 语言包变量",
+      "http_status": 200,
+      "fetched_at": "2026-11-03T02:41:43+08:00",
+      "retrieval": "cached",
+      "sha256": "a04d9dba848f6f7cc11495bc65cefc5f18727a9c4fef87119e3a2e60abf745f5",
+      "upstream_updated": "2023-10-25 16:01:02",
+      "primary_tag": "lang",
+      "example_tags": [
+        "lang"
+      ],
+      "first_example": null,
+      "observed_attributes": [
+        "name"
+      ],
+      "observed_fields": [],
+      "tables": [
+        "ey_language_pack"
+      ],
+      "fetch_error": null
+    },
+    {
+      "url": "https://www.eyoucms.com/doc/label/language/11886.html",
+      "category": "language",
+      "document_id": "11886",
+      "title": "lang_title 当前语言",
+      "http_status": 200,
+      "fetched_at": "2026-11-03T02:41:43+08:00",
+      "retrieval": "cached",
+      "sha256": "5d8bc09a67cf5dfd3196202257099152f96c31fa28c8b238c9dd88fbf3580882",
+      "upstream_updated": "2024-01-22 17:30:46",
+      "primary_tag": "lang_title",
+      "example_tags": [],
+      "first_example": null,
+      "observed_attributes": [],
+      "observed_fields": [
+        "eyou.global.lang_logo",
+        "eyou.global.lang_title",
+        "eyou.global.lang_url"
+      ],
+      "tables": [],
+      "fetch_error": null
+    }
+  ]
+}

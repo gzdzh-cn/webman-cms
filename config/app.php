@@ -15,7 +15,7 @@
 use support\Request;
 
 return [
-    'debug' => true,
+    'debug' => \app\cms\config\Environment::boolean('APP_DEBUG', false),
     'error_reporting' => E_ALL,
     'default_timezone' => 'Asia/Shanghai',
     'request_class' => Request::class,
@@ -23,7 +23,4 @@ return [
     'runtime_path' => base_path(false) . DIRECTORY_SEPARATOR . 'runtime',
     'controller_suffix' => 'Controller',
     'controller_reuse' => false,
-    'bootstrap' => [
-        \think\provider\ViewService::class,
-    ],
 ];

@@ -21,8 +21,8 @@ global $argv;
 return [
     'webman' => [
         'handler' => Http::class,
-        'listen' => 'http://0.0.0.0:8787',
-        'count' => cpu_count() * 4,
+        'listen' => \app\cms\config\Environment::value('WEBMAN_LISTEN', 'http://0.0.0.0:8787'),
+        'count' => \app\cms\config\Environment::integer('WEBMAN_WORKERS', 2, 1, 256),
         'user' => '',
         'group' => '',
         'reusePort' => false,
@@ -35,20 +35,25 @@ return [
             'publicPath' => public_path()
         ]
     ],
+    'cms-generation' => [
+        'handler' => app\process\StaticGenerationWorker::class,
+        'count' => 1,
+        'reloadable' => true,
+    ],
     // File update detection and automatic reload
     'monitor' => [
         'handler' => app\process\Monitor::class,
         'reloadable' => false,
         'constructor' => [
             // Monitor these directories
-            'monitorDir' => array_merge([
+            'monitorDir' => [
                 app_path(),
                 config_path(),
                 base_path() . '/process',
                 base_path() . '/support',
                 base_path() . '/resource',
                 base_path() . '/.env',
-            ], glob(base_path() . '/plugin/*/app'), glob(base_path() . '/plugin/*/config'), glob(base_path() . '/plugin/*/api')),
+            ],
             // Files with these suffixes will be monitored
             'monitorExtensions' => [
                 'php', 'html', 'htm', 'env'
