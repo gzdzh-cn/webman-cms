@@ -1,1 +1,1 @@
-var bdmap_ak="";
+var bdmap_ak = '';

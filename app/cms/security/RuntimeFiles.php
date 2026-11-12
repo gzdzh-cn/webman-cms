@@ -8,6 +8,7 @@ use RuntimeException;
 /** Bounded regular-file IO, scoped to this deployment's disposable runtime. */
 final class RuntimeFiles
 {
+    public const MAX_BYTES = 33554432;
     public static function path(string $path): void
     {
         $root = rtrim(runtime_path(), '/');
@@ -27,9 +28,9 @@ final class RuntimeFiles
         try {
             $stat = fstat($handle);
             if (!$stat || ($stat['mode'] & 0170000) !== 0100000 || $stat['nlink'] !== 1
-                || $stat['size'] > SignedEnvelope::MAX_BYTES + 4096) return null;
-            $raw = stream_get_contents($handle, SignedEnvelope::MAX_BYTES + 4097);
-            return is_string($raw) && strlen($raw) <= SignedEnvelope::MAX_BYTES + 4096 ? $raw : null;
+                || $stat['size'] > self::MAX_BYTES + 4096) return null;
+            $raw = stream_get_contents($handle, self::MAX_BYTES + 4097);
+            return is_string($raw) && strlen($raw) <= self::MAX_BYTES + 4096 ? $raw : null;
         } finally { fclose($handle); }
     }
 

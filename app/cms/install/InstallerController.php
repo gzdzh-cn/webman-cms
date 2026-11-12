@@ -30,17 +30,17 @@ final class InstallerController
         $service = new InstallerService();
         $state = $service->status(true);
         if ($this->blocked($state)) return $this->configurationError(false, $state);
-        if ($state['installed'] && $this->ownedHandoff($request) === null) return response('<!doctype html><meta charset="utf-8"><title>网站已安装</title><p>网站已安装，安装入口已关闭。</p><a href="/app/admin">进入后台</a>', 403)
+        if ($state['installed'] && $this->ownedHandoff($request) === null) return response('<!doctype html><meta charset="utf-8"><title>网站已安装</title><p>网站已安装，安装入口已关闭。</p><a href="/web-admin">进入后台</a>', 403)
             ->header('Content-Type', 'text/html; charset=utf-8')->header('Cache-Control', 'no-store');
         $file = base_path('app/cms/install/view/index.html');
-        if (!is_file($file)) $file = base_path('install/index.html');
+        if (!is_file($file)) $file = \app\cms\Paths::install('index.html');
         if (!is_file($file)) return response('安装资源不存在', 404)->header('Cache-Control', 'no-store');
         if (!$state['installed']) $this->prepareInstallerTransport($request);
         $token = (string)$request->session()->get('cms_install_csrf', '') ?: bin2hex(random_bytes(24));
         $request->session()->set('cms_install_csrf', $token);
         if (!$request->session()->get('cms_install_handoff_owner')) $request->session()->set('cms_install_handoff_owner', bin2hex(random_bytes(32)));
         if (!$request->session()->get('cms_install_upload_owner')) $request->session()->set('cms_install_upload_owner', bin2hex(random_bytes(32)));
-        return response(str_replace('{{INSTALL_CSRF}}', $token, (string)file_get_contents($file)))
+        return response(str_replace(['{{INSTALL_CSRF}}','{{INSTALL_LIMITS}}','{{INSTALL_SQL_MIB}}'], [$token,json_encode(['sql'=>\app\cms\config\DeploymentConfig::get('limits.install_sql_bytes')],JSON_THROW_ON_ERROR),(string)round(\app\cms\config\DeploymentConfig::get('limits.install_sql_bytes')/1048576,2)], (string)file_get_contents($file)))
             ->header('Content-Type', 'text/html; charset=utf-8')->header('Cache-Control', 'no-store');
     }
 
@@ -54,7 +54,7 @@ final class InstallerController
         if (!$state['installed']) {
             $data += $service->environment();
             $data['eyou_themes'] = array_map(static fn(array $theme): array => array_intersect_key($theme,
-                array_flip(['key', 'name', 'path', 'devices'])), (new InstallerThemes(base_path()))->choices());
+                array_flip(['key', 'name', 'path', 'devices'])), (new InstallerThemes(\app\cms\Paths::root()))->choices());
         }
         if ($handoff = $this->ownedHandoff($request)) $data['handoff'] = $handoff;
         return json(['code' => 0, 'data' => $data])->header('Cache-Control', 'no-store');
@@ -79,7 +79,7 @@ final class InstallerController
                 if (!empty($state['installed'])) throw new \RuntimeException('安装入口已关闭');
                 $owner = (string)$request->session()->get('cms_install_upload_owner', '');
                 if ($owner === '') throw new \RuntimeException('安装会话已失效，请刷新');
-                $upload = new InstallerUpload(base_path(), $owner);
+                $upload = new InstallerUpload(\app\cms\Paths::root(), $owner);
                 if ($action === 'upload_start') $result = $upload->start($data['name'] ?? null, $data['size'] ?? null);
                 elseif ($action === 'upload_chunk') {
                     $chunk = $request->file('chunk');
@@ -97,7 +97,7 @@ final class InstallerController
             if ($action !== 'check' && filter_var($data['import_sql'] ?? false, FILTER_VALIDATE_BOOLEAN)) {
                 if (!$compatible) throw new InstallerValidationException(['compatibility'=>'仅兼容 EyouCMS 模式允许导入 SQL']);
                 $owner=(string)$request->session()->get('cms_install_upload_owner','');
-                $data += (new InstallerUpload(base_path(),$owner))->resolve((string)($data['upload_token']??''));
+                $data += (new InstallerUpload(\app\cms\Paths::root(),$owner))->resolve((string)($data['upload_token']??''));
             }
             $result = match ($action) {
                 'check' => $service->inspect($data),
@@ -163,6 +163,7 @@ final class InstallerController
     {
         try{
             $service=new InstallerHandoff();
+            if($service->awaitingRestart())return json(['code'=>1,'msg'=>'正在重启并加载安装配置，请稍候'])->withStatus(503)->header('Cache-Control','no-store')->header('Retry-After','1');
             $probe=(string)$request->header('x-cms-install-probe','');
             if($probe!==''&&in_array($request->getRemoteIp(),['127.0.0.1','::1'],true))$handoff=$service->probe($probe);
             else $handoff=$this->sessionHandoff($request,$service->status((string)$request->session()->get('cms_install_handoff_owner','')));

@@ -63,7 +63,7 @@
                                         保存
                                     </button>
                                     <button id="account-base-restore" type="button" class="pear-btn pear-btn-md" disabled>
-                                        还原修改
+                                        重置
                                     </button>
                                 </div>
                             </div>
@@ -138,7 +138,7 @@
                 document.querySelector('#account-base-restore').addEventListener('click', async function () {
                     if (!baseSnapshot || baseForm.dataset.cmsSubmitting === '1') return;
                     const changed = baseKeys.some(key => String(baseForm.elements.namedItem(key).value) !== baseSnapshot[key]);
-                    if (changed && !await window.CmsUI.confirm('将放弃未保存的修改，恢复最近读取或保存的基本信息。', {title:'还原修改', confirmText:'还原修改', cancelText:'继续编辑'})) return;
+                    if (changed && !await window.CmsUI.confirm('将放弃未保存的修改，恢复最近读取或保存的基本信息。', {title:'重置', confirmText:'重置', cancelText:'继续编辑'})) return;
                     form.val('baseInfo', baseSnapshot);
                     window.CmsUI.clean(baseForm);
                 });
@@ -154,7 +154,7 @@
                 securityForm.addEventListener('reset', event => {event.preventDefault(); document.querySelector('#account-security-clear').click();});
                 window.CmsUI.clean(securityForm);
                 $.ajax({
-                    url: "/app/admin/account/info",
+                    url: "/web-admin/account/info",
                     dataType: "json",
                     error: function () {window.CmsUI.error(baseForm, '基本信息读取失败，请检查网络或登录状态后重试');},
                     success: function (res) {
@@ -173,7 +173,7 @@
                     $.ajax({
                     error:function(){window.CmsUI.error(cmsForm,"保存失败，请检查网络或登录状态后重试");},
                     complete:function(){delete cmsForm.dataset.cmsSubmitting;window.CmsUI.setBusy(cmsForm,false);},
-                        url: "/app/admin/account/update",
+                        url: "/web-admin/account/update",
                         dataType: "json",
                         type: "POST",
                         data: data.field,
@@ -182,7 +182,7 @@
                                 window.CmsUI.error(cmsForm,res.msg,res.fields||res.data?.fields);return false;
                             }
                             rememberBase(data.field);
-                            return layui.pearPopup.success("保存成功");
+                            return window.CmsUI.success("保存成功");
                         }
                     });
                     return false;
@@ -195,7 +195,7 @@
                     $.ajax({
                     error:function(){window.CmsUI.error(cmsForm,"保存失败，请检查网络或登录状态后重试");},
                     complete:function(){delete cmsForm.dataset.cmsSubmitting;window.CmsUI.setBusy(cmsForm,false);},
-                        url: "/app/admin/account/password",
+                        url: "/web-admin/account/password",
                         dataType: "json",
                         type: "POST",
                         data: data.field,
@@ -204,7 +204,7 @@
                                 window.CmsUI.error(cmsForm,res.msg,res.fields||res.data?.fields);return false;
                             }
                             clearSecurity();
-                            return layui.pearPopup.success("保存成功");
+                            return window.CmsUI.success("保存成功");
                         }
                     });
                     return false;

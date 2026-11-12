@@ -26,8 +26,8 @@ class AttachmentService
         if (!$remote) {
             if (!preg_match('#^/(?:uploads?|public/uploads?|template)/#', $url)) { throw new InvalidArgumentException('本地附件必须位于网站资源目录'); }
             $relative = ltrim($url, '/'); $folder = explode('/', $relative, 2)[0];
-            $root = realpath($folder === 'template' ? base_path($folder) : public_path('uploads'));
-            $path = realpath($folder === 'template' ? base_path($relative) : UploadPaths::physical($url));
+            $root = \app\cms\support\EmbeddedResources::realpath($folder === 'template' ? \app\cms\Paths::templates() : \app\cms\Paths::publicRoot('uploads'));
+            $path = \app\cms\support\EmbeddedResources::realpath($folder === 'template' ? \app\cms\Paths::logical($relative) : UploadPaths::physical($url));
             $contained = $root && $path && str_starts_with($path, $root . DIRECTORY_SEPARATOR);
             if (!$contained || !is_file($path)) { throw new InvalidArgumentException('本地附件文件不存在'); }
         }

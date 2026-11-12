@@ -29,6 +29,8 @@ class Navigation
             $children = [];
             foreach ($group['modules'] as $module) {
                 foreach ($module['pages'] as $page) {
+                    // A display alias reuses an existing permission and has no database rule.
+                    if (isset($page['permission_key'])) continue;
                     if (!isset($byKey[$page['key']])) {
                         throw new \LogicException('Missing original navigation rule: ' . $page['key']);
                     }
@@ -98,6 +100,8 @@ class Navigation
 
     public static function metadata(array $rows, array $grants, array $legacyMenus = []): array
     {
+        $rows = AdminRoutes::projectUrls($rows);
+        $legacyMenus = AdminRoutes::projectUrls($legacyMenus);
         $byKey = [];
         $grantedKeys = [];
         $grantSet = [];
@@ -132,12 +136,13 @@ class Navigation
                 $modulePages = [];
                 foreach ($module['pages'] as $pageSpec) {
                     $knownKeys[strtolower($pageSpec['key'])] = true;
-                    $row = $byKey[strtolower($pageSpec['key'])] ?? null;
+                    $permissionKey = $pageSpec['permission_key'] ?? $pageSpec['key'];
+                    $row = $byKey[strtolower($permissionKey)] ?? null;
                     if (!$row || (int)$row['type'] !== 1 || !isset($visible[(int)$row['id']], $reachable[(int)$row['id']]) ||
-                        !self::accessibleController($pageSpec['key'], $grantedKeys, $super)) continue;
-                    $href = (string)($row['href'] ?? '');
+                        !self::accessibleController($permissionKey, $grantedKeys, $super)) continue;
+                    $href = (string)($pageSpec['href'] ?? $row['href'] ?? '');
                     if ($href === '') continue;
-                    $page = ['id' => (int)$row['id'], 'key' => $row['key'], 'title' => $pageSpec['title'],
+                    $page = ['id' => $pageSpec['id'] ?? (int)$row['id'], 'key' => $pageSpec['key'], 'title' => $pageSpec['title'],
                         'href' => $href, 'permission' => $row['key'], 'module' => $moduleId, 'group' => $group['id'],
                         'auxiliary' => (bool)($pageSpec['auxiliary'] ?? false), 'return_key' => $pageSpec['return_key'] ?? null,
                         'sections' => $pageSpec['sections'] ?? []];
@@ -172,7 +177,7 @@ class Navigation
             foreach ($items as $item) {
                 $key = strtolower((string)($item['key'] ?? ''));
                 $href = strtolower((string)($item['href'] ?? ''));
-                if (preg_match('~(?:uisetcontroller|plugincontroller|devcontroller)(?:@|$)~', $key) || preg_match('~^/app/admin/(?:uiset|plugin|dev)(?:/|$)|^/app/admin/table/crud(?:/|$)~', $href)) continue;
+                if (preg_match('~(?:uisetcontroller|plugincontroller|devcontroller)(?:@|$)~', $key) || preg_match('~^/web-admin/(?:uiset|plugin|dev)(?:/|$)|^/web-admin/table/crud(?:/|$)~', $href)) continue;
                 $children = $custom($item['children'] ?? []);
                 if (isset($knownKeys[strtolower((string)($item['key'] ?? ''))])) {
                     array_push($result, ...$children);
@@ -199,7 +204,7 @@ class Navigation
         // A display-only destination for an authenticated admin, never a persisted rule
         // or an additional page/module grant. The controller retains its login check.
         $map = ['id' => 'cms-feature-map', 'key' => 'cms-feature-map', 'title' => '功能地图',
-            'href' => '/app/admin/index/featuremap', 'permission' => '', 'module' => 'cms-feature-map', 'group' => ''];
+            'href' => '/web-admin/index/featuremap', 'permission' => '', 'module' => 'cms-feature-map', 'group' => ''];
         return ['version' => self::VERSION, 'groups' => $groups, 'modules' => $modules, 'pages' => $pages,
             'menus' => $menus, 'map' => $map, 'sidebar_defaults' => $sidebarDefaults];
     }

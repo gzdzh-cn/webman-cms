@@ -70,16 +70,13 @@ class TagArcpagelist extends Base
         if (empty($arcmultiRow)) {
             return [];
         } else {
-            $savedSql = \app\cms\template\PaginationRecord::sql($tagidmd5, $arcmultiRow);
-            if ($savedSql === null) return [];
+            $descriptor = \app\cms\template\PaginationRecord::decode($tagidmd5, $arcmultiRow);
+            if ($descriptor === null) return [];
             // 取出属性并解析为变量
             $attarray = unserialize(stripslashes($arcmultiRow['attstr']), ['allowed_classes' => false]);
             if (!is_array($attarray)) return [];
 
-            $querysql = preg_replace('#LIMIT(\s+)(\d+)(,\d+)?#i', '', $savedSql);
-            $querysql = preg_replace('#SELECT(\s+)(.*)(\s+)FROM#i', 'SELECT COUNT(*) AS totalNum FROM', $querysql);
-            $queryRow = Db::query($querysql);
-            $totalNum = !empty($queryRow) ? $queryRow[0]['totalNum'] : 0;
+            $totalNum = \app\cms\template\PaginationRecord::count($descriptor);
             $totalpage = ceil($totalNum / $pagesize);
             if (intval($attarray['row']) >= $totalNum) {
                 return [];

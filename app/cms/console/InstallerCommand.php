@@ -22,6 +22,7 @@ class InstallerCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         try {
+            if(\app\cms\support\EmbeddedResources::binary())throw new \RuntimeException('二进制不提供安装或安装交接功能，请使用源码版完成安装后部署');
             if ($input->getOption('seal') && ($input->getOption('input') !== null || $input->getOption('preflight'))) {
                 throw new \InvalidArgumentException('--seal cannot be combined with --input or --preflight');
             }

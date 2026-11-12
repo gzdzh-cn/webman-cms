@@ -94,7 +94,7 @@ class FilemanagerController extends \plugin\admin\app\controller\Base
         if ($request->method() !== 'GET') return response('Method Not Allowed', 405);
         try {
             $data = (new TemplateFileService())->listing($request->get());
-            $data['permissions'] = ['edit'=>$this->canWrite('edit'), 'newfile'=>$this->canWrite('newfile'), 'replace_img'=>false];
+            $data['permissions'] = ['edit'=>empty($data['readonly'])&&$this->canWrite('edit'), 'newfile'=>empty($data['readonly'])&&$this->canWrite('newfile'), 'replace_img'=>false];
             return $this->result(0, 'ok', $data);
         } catch (\InvalidArgumentException|\RuntimeException $error) { return $this->result(1, $error->getMessage()); }
     }

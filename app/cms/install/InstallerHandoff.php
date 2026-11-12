@@ -16,7 +16,7 @@ final class InstallerHandoff
     private const LOCK = 'config/cms-install-handoff.lock';
     private string $root;
 
-    public function __construct(?string $root = null) { $this->root = rtrim($root ?? base_path(), '/'); }
+    public function __construct(?string $root = null) { $this->root = rtrim($root ?? \app\cms\Paths::root(), '/'); }
 
     /** Called only after the environment and the installation lock have been saved. */
     public function prepare(array $journal, bool $archivePending = false, ?int $completedAt = null): array
@@ -29,7 +29,7 @@ final class InstallerHandoff
                 $record['archive_pending'] = $archivePending;
                 return $this->view($record);
             }
-            $version = ($journal['config_storage'] ?? null) === 'php-database-v1' ? 2 : 1;
+            $version = in_array($journal['config_storage'] ?? null, ['php-database-v1','yaml-database-v1'], true) ? 2 : 1;
             $env = $this->environment($version);
             $pdo = $this->connection($env);
             $prefix = $this->prefix($env);
@@ -45,7 +45,7 @@ final class InstallerHandoff
                 'version'=>$version, 'task_id'=>$journal['id'], 'site_signature'=>$journal['site_signature'],
                 'owner_hash'=>$journal['browser_owner_hash'] ?? null, 'admin_id'=>(int)$admin['id'],
                 'password_fingerprint'=>hash('sha256', $admin['password']), 'completed_at'=>$completedAt ?? time(),
-                'environment_sha256'=>$version === 1 ? hash_file('sha256', $this->root.'/.env') : null,
+                'environment_sha256'=>$version === 1 ? hash_file('sha256', \app\cms\config\Environment::path()) : null,
                 'configuration_sources_sha256'=>$version === 2 ? $this->sourcesFingerprint() : null,
                 'effective_configuration_sha256'=>$version === 2 ? $this->effectiveFingerprint($env) : null,
                 'template_mode'=>$journal['template_mode'] ?? null,
@@ -74,6 +74,15 @@ final class InstallerHandoff
             $this->refreshReady($record);
             return $this->view($record);
         });
+    }
+
+    /** Old workers must not load the newly installed session through their old database connection. */
+    public function awaitingRestart(): bool
+    {
+        $record=$this->read();
+        return $record && in_array($record['restart_status'],['scheduled','restarting'],true)
+            && (int)$record['old_master']>0 && function_exists('posix_getppid')
+            && posix_getppid()===(int)$record['old_master'];
     }
 
     /** Internal read/ready probe; never grants a browser login or a restart. */
@@ -131,7 +140,7 @@ final class InstallerHandoff
                 && ($request->session()->get('cms_install_authenticated_task') === $record['task_id'])) {
                 // Recovery after a lost response uses the already-authenticated session.
                 $record['grant_status'] = 'consumed';
-                return ['login_url'=>'/app/admin'];
+                return ['login_url'=>'/web-admin'];
             }
             if ($record['grant_status'] !== 'available') throw new RuntimeException('首次登录资格已使用，请使用正常登录入口');
             if (!$this->grantAvailable($record)) throw new RuntimeException('首次登录资格已过期，请使用正常登录入口');
@@ -147,7 +156,7 @@ final class InstallerHandoff
             }
             $record['grant_status'] = 'consumed';
             $record['consumed_at'] = time();
-            return ['login_url'=>'/app/admin'];
+            return ['login_url'=>'/web-admin'];
         });
     }
 
@@ -156,6 +165,11 @@ final class InstallerHandoff
     {
         $record = $this->read();
         try {
+            if (\app\cms\support\ProcessLauncher::managed()) {
+                \app\cms\support\ProcessLauncher::assertManaged();
+                \Workerman\Timer::add(1.5,function()use($record){$this->execute($record['task_id'],$record['attempt']);},[],false);
+                return;
+            }
             foreach(['proc_open','pcntl_fork','pcntl_exec','pcntl_waitpid','posix_setsid','posix_kill'] as $function)if(!function_exists($function))throw new RuntimeException('当前环境无法创建独立重启进程');
             $environment=$this->processEnvironment($record);
             $pid=pcntl_fork();
@@ -168,7 +182,8 @@ final class InstallerHandoff
                     foreach(get_resources('stream') as $stream){
                         if(is_resource($stream)&&$stream!==STDIN&&$stream!==STDOUT&&$stream!==STDERR)@fclose($stream);
                     }
-                    pcntl_exec(PHP_BINARY,[$this->root.'/app/cms/maintenance/install-restart.php',$record['task_id'],(string)$record['attempt']],$environment);
+                    $command=\app\cms\support\ProcessLauncher::command(['cms:restart-executor','install',$record['task_id'],(string)$record['attempt']]);
+                    pcntl_exec(array_shift($command),$command,$environment);
                     $this->failed($record['task_id'],$record['attempt'],'独立重启进程执行失败，请检查 PHP 执行权限');
                 }catch(\Throwable $error){$this->failed($record['task_id'],$record['attempt'],'独立重启进程执行失败，请检查 PHP 执行权限');}
                 finally{posix_kill(getmypid(),SIGKILL);exit(1);}
@@ -187,7 +202,7 @@ final class InstallerHandoff
     /** CLI entrypoint, invoked in a new session by the small detached launcher. */
     public function execute(string $task, int $attempt): void
     {
-        $executor = $this->root.'/config/cms-install-handoff-executor.lock';
+        $executor = \app\cms\Paths::config('cms-install-handoff-executor.lock');
         if (is_link($executor)) throw new RuntimeException('重启互斥路径无效');
         $handle = fopen($executor, 'c+b');
         if (!$handle || !chmod($executor, 0600)) throw new RuntimeException('无法创建重启互斥');
@@ -203,11 +218,16 @@ final class InstallerHandoff
                 return $record;
             });
             if (!$record) return;
+            if (\app\cms\support\ProcessLauncher::managed()) {
+                \app\cms\support\ProcessLauncher::assertManaged();
+                if(!posix_kill($record['old_master'],SIGQUIT))throw new RuntimeException('无法停止当前服务');
+                return;
+            }
             $log = $this->logFile();
-            $process = proc_open([PHP_BINARY, $this->root.'/webman', 'restart', '-d'],
+            $process = proc_open(\app\cms\support\ProcessLauncher::command(['restart','-d','-g']),
                 [0=>['file','/dev/null','r'],1=>['file',$log,'a'],2=>['file',$log,'a']], $pipes, $this->root, $this->processEnvironment($record));
             if (!is_resource($process)) throw new RuntimeException('重启命令启动失败');
-            $deadline = microtime(true) + 20;
+            $deadline = microtime(true) + \app\cms\service\AdminRestartService::restartTimeout();
             do { $state = proc_get_status($process); if (!$state['running']) break; usleep(100000); } while (microtime(true) < $deadline);
             if ($state['running']) { proc_terminate($process); proc_close($process); throw new RuntimeException('重启命令执行超时'); }
             $exit = $state['exitcode']; proc_close($process);
@@ -239,7 +259,7 @@ final class InstallerHandoff
             }
         } catch (\Throwable $error) { /* A live HTTP process with stale configuration is not ready. */ }
         if (($record['restart_status']==='scheduled'&&time()>($record['scheduled_at']??$record['completed_at'])+20)
-            ||($record['restart_status']==='restarting'&&time()>($record['started_at']??0)+80)) {
+            ||($record['restart_status']==='restarting'&&time()>($record['started_at']??0)+\app\cms\service\AdminRestartService::restartTimeout()+60)) {
             $record['restart_status']='failed';$record['failure']='自动重启未完成，请重新检查服务状态或重试';
         }
     }
@@ -282,7 +302,7 @@ final class InstallerHandoff
     private function assertEnvironment(array $record): void
     {
         if ($record['version'] === 1) {
-            $file = $this->root.'/.env';
+            $file = \app\cms\config\Environment::path();
             if (is_link($file) || !is_file($file) || !hash_equals($record['environment_sha256'], (string)hash_file('sha256',$file))) throw new RuntimeException('安装后的环境配置已变化，请人工核对');
         } else {
             if (!hash_equals((string)($record['configuration_sources_sha256'] ?? ''), $this->sourcesFingerprint())
@@ -299,7 +319,7 @@ final class InstallerHandoff
     /** Recover only a missing handoff for the original, recent completion session. */
     private function completedJournal(string $owner): array
     {
-        $file = $this->root.'/config/cms-installing.json';
+        $file = \app\cms\Paths::config('cms-installing.json');
         if (is_link($file) || !is_file($file)) throw new RuntimeException('安装交接会话不存在或已失效，请使用正常登录入口');
         $journal = json_decode((string)file_get_contents($file), true, 512, JSON_THROW_ON_ERROR);
         if (!is_array($journal) || ($journal['version'] ?? null) !== 3 || ($journal['phase'] ?? '') !== 'complete'
@@ -341,27 +361,11 @@ final class InstallerHandoff
         });
     }
 
-    private function master(): int
-    {
-        $file = $this->root.'/runtime/webman.pid';
-        if (is_link($this->root.'/runtime') || is_link($file)) throw new RuntimeException('进程 PID 路径无效');
-        clearstatcache(true, $file);
-        if (!is_file($file)) return 0;
-        $pid = trim((string)file_get_contents($file));
-        if (!ctype_digit($pid) || (int)$pid < 2) throw new RuntimeException('进程 PID 无效');
-        if (!posix_kill((int)$pid,0)) return 0;
-        $process = proc_open(['/bin/ps','-p',$pid,'-o','command='],[0=>['file','/dev/null','r'],1=>['pipe','w'],2=>['file','/dev/null','a']],$pipes);
-        if (!is_resource($process)) throw new RuntimeException('无法核验主进程身份');
-        $command = trim(stream_get_contents($pipes[1])); fclose($pipes[1]); proc_close($process);
-        if (!in_array($command, ['WorkerMan: master process  start_file='.$this->root.'/webman',
-            'WorkerMan: master process  start_file='.$this->root.'/start.php'], true)) throw new RuntimeException('PID 不属于当前项目的 Webman 主进程');
-        return (int)$pid;
-    }
-
+    private function master(): int { return \app\cms\support\ProcessLauncher::master(); }
     private function environment(int $version = 1): array
     {
-        if ($version === 2) return DatabaseSettings::values($this->root);
-        $file=$this->root.'/.env';
+        if ($version === 2) return DatabaseSettings::fresh(true);
+        $file=\app\cms\config\Environment::path();
         if (is_link($file)||!is_file($file)) throw new RuntimeException('安装环境配置不存在');
         return \Dotenv\Dotenv::parse((string)file_get_contents($file));
     }
@@ -385,19 +389,15 @@ final class InstallerHandoff
     private function sourcesFingerprint(): string
     {
         Environment::initialize($this->root);
-        $path = $this->root.'/.env';
+        $path = \app\cms\config\Environment::path();
         clearstatcache(true, $path);
         if (is_link($path) || (file_exists($path) && !is_file($path))) throw new RuntimeException('环境配置路径无效');
         $envFile = is_file($path) ? ['present'=>true, 'sha256'=>hash_file('sha256', $path)] : ['present'=>false];
-        $keys = array_flip(['DB_HOST','DB_PORT','DB_NAME','DB_USER','DB_PASSWORD','DB_PREFIX','DB_TABLE_LAYOUT','CMS_DB_PREFIX','ADMIN_DB_PREFIX','WEBMAN_LISTEN','WEBMAN_WORKERS','CMS_SECURITY_KEY_FILE']);
+        $keys = array_flip(['DB_HOST','DB_PORT','DB_NAME','DB_USER','DB_PASSWORD','DB_PREFIX','DB_TABLE_LAYOUT','CMS_DB_PREFIX','ADMIN_DB_PREFIX','WEBMAN_LISTEN','WEBMAN_WORKERS']);
         $overrides = array_intersect_key(Environment::processEnvironment(), $keys);
         ksort($overrides);
-        $files=[];
-        foreach (['config/database.php','config/process.php','config/cms_security.php','config/cms_site.php'] as $relative) {
-            $path=$this->root.'/'.$relative; clearstatcache(true, $path);
-            if (is_link($path) || (file_exists($path) && !is_file($path))) throw new RuntimeException('配置文件路径无效');
-            $files[$relative]=is_file($path) ? ['present'=>true,'sha256'=>hash_file('sha256',$path)] : ['present'=>false];
-        }
+        $yaml=\app\cms\config\DeploymentConfig::discoverFile();
+        $files=['yaml'=>is_file($yaml)?hash_file('sha256',$yaml):null];
         return hash('sha256', serialize([$envFile, $files, $overrides]));
     }
     private function effectiveFingerprint(array $settings): string
@@ -423,25 +423,25 @@ final class InstallerHandoff
     }
     private function logFile(): string
     {
-        foreach (['runtime','runtime/logs'] as $part) { $path=$this->root.'/'.$part;if(is_link($path))throw new RuntimeException('重启日志路径无效');if(!is_dir($path)&&!mkdir($path,0755,true)&&!is_dir($path))throw new RuntimeException('无法创建重启日志'); }
-        $file=$this->root.'/runtime/logs/installer-restart.log';if(is_link($file))throw new RuntimeException('重启日志文件无效');return $file;
+        foreach (['runtime','runtime/logs'] as $part) { $path=\app\cms\Paths::logical($part);if(is_link($path))throw new RuntimeException('重启日志路径无效');if(!is_dir($path)&&!mkdir($path,0755,true)&&!is_dir($path))throw new RuntimeException('无法创建重启日志'); }
+        $file=\app\cms\Paths::runtime('logs/installer-restart.log');if(is_link($file))throw new RuntimeException('重启日志文件无效');return $file;
     }
     private function read(): ?array
     {
-        $file=$this->root.'/'.self::RECORD;if(is_link($file))throw new RuntimeException('安装交接记录路径无效');if(!is_file($file))return null;
+        $file=\app\cms\Paths::config('cms-install-handoff.json');if(is_link($file))throw new RuntimeException('安装交接记录路径无效');if(!is_file($file))return null;
         $record=json_decode((string)file_get_contents($file),true,512,JSON_THROW_ON_ERROR);
         if(!is_array($record)||!in_array($record['version']??null,[1,2],true))throw new RuntimeException('安装交接记录损坏');return $record;
     }
     private function write(array $record): void
     {
-        $file=$this->root.'/'.self::RECORD;$tmp=tempnam($this->root.'/config','.handoff-');
+        $file=\app\cms\Paths::config('cms-install-handoff.json');$tmp=tempnam(\app\cms\Paths::config(''),'.handoff-');
         try{if(!$tmp||!chmod($tmp,0600))throw new RuntimeException('无法保存安装交接记录');$bytes=json_encode($record,JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR)."\n";
             if(file_put_contents($tmp,$bytes,LOCK_EX)!==strlen($bytes)||!rename($tmp,$file))throw new RuntimeException('无法保存安装交接记录');
         }finally{if($tmp&&is_file($tmp))unlink($tmp);}
     }
     private function locked(callable $operation): mixed
     {
-        $file=$this->root.'/'.self::LOCK;if(is_link($this->root.'/config')||is_link($file))throw new RuntimeException('安装交接互斥路径无效');
+        $file=\app\cms\Paths::config('cms-install-handoff.lock');if(is_link(\app\cms\Paths::config(''))||is_link($file))throw new RuntimeException('安装交接互斥路径无效');
         $handle=fopen($file,'c+b');if(!$handle||!chmod($file,0600)||!flock($handle,LOCK_EX))throw new RuntimeException('无法锁定安装交接任务');
         try{$record=$this->read();$before=$record;$result=$operation($record);if($record!==null&&$record!==$before)$this->write($record);return $result;}
         finally{flock($handle,LOCK_UN);fclose($handle);}

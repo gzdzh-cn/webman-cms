@@ -1,0 +1,258 @@
+# CMS 部署配置说明
+# 外置 YAML 查找顺序：config.yaml > config/config.yaml > config/manifest/config.yaml，只读取第一份，不合并。
+# 外置字段覆盖顺序：本地 .env 存在键 > 显式进程环境 > 所选 YAML > 程序默认值。
+# 未内置 YAML 时，可用进程环境 CMS_ENV_FILE 指定 .env，再由 .env 或进程环境 CMS_CONFIG_FILE 指定 YAML。
+# 内置 YAML 仅使用内置内容和默认值，忽略外置 YAML、.env、进程部署参数及 CMS_CONFIG_FILE；修改需重新构建。
+# 未填写的字段使用程序默认值；完整参数见 config.example.yaml。空密码、false、0 都是明确配置值。
+# 除外置 Redis 参数按请求刷新、build 参数在构建时使用外，其他部署参数修改后完整重启生效。
+# 请用空格缩进；密码等字符串建议使用引号；实际 config.yaml 含私有配置，请保持权限 0600。
+# 配置格式版本，目前固定为 1。
+# 允许范围：1～1；生效：完整重启。
+version: 1
+
+# 实体目录固定在源码入口或二进制所在目录，不支持 paths 或 CMS_*_DIR 自定义。
+# config/、public/admin-assets/、template/、uploads/、public/html/、install/、runtime/。
+
+# 数据库及连接池；修改后完整重启，已有站点不要随意变更表布局或前缀。
+database:
+  # MySQL 地址，可填写 IP 或主机名；修改后完整重启所有 worker。
+  # 环境变量：DB_HOST；生效：完整重启。
+  host: 127.0.0.1
+  # MySQL 端口，通常为 3306。
+  # 环境变量：DB_PORT；允许范围：1～65535；生效：完整重启。
+  port: 3306
+  # 数据库名称；源码安装时可填写，二进制必须连接已经安装的有效数据库。
+  # 环境变量：DB_NAME；生效：完整重启。
+  name: ''
+  # 数据库连接账号，需要拥有当前站点运行及维护所需权限。
+  # 环境变量：DB_USER；生效：完整重启。
+  username: ''
+  # 数据库连接密码；空字符串表示空密码，特殊字符建议使用引号包裹。
+  # 环境变量：DB_PASSWORD；生效：完整重启。
+  password: ''
+  # 统一布局的数据表前缀；table_layout=unified-backend-v1 时使用，后台表另加 backend_。
+  # 环境变量：DB_PREFIX；生效：完整重启。
+  prefix: wa_
+  # 表布局：unified-backend-v1 为统一前缀；legacy 或空字符串使用历史 cms_prefix/admin_prefix。必须与现有表保持一致。
+  # 环境变量：DB_TABLE_LAYOUT；生效：完整重启。
+  table_layout: ''
+  # 历史布局的 CMS 业务表前缀；统一布局下不使用。
+  # 环境变量：CMS_DB_PREFIX；生效：完整重启。
+  cms_prefix: ey_
+  # 历史布局的后台管理表前缀；统一布局下不使用。
+  # 环境变量：ADMIN_DB_PREFIX；生效：完整重启。
+  admin_prefix: wa_
+  # 框架数据库连接池设置；数量和时间参数按下列说明填写。
+  pool:
+    # 每个连接池允许的最大连接数；多 worker 的总连接数需按进程和连接池数量计算。
+    # 环境变量：DB_POOL_MAX_CONNECTIONS；允许范围：1～1000；生效：完整重启。
+    max_connections: 5
+    # 连接池保留的最小连接数，不能大于 max_connections。
+    # 环境变量：DB_POOL_MIN_CONNECTIONS；允许范围：0～1000；生效：完整重启。
+    min_connections: 1
+    # 连接池无空闲连接时，等待可用连接的最长时间，单位：秒。
+    # 环境变量：DB_POOL_WAIT_TIMEOUT；允许范围：1～3600；生效：完整重启。
+    wait_timeout: 3
+    # 空闲连接超时回收时间，单位：秒。
+    # 环境变量：DB_POOL_IDLE_TIMEOUT；允许范围：1～86400；生效：完整重启。
+    idle_timeout: 60
+    # 数据库连接心跳检查间隔，单位：秒。
+    # 环境变量：DB_POOL_HEARTBEAT_INTERVAL；允许范围：1～86400；生效：完整重启。
+    heartbeat_interval: 50
+
+# Redis 连接；外置 YAML/.env 中的参数按请求刷新，切换 Redis 模式前会检查最新参数。
+redis:
+  # Redis 地址；这里仅配置连接，是否使用 Redis 由后台缓存模式决定。
+  # 环境变量：CMS_REDIS_HOST；生效：外置参数下个请求。
+  host: 127.0.0.1
+  # Redis 服务端口，通常为 6379。
+  # 环境变量：CMS_REDIS_PORT；允许范围：1～65535；生效：外置参数下个请求。
+  port: 6379
+  # Redis ACL 用户名；空字符串表示不指定用户名，沿用默认用户认证方式。
+  # 环境变量：CMS_REDIS_USERNAME；生效：外置参数下个请求。
+  username: ''
+  # Redis 认证密码；空字符串表示不提供密码，特殊字符建议使用引号包裹。
+  # 环境变量：CMS_REDIS_PASSWORD；生效：外置参数下个请求。
+  password: ''
+  # Redis 逻辑库编号，从 0 开始；可用编号取决于 Redis 服务端配置，缓存和会话使用所选库。
+  # 环境变量：CMS_REDIS_DATABASE；允许范围：0～2147483647；生效：外置参数下个请求。
+  database: 0
+  # 建立 Redis 连接的超时，单位：秒，支持小数。
+  # 环境变量：CMS_REDIS_TIMEOUT；允许范围：0.001～30；生效：外置参数下个请求。
+  timeout: 0.5
+  # 读取 Redis 响应的超时，单位：秒，支持小数。
+  # 环境变量：CMS_REDIS_READ_TIMEOUT；允许范围：0.001～30；生效：外置参数下个请求。
+  read_timeout: 0.5
+  # Redis 键前缀，建议不同站点设置不同值；程序还会增加站点、缓存类别和代际隔离。
+  # 环境变量：CMS_REDIS_PREFIX；生效：外置参数下个请求。
+  prefix: 'cms:'
+
+# 监听与进程管理；修改后完整重启全部 worker。
+server:
+  # HTTP 监听地址；0.0.0.0 表示监听所有 IPv4 网卡，可改为 http://127.0.0.1:8787 等。
+  # 环境变量：WEBMAN_LISTEN；生效：完整重启。
+  listen: 'http://0.0.0.0:8787'
+  # HTTP worker 数量，不含静态生成等辅助进程；按 CPU 和内存容量调整。
+  # 环境变量：WEBMAN_WORKERS；允许范围：1～256；生效：完整重启。
+  workers: 2
+  # 单个 HTTP 请求包大小上限，单位：字节，包含头部和请求体；10485760 为 10 MiB。
+  # 环境变量：CMS_MAX_PACKAGE_SIZE；允许范围：1048576～1073741824；生效：完整重启。
+  max_package_size: 10485760
+  # 停止 worker 的等待超时，单位：秒；也用于后台重启的等待时间计算。
+  # 环境变量：CMS_STOP_TIMEOUT；允许范围：2～600；生效：完整重启。
+  stop_timeout: 30
+  # 进程托管方式：standalone 独立运行；systemd 由服务管理器以前台方式托管。
+  # 环境变量：CMS_PROCESS_MANAGER；生效：完整重启。
+  process_manager: standalone
+
+# 应用启动参数；修改后完整重启。
+app:
+  # 应用时区，使用 PHP 支持的时区名称，例如 Asia/Shanghai 或 UTC。
+  # 环境变量：APP_TIMEZONE；生效：完整重启。
+  timezone: Asia/Shanghai
+  # 应用调试开关，生产环境建议 false；与后台运营/开发/Redis 缓存模式是独立设置。
+  # 环境变量：APP_DEBUG；生效：完整重启。
+  debug: false
+  # PHP 进程内存限制，使用正整数加 M 或 G，例如 256M、1G。
+  # 环境变量：CMS_MEMORY_LIMIT；生效：完整重启。
+  memory_limit: 256M
+
+# 部署及未安装时的默认值；主题、缓存模式等后台业务设置仍以数据库为准。
+site:
+  # 官网部署 URL 前缀；根路径用空字符串，子目录例如 /cms，不是服务器实体目录。
+  # 环境变量：CMS_BASE_PATH；生效：完整重启。
+  base_path: ''
+  # 站点默认访问地址，包含协议、域名及必要端口；按实际部署地址填写。
+  # 环境变量：CMS_BASE_URL；生效：完整重启。
+  base_url: 'http://127.0.0.1:8787'
+  # 默认/回退官网主题目录名；已安装站的当前主题以数据库中的后台设置为准。
+  # 环境变量：CMS_THEME；生效：完整重启。
+  theme: '3144'
+  # 数据库备份的项目外私有绝对路径；空字符串使用站点父目录下自动隔离的 cms-private-backups-* 目录。
+  # 环境变量：CMS_BACKUP_PATH；生效：完整重启。
+  backup_path: ''
+
+# 普通应用日志；SQL 日志在 sql 区段独立控制。
+logging:
+  # 应用日志总开关；Workerman 的运行控制日志仍独立保留。
+  # 环境变量：LOG_ENABLE；生效：完整重启。
+  enable: true
+  # 是否将应用日志写入标准输出；独立后台模式下由进程的输出设置接管。
+  # 环境变量：LOG_PRINT_TO_CONSOLE；生效：完整重启。
+  print_to_console: true
+  # 是否将应用日志写入文件，需同时启用 logging.enable。
+  # 环境变量：LOG_PRINT_TO_FILE；生效：完整重启。
+  print_to_file: true
+  # 应用日志位置，相对固定 runtime/；通常填写 logs/webman.log，按日轮转。
+  # 环境变量：LOG_FILE；生效：完整重启。
+  file: logs/webman.log
+  # 应用日志最多保留的轮转文件数，通常每个文件对应一天。
+  # 环境变量：LOG_MAX_FILES；允许范围：1～3650；生效：完整重启。
+  max_files: 7
+  # 最低日志级别：100调试、200信息、250通知、300警告、400错误、500严重、550警报、600紧急。
+  # 环境变量：LOG_LEVEL；生效：完整重启。
+  level: 200
+  # SQL 日志；修改后完整重启。
+  sql:
+    # SQL 日志独立开关；生产环境通常关闭，开启后会记录 SQL 及绑定值。
+    # 环境变量：SQL_LOG_ENABLE；生效：完整重启。
+    enable: false
+    # 是否将 SQL 日志输出到控制台，需启用 logging.sql.enable。
+    # 环境变量：SQL_LOG_PRINT_TO_CONSOLE；生效：完整重启。
+    print_to_console: false
+    # 是否将 SQL 日志写入文件，需启用 logging.sql.enable。
+    # 环境变量：SQL_LOG_PRINT_TO_FILE；生效：完整重启。
+    print_to_file: true
+    # SQL 日志目录，相对固定 runtime/；文件名为 sql-YYYY-MM-DD.log。
+    # 环境变量：SQL_LOG_FILE；生效：完整重启。
+    file: logs
+    # SQL 日志保留数量的预留配置；当前日志写入器尚未接入自动清理，此值不自动删除旧 SQL 日志。
+    # 环境变量：SQL_LOG_MAX_FILES；允许范围：1～3650；生效：完整重启。
+    max_files: 7
+
+# 登录会话及 Cookie；参数修改后完整重启，存储方式跟随后台缓存模式。
+session:
+  # 会话 Cookie 名称，只允许以字母开头的字母、数字和下划线。
+  # 环境变量：CMS_SESSION_NAME；生效：完整重启。
+  name: PHPSID
+  # 服务端会话有效期，单位：秒；604800 为 7 天，Redis 模式沿用此 TTL。
+  # 环境变量：CMS_SESSION_LIFETIME；允许范围：60～31536000；生效：完整重启。
+  lifetime: 604800
+  # 浏览器会话 Cookie 有效期，单位：秒；31536000 为 365 天，0 表示浏览器会话 Cookie。
+  # 环境变量：CMS_COOKIE_LIFETIME；允许范围：0～31536000；生效：完整重启。
+  cookie_lifetime: 31536000
+  # 会话 Cookie 生效的 URL 路径，/ 表示全站。
+  # 环境变量：CMS_COOKIE_PATH；生效：完整重启。
+  cookie_path: /
+  # 会话 Cookie 域名；空字符串表示当前主机，可按需要填写受控父域名。
+  # 环境变量：CMS_COOKIE_DOMAIN；生效：完整重启。
+  domain: ''
+  # 必须为 true，禁止浏览器 JavaScript 读取会话 Cookie。
+  # 环境变量：CMS_COOKIE_HTTP_ONLY；生效：完整重启。
+  http_only: true
+  # true 时会话 Cookie 只通过 HTTPS 发送；本地纯 HTTP 环境使用 false。
+  # 环境变量：CMS_COOKIE_SECURE；生效：完整重启。
+  secure: false
+  # Cookie SameSite 策略：空字符串表示不显式设置，也可选 Lax、Strict、None；None 必须同时开启 secure。
+  # 环境变量：CMS_COOKIE_SAME_SITE；生效：完整重启。
+  same_site: ''
+
+# 系统静态资源响应策略；修改后完整重启。
+static:
+  # 带正确内容版本号的系统静态资源缓存时间，单位：秒；31536000 为 365 天，未版本化资源继续协商缓存。
+  # 环境变量：CMS_ASSET_MAX_AGE；允许范围：0～31536000；生效：完整重启。
+  versioned_max_age: 31536000
+
+# 资源限制；大小统一为字节，时间统一为秒，像素和数量另行标注。
+limits:
+  # 源码安装器允许的 SQL 文件最大字节数；52428800 为 50 MiB。二进制不开放安装。
+  # 环境变量：CMS_INSTALL_SQL_BYTES；允许范围：1048576～536870912；生效：完整重启。
+  install_sql_bytes: 52428800
+  # 源码安装 SQL 的分片最大字节数；2097152 为 2 MiB，不能超过 max_package_size 减 65536。
+  # 环境变量：CMS_INSTALL_CHUNK_BYTES；允许范围：65536～8388608；生效：完整重启。
+  install_chunk_bytes: 2097152
+  # 安全上传服务的文件大小上限，单位：字节；还受各上传接口和 HTTP 请求包上限限制。
+  # 环境变量：CMS_UPLOAD_BYTES；允许范围：1024～1073741824；生效：完整重启。
+  upload_bytes: 10485760
+  # 安全解码上传图片的像素总量上限（宽×高），40000000 为 4000 万像素。
+  # 环境变量：CMS_IMAGE_PIXELS；允许范围：1000000～100000000；生效：完整重启。
+  image_pixels: 40000000
+  # 图片单边尺寸的预留配置，单位：像素；当前处理逻辑尚未读取此项，修改它暂不改变图片处理行为。
+  # 环境变量：CMS_IMAGE_DIMENSION；允许范围：1～8192；生效：完整重启。
+  image_dimension: 4096
+  # 语言包文件最大字节数；2097152 为 2 MiB。
+  # 环境变量：CMS_LANGUAGE_PACK_BYTES；允许范围：1024～16777216；生效：完整重启。
+  language_pack_bytes: 2097152
+  # 单份语言包允许的最大词条数量。
+  # 环境变量：CMS_LANGUAGE_PACK_ENTRIES；允许范围：1～50000；生效：完整重启。
+  language_pack_entries: 5000
+  # 短信验证码有效期，单位：秒；1800 为 30 分钟。
+  # 环境变量：CMS_SMS_CODE_LIFETIME；允许范围：60～86400；生效：完整重启。
+  sms_code_lifetime: 1800
+
+# 构建参数，仅构建时使用；优先级：CLI 参数 > 环境变量 > 所选 YAML > 默认值。
+build:
+  # 二进制发布输出根目录；相对入口目录解析，缺省/null/空值使用 bin，不影响 build-runtime 的默认位置。
+  # 环境变量：CMS_BUILD_OUTPUT；生效：下次构建。
+  output: bin
+  # 生成的二进制文件名；默认 cms，仅改变文件名，平台目录仍为 cms-<平台>。
+  # 环境变量：CMS_BUILD_BINARY_NAME；命令行：--binary-name；生效：下次构建。
+  # 英文字母开头，1～64 位，仅含字母、数字、点、下划线、短横线；不能填写路径或配置/资源/发布保留名称。
+  binary_name: cms
+  # 目标平台；[] 表示当前构建进程的平台，也支持单个平台字符串或字符串列表。
+  # 环境变量：CMS_BUILD_TARGET；生效：下次构建。
+  # 支持：linux-aarch64、linux-x86_64、darwin-aarch64、darwin-x86_64；本机 macOS ARM64 为 darwin-aarch64。
+  # 行内示例：[linux-aarch64, linux-x86_64]；也可在 target: 下使用 - 分行列表，两种结果相同，禁止重复项。
+  # CMS_BUILD_TARGET 环境变量必须使用 JSON 数组，例如 '["linux-aarch64"]'，不接受单个平台字符串。
+  target: [] # 多平台示例：[linux-aarch64, linux-x86_64, darwin-aarch64, darwin-x86_64]
+  # 运行时缓存根目录；相对入口目录解析，缺省/null/空值使用 bin/build-runtime，各平台分别缓存。
+  # 环境变量：CMS_BUILD_RUNTIME；生效：下次构建。
+  build-runtime: bin/build-runtime
+  # 可选内置资源的字符串列表；[] 表示全部外置，缺省/null 同样按 [] 处理。
+  # 环境变量：CMS_BUILD_EMBEDDED_RESOURCES；生效：下次构建。
+  # 仅允许：public、template、config.yaml、config/config.yaml、config/manifest/config.yaml。
+  # 行内示例：[public, template]；也支持在 embedded_resources: 下使用 - 分行列表，禁止重复项。
+  # CMS_BUILD_EMBEDDED_RESOURCES 环境变量必须使用 JSON 数组，例如 '["public","template"]'。
+  # uploads、runtime 及其子路径禁止内置，填写后在下载、暂存和构建前停止；生成 HTML 也始终外置。
+  # 内置 public/template 后整根优先，不从外部补齐；内置 YAML 固定配置，外部参数不能覆盖。
+  embedded_resources: [] # public、template 及三个精确 YAML 路径；支持 - 分行列表

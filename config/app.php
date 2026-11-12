@@ -15,12 +15,12 @@
 use support\Request;
 
 return [
-    'debug' => \app\cms\config\Environment::boolean('APP_DEBUG', false),
+    'debug' => \app\cms\config\DeploymentConfig::get('app.debug'),
     'error_reporting' => E_ALL,
-    'default_timezone' => 'Asia/Shanghai',
+    'default_timezone' => \app\cms\config\DeploymentConfig::get('app.timezone'),
     'request_class' => Request::class,
-    'public_path' => base_path() . DIRECTORY_SEPARATOR . 'public',
-    'runtime_path' => base_path(false) . DIRECTORY_SEPARATOR . 'runtime',
+    'public_path' => \app\cms\Paths::publicRoot(),
+    'runtime_path' => \app\cms\Paths::runtime(),
     'controller_suffix' => 'Controller',
     'controller_reuse' => false,
 ];

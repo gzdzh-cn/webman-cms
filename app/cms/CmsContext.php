@@ -87,7 +87,7 @@ final class CmsContext
         $main = $policy->main();
         $this->config['main_lang'] = $main;
         $enabled = $policy->enabled();
-        $backend = $this->module === 'admin' || ($this->request && preg_match('#^/app/admin(?:/|$)#', $this->request->path()));
+        $backend = $this->module === 'admin' || ($this->request && preg_match('#^/web-admin(?:/|$)#', $this->request->path()));
         $languages = array_values(array_filter($allLanguages, static fn($row) => (int)$row['status'] === 1));
         $public = $policy->publicLanguages();
         $available = array_column($backend ? $allLanguages : $public, null, 'mark');
@@ -258,7 +258,7 @@ final class CmsContext
 
     public function templateRoot(): string
     {
-        return ThemeCatalog::physical(base_path('template/' . $this->theme)) . '/';
+        return ThemeCatalog::physical(\app\cms\Paths::templates($this->theme)) . '/';
     }
 
     /** Request-local selection, also used by authenticated theme previews. */
@@ -297,7 +297,13 @@ final class CmsContext
     public function origin(): string
     {
         if ($this->request) {
-            $scheme = $this->request->header('x-forwarded-proto') === 'https' || $this->request->connection?->transport === 'ssl' ? 'https' : 'http';
+            $forwarded = strtolower(trim((string)$this->request->header('x-forwarded-proto', '')));
+            // BaoTa's local reverse proxy sends X-Scheme instead. Accept that
+            // fallback only from loopback, never from an external HTTP client.
+            if ($forwarded === '' && in_array($this->request->getRemoteIp(), ['127.0.0.1', '::1', '::ffff:127.0.0.1'], true)) {
+                $forwarded = strtolower(trim((string)$this->request->header('x-scheme', '')));
+            }
+            $scheme = $forwarded === 'https' || $this->request->connection?->transport === 'ssl' ? 'https' : 'http';
             return $scheme . '://' . $this->request->host();
         }
         return rtrim((string)\app\cms\config\SiteSettings::get('base_url'), '/');

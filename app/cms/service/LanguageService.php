@@ -502,7 +502,7 @@ class LanguageService
         return $result;
     }
 
-    private function actor(): int { if (PHP_SAPI==='cli' && !\app\cms\CmsContext::current()->request) return 0; return function_exists('admin_id') ? (int)admin_id() : 0; }
+    private function actor(): int { if (in_array(PHP_SAPI,['cli','micro'],true) && !\app\cms\CmsContext::current()->request) return 0; return function_exists('admin_id') ? (int)admin_id() : 0; }
     private function item(array $row): array { return ['id'=>(int)$row['aid'],'title'=>(string)$row['title'],'typeid'=>(int)$row['typeid'],'channel'=>(int)$row['channel']]; }
     private function hash(array $value): string { return hash('sha256',json_encode($value,JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR)); }
     private function publicPlan(array $receipt): array

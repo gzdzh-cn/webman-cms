@@ -1,2 +1,55 @@
-body.cms-basic-settings{font:14px/1.6 system-ui,-apple-system,sans-serif;color:#263249}.cms-basic-settings *{box-sizing:border-box}.cms-basic-settings main{background:#fff;border:1px solid #e5eaf1;border-radius:8px}.cms-basic-settings button,.cms-basic-settings input,.cms-basic-settings textarea,.cms-basic-settings select{font:inherit;border:1px solid #dce2eb;border-radius:5px;color:inherit;background:#fff}.cms-basic-settings button{min-height:34px;padding:5px 13px;cursor:pointer;white-space:nowrap}.cms-basic-settings button:hover{border-color:#96b8e8;color:var(--cms-page-blue,#2563eb)}.cms-basic-settings button:disabled{opacity:.55;cursor:not-allowed}.cms-basic-settings button.primary{background:var(--cms-page-blue,#2563eb);border-color:var(--cms-page-blue,#2563eb);color:#fff}.cms-basic-settings :is(button,input,textarea,select,a):focus-visible{outline:2px solid var(--cms-page-blue,#2563eb);outline-offset:2px}.cms-basic-toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding-bottom:14px;border-bottom:1px solid #edf0f5}.cms-basic-toolbar label{white-space:nowrap;color:#58677b;font-size:13px}.cms-basic-toolbar select{min-height:34px;padding:4px 28px 4px 10px;max-width:230px}.cms-basic-toolbar #scope-note{flex:1;color:#8290a3;font-size:12px;min-width:100px}.cms-basic-settings #status{margin:12px 0;color:#56708b;white-space:pre-wrap;overflow-wrap:anywhere;font-size:13px}.cms-basic-settings #status:empty{display:none}.cms-basic-settings #status[data-error="1"]{color:#ba3030}.cms-basic-form{margin:0}.cms-basic-row{display:grid;grid-template-columns:120px minmax(0,1fr) 200px;gap:12px;align-items:start;padding:14px 0;border-bottom:1px solid #f0f2f6}.cms-basic-label{padding-top:7px;font-size:13px;color:#45556b;overflow-wrap:anywhere}.cms-basic-control{min-width:0;display:flex;flex-direction:column;gap:7px}.cms-basic-control>input:not([type=radio]):not([type=checkbox]),.cms-basic-control>textarea,.cms-basic-control>select,.cms-basic-image>input[type=text]{width:100%;max-width:640px;min-height:34px;padding:6px 10px}.cms-basic-control>textarea{min-height:72px;resize:vertical;line-height:1.6}.cms-basic-control input:disabled,.cms-basic-control textarea:disabled,.cms-basic-control select:disabled{background:#f8fafc;color:#7b8796}.cms-basic-options{display:flex;flex-wrap:wrap;gap:8px 20px;min-height:34px;align-items:center}.cms-basic-options label{display:inline-flex;align-items:center;gap:6px;cursor:pointer}.cms-basic-options input{accent-color:var(--cms-page-blue,#2563eb);margin:0;width:15px;height:15px}.cms-basic-control small,.cms-basic-readonly{font-size:12px;line-height:1.7;color:#7b8798;white-space:pre-wrap;overflow-wrap:anywhere}.cms-basic-readonly{min-height:34px;display:flex;align-items:center}.cms-basic-tag{padding-top:5px;display:flex;gap:6px;align-items:center;justify-content:flex-end;min-width:0}.cms-basic-tag code{font-size:11px;color:#8190a4;overflow-wrap:anywhere;min-width:0}.cms-basic-tag button{font-size:12px;padding:2px 8px;min-height:28px;background:#f8fafc;color:#5f718a}.cms-basic-image{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.cms-basic-image>input[type=text]{flex:1;min-width:120px}.cms-basic-image img{height:46px;max-width:130px;object-fit:contain;background:#f5f7fa;border-radius:4px;padding:4px}.cms-basic-image input[type=file]{width:180px;max-width:100%;font-size:12px;border:0}.cms-basic-integrations{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.cms-basic-integrations:empty{display:none}.cms-basic-integration{display:flex;gap:12px;justify-content:space-between;align-items:center;border:1px solid #e5eaf1;border-radius:6px;padding:14px;color:#45556b;text-decoration:none}.cms-basic-integration:hover{color:var(--cms-page-blue,#2563eb);border-color:#aac4ee;background:#fbfdff}.cms-basic-integration span{font-size:13px}.cms-basic-integration small{display:block;color:#8390a0;font-size:12px;margin-top:3px}.cms-basic-actions{display:flex;gap:12px;margin:0;padding:18px 0 0 132px;align-items:center}.cms-basic-actions[hidden]{display:none}@media(max-width:1100px){.cms-basic-row{grid-template-columns:112px minmax(0,1fr) 160px}.cms-basic-tag code{font-size:10px}.cms-basic-actions{padding-left:124px}}@media(max-width:767px){body.cms-basic-settings{padding:12px}.cms-basic-settings>main{padding:16px}.cms-basic-toolbar{gap:8px}.cms-basic-toolbar #scope-note{flex-basis:100%;order:3}.cms-basic-toolbar button{padding:4px 9px;font-size:12px}.cms-basic-row{grid-template-columns:minmax(0,1fr);gap:7px;padding:13px 0}.cms-basic-label{padding:0;font-weight:500}.cms-basic-tag{padding:0;justify-content:flex-start}.cms-basic-tag code{font-size:11px}.cms-basic-actions{padding:16px 0 0;justify-content:flex-end}.cms-basic-integrations{grid-template-columns:minmax(0,1fr)}}.cms-basic-tag code{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.cms-basic-section{margin:18px 0 0;padding:8px 12px;background:#f7f9fc;border-radius:4px;color:#5b6c82;font-size:13px;font-weight:500}.cms-basic-settings .cms-basic-row[hidden]{display:none}/* Keep the Redis validation error visible next to the setting after the toast closes. */
-.cms-basic-row-error{border-bottom-color:#f1b8b8;background:#fff8f8;box-shadow:inset 3px 0 #d93f3f;padding-left:10px;padding-right:10px;scroll-margin:24px}.cms-basic-row-error .cms-basic-label{color:#a82424;font-weight:600}.cms-basic-mode-error{margin:2px 0 0;padding:9px 11px;border:1px solid #f0c2c2;border-radius:5px;background:#fff;color:#b42318;font-size:13px;line-height:1.6;overflow-wrap:anywhere}
+body.cms-basic-settings{font:14px/1.6 system-ui,-apple-system,sans-serif;color:#263249}
+.cms-basic-settings *{box-sizing:border-box}
+.cms-basic-settings main{background:#fff;border:1px solid #e5eaf1;border-radius:8px}
+.cms-basic-settings button,.cms-basic-settings input,.cms-basic-settings textarea,.cms-basic-settings select{font:inherit;border:1px solid #dce2eb;border-radius:5px;color:inherit;background:#fff}
+.cms-basic-settings button{min-height:34px;padding:5px 13px;cursor:pointer;white-space:nowrap}
+.cms-basic-settings button:hover{border-color:#96b8e8;color:var(--cms-page-blue,#2563eb)}
+.cms-basic-settings button:disabled{opacity:.55;cursor:not-allowed}
+.cms-basic-settings button.primary{background:var(--cms-page-blue,#2563eb);border-color:var(--cms-page-blue,#2563eb);color:#fff}
+.cms-basic-settings :is(button,input,textarea,select,a):focus-visible{outline:2px solid var(--cms-page-blue,#2563eb);outline-offset:2px}
+.cms-basic-toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding-bottom:14px;border-bottom:1px solid #edf0f5}
+.cms-basic-toolbar label{white-space:nowrap;color:#58677b;font-size:13px}
+.cms-basic-toolbar select{min-height:34px;padding:4px 28px 4px 10px;max-width:230px}
+.cms-basic-toolbar #scope-note{flex:1;color:#8290a3;font-size:12px;min-width:100px}
+.cms-basic-settings #status{margin:12px 0;color:#56708b;white-space:pre-wrap;overflow-wrap:anywhere;font-size:13px}
+.cms-basic-settings #status:empty{display:none}
+.cms-basic-settings #status[data-error="1"]{color:#ba3030}
+.cms-basic-form{margin:0}
+.cms-basic-row{display:grid;grid-template-columns:120px minmax(0,1fr) 200px;gap:12px;align-items:start;padding:14px 0;border-bottom:1px solid #f0f2f6}
+.cms-basic-label{padding-top:7px;font-size:13px;color:#45556b;overflow-wrap:anywhere}
+.cms-basic-control{min-width:0;display:flex;flex-direction:column;gap:7px}
+.cms-basic-control>input:not([type=radio]):not([type=checkbox]),.cms-basic-control>textarea,.cms-basic-control>select,.cms-basic-image>input[type=text]{width:100%;max-width:640px;min-height:34px;padding:6px 10px}
+.cms-basic-control>textarea{min-height:72px;resize:vertical;line-height:1.6}
+.cms-basic-control input:disabled,.cms-basic-control textarea:disabled,.cms-basic-control select:disabled{background:#f8fafc;color:#7b8796}
+.cms-basic-options{display:flex;flex-wrap:wrap;gap:8px 20px;min-height:34px;align-items:center}
+.cms-basic-options label{display:inline-flex;align-items:center;gap:6px;cursor:pointer}
+.cms-basic-options input{accent-color:var(--cms-page-blue,#2563eb);margin:0;width:15px;height:15px}
+.cms-basic-control small,.cms-basic-readonly{font-size:12px;line-height:1.7;color:#7b8798;white-space:pre-wrap;overflow-wrap:anywhere}
+.cms-basic-readonly{min-height:34px;display:flex;align-items:center}
+.cms-basic-tag{padding-top:5px;display:flex;gap:6px;align-items:center;justify-content:flex-end;min-width:0}
+.cms-basic-tag code{font-size:11px;color:#8190a4;overflow-wrap:anywhere;min-width:0}
+.cms-basic-tag button{font-size:12px;padding:2px 8px;min-height:28px;background:#f8fafc;color:#5f718a}
+.cms-basic-image{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.cms-basic-image>input[type=text]{flex:1;min-width:120px}
+.cms-basic-image img{height:46px;max-width:130px;object-fit:contain;background:#f5f7fa;border-radius:4px;padding:4px}
+.cms-basic-image input[type=file]{width:180px;max-width:100%;font-size:12px;border:0}
+.cms-basic-integrations{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.cms-basic-integrations:empty{display:none}
+.cms-basic-integration{display:flex;gap:12px;justify-content:space-between;align-items:center;border:1px solid #e5eaf1;border-radius:6px;padding:14px;color:#45556b;text-decoration:none}
+.cms-basic-integration:hover{color:var(--cms-page-blue,#2563eb);border-color:#aac4ee;background:#fbfdff}
+.cms-basic-integration span{font-size:13px}
+.cms-basic-integration small{display:block;color:#8390a0;font-size:12px;margin-top:3px}
+.cms-basic-actions{display:flex;gap:12px;margin:0;padding:18px 0 0 132px;align-items:center}
+.cms-basic-actions[hidden]{display:none}
+@media(max-width:1100px){.cms-basic-row{grid-template-columns:112px minmax(0,1fr) 160px}.cms-basic-tag code{font-size:10px}.cms-basic-actions{padding-left:124px}}
+@media(max-width:767px){body.cms-basic-settings{padding:12px}.cms-basic-settings>main{padding:16px}.cms-basic-toolbar{gap:8px}.cms-basic-toolbar #scope-note{flex-basis:100%;order:3}.cms-basic-toolbar button{padding:4px 9px;font-size:12px}.cms-basic-row{grid-template-columns:minmax(0,1fr);gap:7px;padding:13px 0}.cms-basic-label{padding:0;font-weight:500}.cms-basic-tag{padding:0;justify-content:flex-start}.cms-basic-tag code{font-size:11px}.cms-basic-actions{padding:16px 0 0;justify-content:flex-end}.cms-basic-integrations{grid-template-columns:minmax(0,1fr)}}
+
+.cms-basic-tag code{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cms-basic-section{margin:18px 0 0;padding:8px 12px;background:#f7f9fc;border-radius:4px;color:#5b6c82;font-size:13px;font-weight:500}
+
+.cms-basic-settings .cms-basic-row[hidden]{display:none}
+
+/* Keep the Redis validation error visible next to the setting after the toast closes. */
+.cms-basic-row-error{border-bottom-color:#f1b8b8;background:#fff8f8;box-shadow:inset 3px 0 #d93f3f;padding-left:10px;padding-right:10px;scroll-margin:24px}
+.cms-basic-row-error .cms-basic-label{color:#a82424;font-weight:600}
+.cms-basic-mode-error{margin:2px 0 0;padding:9px 11px;border:1px solid #f0c2c2;border-radius:5px;background:#fff;color:#b42318;font-size:13px;line-height:1.6;overflow-wrap:anywhere}

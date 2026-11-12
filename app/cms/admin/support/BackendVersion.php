@@ -13,7 +13,7 @@ final class BackendVersion
     public static function version(): string
     {
         $data = self::metadata();
-        return $data['name'] . ' ' . $data['version'];
+        return (string)$data['version'];
     }
 
     public static function description(): string

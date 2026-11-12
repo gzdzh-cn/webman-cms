@@ -58,7 +58,7 @@ class Image
     protected function __construct(\SplFileInfo $file)
     {
         function_exists('set_time_limit') && set_time_limit(0);
-        @ini_set('memory_limit','-1');
+        // Preserve the configured worker memory limit.
         
         //获取图像信息
         $info = @getimagesize($file->getPathname());

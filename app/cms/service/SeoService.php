@@ -251,7 +251,7 @@ class SeoService
     private function reservedDirectories(bool $lock = false): array
     {
         $reserved = ['application', 'core', 'data', 'extend', 'install', 'public', 'plugins', 'uploads', 'upload', 'template', 'vendor', 'weapp',
-            'tags', 'search', 'user', 'users', 'member', 'reg', 'centre', 'login', 'cart', 'app', 'config', 'plugin', 'process', 'runtime', 'support', 'tests', 'resources', 'storage', 'node_modules', 'admin', 'api', 'm'];
+            'tags', 'search', 'user', 'users', 'member', 'reg', 'centre', 'login', 'cart', 'app', 'config', 'plugin', 'process', 'runtime', 'support', 'tests', 'resources', 'storage', 'node_modules', 'admin', 'web-admin', 'api', 'm'];
         $query = $this->repository->table('arctype')->where('parent_id', 0);
         if ($lock) $query->lock(true);
         foreach ($query->select()->toArray() as $row) $reserved[] = strtolower((string)$row['dirname']);

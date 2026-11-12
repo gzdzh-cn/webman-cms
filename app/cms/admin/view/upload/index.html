@@ -114,11 +114,11 @@
 
             // 相关接口
             const PRIMARY_KEY = "id";
-            const SELECT_API = "/app/admin/upload/select";
-            const UPDATE_API = "/app/admin/upload/update";
-            const DELETE_API = "/app/admin/upload/delete";
-            const INSERT_URL = "/app/admin/upload/insert";
-            const UPDATE_URL = "/app/admin/upload/update";
+            const SELECT_API = "/web-admin/upload/select";
+            const UPDATE_API = "/web-admin/upload/update";
+            const DELETE_API = "/web-admin/upload/delete";
+            const INSERT_URL = "/web-admin/upload/insert";
+            const UPDATE_URL = "/web-admin/upload/update";
             
             // 字段 上传时间 created_at
             layui.use(["laydate"], function() {
@@ -132,7 +132,7 @@
             // 字段 类别 category
             layui.use(["jquery", "xmSelect", "pearPopup"], function() {
                 layui.$.ajax({
-                    url: "/app/admin/dict/get/upload",
+                    url: "/web-admin/dict/get/upload",
                     dataType: "json",
                     success: function (res) {
                         let value = layui.$("#category").attr("value") || window.CmsModuleNavigation.tableState().where.category;
@@ -147,7 +147,7 @@
                             radio: true,
                         });
                         if (res.code) {
-                            layui.pearPopup.failure(res.msg);
+                            window.CmsUI.failure(res.msg);
                         }
                     }
                 });
@@ -270,7 +270,7 @@
 				
 				// 获取表格中下拉或树形组件数据
                 let apis = [];
-                apis.push(["category", "/app/admin/dict/get/upload"]);
+                apis.push(["category", "/web-admin/dict/get/upload"]);
                 let apiResults = {};
                 apiResults["category"] = [];
 				let count = apis.length;
@@ -281,7 +281,7 @@
 				        dateType: "json",
 				        success: function (res) {
                             if (res.code) {
-                                return layui.pearPopup.failure(res.msg);
+                                return window.CmsUI.failure(res.msg);
                             }
 				            function travel(items) {
 				                for (let k in items) {
@@ -387,7 +387,7 @@
                 let batchRemove = function(obj) {
                     let checkIds = common.checkField(obj, PRIMARY_KEY);
                     if (checkIds === "") {
-                        layui.pearPopup.warning("未选中数据");
+                        window.CmsUI.warning("未选中数据");
                         return false;
                     }
                     doRemove(checkIds.split(","));
@@ -408,9 +408,9 @@
                             success: function(res) {
                                 layer.close(loading);
                                 if (res.code) {
-                                    return layui.pearPopup.failure(res.msg);
+                                    return window.CmsUI.failure(res.msg);
                                 }
-                                return layui.pearPopup.success("操作成功", refreshTable);
+                                return window.CmsUI.success("操作成功", refreshTable);
                             }
                         })
                     });

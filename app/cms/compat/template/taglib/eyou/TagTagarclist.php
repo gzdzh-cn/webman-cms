@@ -35,6 +35,16 @@ class TagTagarclist extends Base
     public $fieldLogic;
     public $archives_db;
 
+    private bool $paginationCounting = false;
+
+    /** Count through the same controlled conditions; never execute saved SQL. */
+    public function paginationCount(array $arguments): int
+    {
+        $this->paginationCounting = true;
+        try { $count = $this->getTagarclist(...$arguments); return is_int($count) ? $count : 0; }
+        finally { $this->paginationCounting = false; }
+    }
+
     //初始化
     protected function _initialize()
     {
@@ -62,6 +72,8 @@ class TagTagarclist extends Base
      */
     public function getTagarclist($param = array(),  $limit = 20, $orderby = '', $addfields = '', $ordermode = '', $tagid = '', $tag = '', $pagesize = 0, $thumb = '', $arcrank = '')
     {
+        $paginationArguments = [$param, $limit, $orderby, $addfields, $ordermode, $tagid, $tag, $pagesize, $thumb, $arcrank];
+
         $result = false;
 
         empty($ordermode) && $ordermode = 'desc';
@@ -158,6 +170,8 @@ class TagTagarclist extends Base
         // discards addon rows. Preserve that output without PHP 8 warnings.
         $channeltype = null;
         
+        if ($this->paginationCounting) return (int)$this->archives_db->alias('a')->join('__ARCTYPE__ b', 'b.id = a.typeid', 'LEFT')->where($where_str)->where('a.lang', $this->home_lang)->count();
+
         $field = "b.*, a.*";
         $result = $this->archives_db
             ->field($field)
@@ -168,7 +182,6 @@ class TagTagarclist extends Base
             ->orderRaw($orderby)
             ->limit($limit)
             ->select();
-        $querysql = $this->archives_db->getLastSql(); // 用于arclist标签的分页
 
         $channeltype_row = \app\cms\compat\Cache::get('extra_global_channeltype');
         foreach ($result as $key => $val) {
@@ -287,7 +300,8 @@ class TagTagarclist extends Base
             $arcmulti_db = \app\cms\compat\Db::name('arcmulti');
             $arcmultiRow = $arcmulti_db->field('tagid')->where(['tagid'=>$tagidmd5])->find();
             $attstr = addslashes(serialize($tag)); //记录属性,以便分页样式统一调用
-            $querysql = \app\cms\template\PaginationRecord::seal($tagidmd5, (string)$querysql, $attstr, (int)$pagesize);
+            if (isset($tag['url_params'])) $paginationArguments[6]['url_params'] = $tag['url_params'];
+            $querysql = \app\cms\template\PaginationRecord::encode('tagarclist', $tagidmd5, $paginationArguments, $attstr, (int)$pagesize);
 
             if(empty($arcmultiRow))
             {

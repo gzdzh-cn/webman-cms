@@ -11,7 +11,7 @@ final class SitePolicy
     {
         $request = $context->request;
         if (!$request || strtolower((string)$request->input('m', $context->module)) !== 'home'
-            || ($request->plugin ?? '') === 'admin' || preg_match('#^/app/admin(?:/|$)#', $request->path())) return null;
+            || ($request->plugin ?? '') === 'admin' || preg_match('#^/web-admin(?:/|$)#', $request->path())) return null;
         $settings = $context->global;
         $base = rtrim((string)($settings['web_cmspath'] ?? ''), '/');
         $path = $request->path();
@@ -31,7 +31,7 @@ final class SitePolicy
                 return self::closed($context, '网站暂时关闭，没有找到跳转的URL');
             }
             if ($mode === 2) {
-                $html = self::closeTemplate((string)($settings['web_status_tpl'] ?? 'public/close.html'), (string)($settings['web_cmspath'] ?? ''), $publicRoot ?? public_path());
+                $html = self::closeTemplate((string)($settings['web_status_tpl'] ?? 'public/close.html'), (string)($settings['web_cmspath'] ?? ''), $publicRoot ?? \app\cms\Paths::publicRoot());
                 if ($html !== null) return self::closed($context, $html, true);
             }
             return self::closed($context, (string)($settings['web_status_text'] ?? '网站暂时关闭，维护中……'));

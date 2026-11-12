@@ -90,8 +90,8 @@
 
             // 相关接口
             let PRIMARY_KEY = "id";
-            const SELECT_API = "/app/admin/rule/select" + location.search;
-            const UPDATE_API = "/app/admin/rule/update";
+            const SELECT_API = "/web-admin/rule/select" + location.search;
+            const UPDATE_API = "/web-admin/rule/update";
 
             // 获取行数据
             layui.use(["form", "util", "pearPopup"], function () {
@@ -128,7 +128,7 @@
                         // 获取上级菜单
                         layui.use(["jquery", "xmSelect", "pearPopup"], function() {
                             layui.$.ajax({
-                                url: "/app/admin/rule/select?format=tree&type=0,1",
+                                url: "/web-admin/rule/select?format=tree&type=0,1",
                                 dataType: "json",
                                 success: function (res) {
                                     let value = layui.$("#pid").attr("value");
@@ -146,7 +146,7 @@
                                         tree: {show: true,"strict":false,"clickCheck":true,"clickExpand":false,expandedKeys: initValue},
                                     });
                                     if (res.code) {
-                                        return layui.pearPopup.failure(res.msg);
+                                        return window.CmsUI.failure(res.msg);
                                     }
                                 }
                             });
@@ -169,7 +169,7 @@
 
                         // ajax产生错误
                         if (res.code) {
-                            layui.pearPopup.failure(res.msg);
+                            window.CmsUI.failure(res.msg);
                         }
 
                     }
@@ -194,7 +194,7 @@
                             if (res.code) {
                                 window.CmsUI.error(cmsForm,res.msg,res.fields||res.data?.fields);return false;
                             }
-                            window.CmsModuleNavigation?.markClean(cmsForm);delete cmsForm.dataset.cmsDirty;return layui.pearPopup.success("保存成功", function () {
+                            window.CmsModuleNavigation?.markClean(cmsForm);delete cmsForm.dataset.cmsDirty;return window.CmsUI.success("保存成功", function () {
                                 parent.refreshTable();
                                 window.CmsUI.clean();
                                 parent.layer.close(parent.layer.getFrameIndex(window.name));

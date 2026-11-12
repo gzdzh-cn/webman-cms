@@ -1,0 +1,27 @@
+<div class="footer">
+  <div class="center clearfix">
+    <div class="foot_menu">
+     
+        <ul>
+          <li><a href="/">网站首页</a></li>
+          {eyou:channel type="top" row="10" id="field"}
+          <li><a href="{$field.typeurl}">{$field.typename}</a></li>
+          {/eyou:channel}
+        </ul>
+     
+    </div>
+    <div class="foot_text">
+      <p>{eyou:global name='web_name' /}</p>
+      <p>联系人：{eyou:global name='web_attr_10' /}&nbsp;&nbsp;{eyou:global name='web_attr_6' /}&nbsp;&nbsp;&nbsp;座机电话：{eyou:global name='web_attr_5' /}</p>
+      <p>地址：{eyou:global name='web_attr_8' /}</p>
+      <!--<p>销售配送地址：{eyou:global name='web_attr_14' /}</p>-->
+      <p>{eyou:global name='web_copyright' /}</p>
+      <!--<p> 技术支持：<a href="http://www.gzdzh.cn/" target="_blank">大智汇科技</a>&nbsp;|&nbsp;{eyou:global name='web_recordnum' /}</p>-->
+       
+    </div>
+  </div>
+</div>
+   {eyou:global name='web_thirdcode_pc' /}
+  <!-- 应用插件标签 start -->
+  {eyou:weapp type='default' /}
+  <!-- 应用插件标签 end -->

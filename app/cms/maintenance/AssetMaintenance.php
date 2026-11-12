@@ -6,7 +6,7 @@ use app\cms\Paths;
 use InvalidArgumentException;
 use RuntimeException;
 
-/** Local asset verification needs neither Node.js nor a database connection. */
+/** PHP-only resource verification, construction, packing and restoration. */
 final class AssetMaintenance
 {
     private const PUBLIC_ROOTS = [Paths::PUBLIC_ASSETS . '/'];
@@ -14,11 +14,13 @@ final class AssetMaintenance
     private const EXECUTABLE = ['php','phtml','phar','php3','php4','php5','php7','php8','cgi','pl','sh'];
     private const MUTABLE_TARGET = Paths::COMMON_ASSETS . '/generated/lang/foreign_global.js';
     private string $root;
+    private bool $mapped;
 
     public function __construct(?string $root = null)
     {
-        $this->root = rtrim($root ?? base_path(), '/');
-        if (!str_starts_with($this->root, '/') || !is_dir($this->root)) throw new InvalidArgumentException('资源项目目录必须是已存在的绝对路径');
+        $this->mapped = $root === null;
+        $this->root = rtrim($root ?? Paths::code(), '/');
+        if ((!str_starts_with($this->root, '/') && !str_starts_with($this->root, 'phar://')) || !is_dir($this->root)) throw new InvalidArgumentException('资源项目目录必须是已存在的绝对路径');
         $this->noLinks($this->root);
     }
 
@@ -76,7 +78,7 @@ final class AssetMaintenance
         }
         $bytes = 0; $mutableFiles = [];
         foreach ($targets as $target => $record) {
-            $path = $this->root . '/' . $target;
+            $path = $this->mapped ? Paths::logical($target) : $this->root . '/' . $target;
             $this->noLinks($path);
             if (!is_file($path)) { $errors[] = ['target'=>$target, 'reason'=>'missing']; continue; }
             $bytes += filesize($path);
@@ -90,30 +92,138 @@ final class AssetMaintenance
         return ['ok'=>!$errors, 'mode'=>$verify?'verify':'check', 'format'=>2, 'records'=>count($manifest['files']), 'unique_targets'=>count($targets), 'aliases_and_urls'=>count($urls), 'read_aliases'=>count($readAliases), 'source_bytes'=>$sourceBytes, 'target_bytes'=>$bytes, 'mutable_files'=>$mutableFiles, 'errors'=>$errors];
     }
 
-    public function build(array $options, bool $apply = false): int
+    public function build(array $options, bool $apply = false): array
     {
-        $args = [\app\cms\config\SiteSettings::get('asset_node_binary'), $this->root . '/app/cms/maintenance/build_assets.mjs'];
-        foreach (['input', 'output'] as $name) if (!empty($options[$name])) { $this->absolute((string)$options[$name]); $args[]='--'.$name; $args[]=$options[$name]; }
-        if ($apply) $args[]='--apply';
-        return $this->process($args);
+        $this->sourceOnly();
+        if (!$apply) {
+            if (!empty($options['input']) || !empty($options['output'])) throw new InvalidArgumentException('--input/--output 需要 --apply');
+            return $this->inspect(true) + ['engine'=>'php'];
+        }
+        $manifestPath = $this->root . '/app/cms/resources/asset-manifest.json';
+        $manifestBytes = (string)file_get_contents($manifestPath);
+        $manifest = json_decode($manifestBytes, true, 512, JSON_THROW_ON_ERROR);
+        $this->manifestFiles();
+        if (($manifest['build']['engine'] ?? null) !== 'php-copy-v1') throw new RuntimeException('资源清单需要迁移到 PHP 构建配方');
+        $output = AssetArchive::path($options['output'] ?: $this->root);
+        $input = !empty($options['input']) ? AssetArchive::path($options['input']) : null;
+        if ($input !== null && !is_dir($input)) throw new RuntimeException('构建输入目录不存在');
+        $records = $this->manifestFiles();
+        $records['app/cms/resources/asset-manifest.json'] = ['size'=>strlen($manifestBytes),'sha256'=>hash('sha256',$manifestBytes)];
+        AssetPublication::preflight($output, $records);
+        $temp = AssetPublication::temporary(); $staged = [];
+        try {
+            $sources = [];
+            foreach ($manifest['files'] as $record) {
+                $name = AssetArchive::relative($record['source']);
+                $identity = ['size'=>$record['source_size'],'sha256'=>$record['source_sha256']];
+                if (isset($sources[$name]) && $sources[$name] !== $identity) throw new RuntimeException('构建源记录冲突');
+                $sources[$name] = $identity;
+                if (($record['minify'] ?? false) || $record['source_sha256'] !== $record['sha256'] || $record['source_size'] !== $record['size']) throw new RuntimeException('PHP 原字节构建不接受外部加工配方');
+            }
+            $paths = [];
+            if ($input === null) {
+                AssetArchive::read($this->root . '/app/cms/resources/asset-build-inputs.tar.gz', $manifest['build_sources_sha256'], $sources,
+                    static function(string $name, string $bytes) use ($temp, &$paths): void { $paths[$name] = AssetPublication::stage($temp.'/input', $name, $bytes); });
+            } else foreach ($sources as $name=>$record) {
+                $path = AssetPublication::target($input, $name);
+                if (!AssetPublication::matches($path, $record)) throw new RuntimeException('构建输入校验失败：'.$name);
+                $paths[$name] = $path;
+            }
+            foreach ($manifest['files'] as $record) {
+                $name = $record['target'];
+                if (!isset($staged[$name])) $staged[$name] = AssetPublication::stage($temp.'/output', $name, (string)file_get_contents($paths[$record['source']]));
+            }
+            $staged['app/cms/resources/asset-manifest.json'] = AssetPublication::stage($temp.'/output','app/cms/resources/asset-manifest.json',$manifestBytes);
+            $created = AssetPublication::publish($output, $records, $staged);
+            return ['ok'=>true,'mode'=>'built','engine'=>'php','unique_targets'=>count($records)-1,'created_files'=>$created,'manifest_unchanged'=>true];
+        } finally { AssetPublication::remove($temp); }
     }
 
-    public function restore(array $options, bool $apply = false): int
+    public function restore(array $options, bool $apply = false): array
     {
+        $this->sourceOnly();
         if (empty($options['archive'])) throw new InvalidArgumentException('restore 需要 --archive 指定 format=2 资源包');
-        $this->absolute((string)$options['archive']);
-        $args = [\app\cms\config\SiteSettings::get('asset_python_binary'), $this->root . '/app/cms/maintenance/restore_assets.py', '--archive', $options['archive']];
-        if (!empty($options['destination'])) { $this->absolute((string)$options['destination']); $args[]='--destination'; $args[]=$options['destination']; }
-        if ($apply) $args[]='--apply';
-        return $this->process($args);
+        $archive = AssetArchive::path($options['archive']);
+        $destination = AssetArchive::path($options['destination'] ?: $this->root);
+        if (!is_dir($destination)) throw new RuntimeException('恢复目标目录必须存在');
+        $path = $this->root . '/app/cms/resources/source-package-assets.json.gz';
+        $this->noLinks($path);
+        $bytes = @gzdecode((string)file_get_contents($path), 16777216);
+        if ($bytes === false) throw new RuntimeException('资源恢复清单损坏');
+        $manifest = json_decode($bytes, true, 512, JSON_THROW_ON_ERROR);
+        if (($manifest['format'] ?? null) !== 2 || !is_array($manifest['files'] ?? null) || !$manifest['files'] || !$this->sha($manifest['archive']['sha256'] ?? null)) throw new RuntimeException('资源恢复清单格式无效');
+        $records = $manifest['files'];
+        foreach ($records as $name=>&$record) {
+            $this->assetTarget($name); $this->record($record);
+        }
+        unset($record);
+        if (isset($manifest['archive']['bytes']) && filesize($archive) !== $manifest['archive']['bytes']) throw new RuntimeException('资源归档大小不一致');
+        $pending = AssetPublication::preflight($destination, $records);
+        $temp = $apply ? AssetPublication::temporary() : null; $staged = [];
+        try {
+            AssetArchive::read($archive, $manifest['archive']['sha256'], $records,
+                static function(string $name, string $bytes) use($apply,$temp,&$staged): void { if ($apply) $staged[$name] = AssetPublication::stage($temp,$name,$bytes); });
+            $created = $apply ? AssetPublication::publish($destination,$records,$staged) : 0;
+            return ['ok'=>true,'mode'=>$apply?'restored':'checked','engine'=>'php','format'=>2,'verified_files'=>count($records),'pending_files'=>count($pending),'created_files'=>$created];
+        } finally { if ($temp !== null) AssetPublication::remove($temp); }
     }
 
-    private function process(array $args): int
+    /** Create a same-version resource transport and its self-contained restoration manifest. */
+    public function pack(array $options, bool $apply = false): array
     {
-        if (!is_file($args[1])) throw new RuntimeException('资源维护工具不存在');
-        $process = proc_open($args, [0=>STDIN, 1=>STDOUT, 2=>STDERR], $pipes, $this->root);
-        if (!is_resource($process)) throw new RuntimeException('无法启动资源维护工具');
-        return proc_close($process);
+        $this->sourceOnly();
+        $inspection = $this->inspect(true);
+        if (!$inspection['ok']) throw new RuntimeException('资源完整性检查失败');
+        $records = $this->manifestFiles();
+        if (empty($options['archive'])) throw new InvalidArgumentException('pack 需要 --archive 指定新资源包位置');
+        $archive = AssetArchive::path($options['archive']); $manifestPath = $archive . '.manifest.json.gz';
+        if (str_starts_with($archive,$this->root.'/')) throw new RuntimeException('资源包输出必须位于项目外');
+        foreach ([$archive,$manifestPath] as $path) if (file_exists($path)) throw new RuntimeException('资源包或配套清单已存在，拒绝覆盖');
+        if (!$apply) return ['ok'=>true,'mode'=>'pack_check','engine'=>'php','files'=>count($records),'archive'=>$archive];
+        $files = [];
+        foreach ($records as $name=>$record) $files[$name] = $this->mapped ? Paths::logical($name) : $this->root.'/'.$name;
+        $metadataCreated=false;
+        try {
+            AssetArchive::write($archive,$files);
+            $manifest = json_decode((string)file_get_contents($this->root.'/app/cms/resources/asset-manifest.json'),true,512,JSON_THROW_ON_ERROR);
+            $payload = ['format'=>2,'revision'=>$manifest['revision'],'archive'=>['name'=>basename($archive),'bytes'=>filesize($archive),'sha256'=>hash_file('sha256',$archive)],'files'=>$records];
+            // Verify transport bytes against the frozen records before it is deliverable.
+            AssetArchive::read($archive,$payload['archive']['sha256'],$records,static function():void {});
+            $bytes = gzencode(json_encode($payload,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR),9);
+            $out = @fopen($manifestPath,'xb'); if (!$out) throw new RuntimeException('无法创建配套资源清单');
+            $metadataCreated=true;
+            try { chmod($manifestPath,0600); if (fwrite($out,$bytes)!==strlen($bytes)) throw new RuntimeException('配套资源清单写入失败'); } finally { fclose($out); }
+            return ['ok'=>true,'mode'=>'packed','engine'=>'php','files'=>count($records),'archive'=>$archive,'manifest'=>$manifestPath,'sha256'=>$payload['archive']['sha256']];
+        } catch (\Throwable $error) { if (is_file($archive)) unlink($archive); if ($metadataCreated && is_file($manifestPath)) unlink($manifestPath); throw $error; }
+    }
+    private function sourceOnly(): void
+    {
+        if (\Phar::running(false)) throw new RuntimeException('资源构建、打包和恢复仅在源码环境执行；二进制使用同版本发布包');
+    }
+    private function manifestFiles(): array
+    {
+        $manifest = json_decode((string)file_get_contents($this->root.'/app/cms/resources/asset-manifest.json'),true,512,JSON_THROW_ON_ERROR);
+        if (($manifest['format']??null)!==2 || !is_array($manifest['files']??null) || !$manifest['files']) throw new RuntimeException('资源清单格式无效');
+        $files=[];
+        foreach ($manifest['files'] as $item) {
+            $name=$this->assetTarget($item['target']??''); $record=['size'=>$item['size']??null,'sha256'=>$item['sha256']??null,'mode'=>0644]; $this->record($record);
+            if (isset($files[$name]) && $files[$name]!==$record) throw new RuntimeException('资源目标记录冲突');
+            $files[$name]=$record;
+        }
+        ksort($files); return $files;
+    }
+    private function record(array &$record): void
+    {
+        $size=$record['size']??$record['bytes']??null; $mode=$record['mode']??0644;
+        if (!is_int($size)||$size<0||$size>67108864||!$this->sha($record['sha256']??null)||!is_int($mode)||$mode<0||$mode>0777) throw new RuntimeException('资源文件元数据无效');
+        if (isset($record['size'],$record['bytes']) && $record['size']!==$record['bytes']) throw new RuntimeException('资源文件大小字段冲突');
+        $record['size']=$size; $record['mode']=$mode;
+    }
+    private function assetTarget(string $name): string
+    {
+        $this->relative($name);
+        if (!$this->inRoots($name,array_merge(self::PUBLIC_ROOTS,self::PRIVATE_ROOTS)) || in_array(strtolower(pathinfo($name,PATHINFO_EXTENSION)),self::EXECUTABLE,true)) throw new RuntimeException('资源目标超出允许范围');
+        return $name;
     }
     private function relative(mixed $path): string
     {
@@ -133,6 +243,7 @@ final class AssetMaintenance
     private function absolute(string $path): void { if (!str_starts_with($path, '/')) throw new InvalidArgumentException('维护输入输出必须为绝对路径'); $this->noLinks($path); }
     private function noLinks(string $path): void
     {
+        if(str_starts_with($path,'phar://') && ($path===Paths::code() || str_starts_with($path,Paths::code().'/')))return;
         $current='';foreach(explode('/',ltrim($path,'/'))as$part){if($part===''||$part==='.'||$part==='..')throw new RuntimeException('维护路径无效');$current.='/'.$part;if(is_link($current))throw new RuntimeException('资源路径不能包含符号链接：'.$current);}
     }
 }

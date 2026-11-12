@@ -32,7 +32,7 @@ use Webman\Http\Response;
             return (new \app\cms\admin\exception\Handler($this->logger, (bool)config('cms_admin.app.debug', false)))->render($request, $exception);
         }
         if ($exception instanceof HttpResponseException) return $exception->getResponse();
-        $public = ($request->plugin ?? '') !== 'admin' && !preg_match('#^/app/admin(?:/|$)#', $request->path());
+        $public = ($request->plugin ?? '') !== 'admin' && !preg_match('#^/web-admin(?:/|$)#', $request->path());
         if ($public && $this->errorDisplay->nativeEnabled()) {
             // Explicit public debugging is independent of APP_DEBUG. The admin
             // plugin retains its own exception handler and response protocol.

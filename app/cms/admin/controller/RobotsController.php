@@ -29,7 +29,7 @@ class RobotsController extends \plugin\admin\app\controller\Base
     {
         if($request->method()!=='GET')return response('Method Not Allowed',405);
         if(!$this->canRead())return $this->json(2,'无SEO设置读取权限')->withStatus(403);
-        try{return $this->json(0,'ok',(new RobotsService())->read()+['can_save'=>$this->canSave(),'csrf'=>LanguageAdminSecurity::token($request)]);}
+        try{return $this->json(0,'ok',(new RobotsService())->read()+['can_save'=>!\app\cms\support\EmbeddedResources::has('public')&&$this->canSave(),'csrf'=>LanguageAdminSecurity::token($request)]);}
         catch(\InvalidArgumentException|\RuntimeException $error){return $this->json(1,$error->getMessage());}
     }
     public function save(Request $request): Response

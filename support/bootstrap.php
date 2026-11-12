@@ -48,7 +48,7 @@ if ($worker) {
 \app\cms\config\Environment::initialize();
 \app\cms\config\Environment::refresh();
 // Preserve the compatibility Request::env() source without changing the captured process overrides.
-if (is_file(base_path(false) . '/.env')) Dotenv::createMutable(base_path(false))->load();
+// Environment is parsed without mutating the captured process or filesystem selection.
 
 Config::clear();
 \app\cms\secure\App::loadAllConfig(['route']);

@@ -34,7 +34,7 @@ final class ImageUploadPolicyService
         if($settings['is_mark']==='1'){
             if($settings['mark_type']==='text'&&trim((string)$settings['mark_txt'])==='')throw new InvalidArgumentException('开启文字水印时请填写水印文字');
             if($settings['mark_type']==='img')self::watermarkFile((string)$settings['mark_img']);
-            if($settings['mark_type']==='text'&&(!is_file(\app\cms\Paths::resources('fonts/hgzb.ttf'))||!function_exists('imagettftext')))throw new InvalidArgumentException('文字水印字体或GD字体支持不可用');
+            if($settings['mark_type']==='text'&&(!is_file(\app\cms\support\NativeFont::path(\app\cms\Paths::resources('fonts/hgzb.ttf')))||!function_exists('imagettftext')))throw new InvalidArgumentException('文字水印字体或GD字体支持不可用');
         }
         if($settings['thumb_open']==='1'&&(int)$settings['thumb_width']===0&&(int)$settings['thumb_height']===0)throw new InvalidArgumentException('开启缩略图时宽度和高度不能同时为0');
     }
@@ -43,9 +43,9 @@ final class ImageUploadPolicyService
     public static function watermarkFile(string $url): string
     {
         $base=rtrim((string)\app\cms\config\SiteSettings::get('base_path'),'/');if($base!==''&&str_starts_with($url,$base.'/'))$url=substr($url,strlen($base));
-        $url=preg_replace('#^/app/admin/(?=(?:public/)?uploads?/)#','/',$url);
+        $url=preg_replace('#^/(?:app/admin|web-admin)/(?=(?:public/)?uploads?/)#','/',$url);
         if(!mb_check_encoding($url,'UTF-8')||!preg_match('#^/(?:public/)?uploads?/#D',$url)||preg_match('/[\x00-\x1f\x7f\\\\?#]/',$url)||preg_match('#(?:^|/)\.\.(?:/|$)#',$url))throw new InvalidArgumentException('水印图片必须为本站uploads内的本地图片');
-        $path=\app\cms\UploadPaths::physical($url);$root=realpath(public_path('uploads'));$real=realpath($path);
+        $path=\app\cms\UploadPaths::physical($url);$root=realpath(\app\cms\Paths::publicRoot('uploads'));$real=realpath($path);
         if(!$root||!$real||!str_starts_with($real,$root.DIRECTORY_SEPARATOR)||!is_file($real))throw new InvalidArgumentException('本地水印图片不存在或越界');
         for($check=$path;strlen($check)>=strlen($root);$check=dirname($check)){if(is_link($check))throw new InvalidArgumentException('水印图片不能使用符号链接');if($check===$root)break;}
         $info=@getimagesize($real);if(!$info||!in_array($info[2],[IMAGETYPE_JPEG,IMAGETYPE_PNG,IMAGETYPE_WEBP,IMAGETYPE_GIF],true)||$info[0]>2000||$info[1]>2000)throw new InvalidArgumentException('水印图片格式不支持或尺寸超过2000px');
@@ -85,7 +85,7 @@ final class ImageUploadPolicyService
             $image=\app\cms\compat\Image::open($path);
             if($settings['mark_type']==='text'){
                 $alpha=str_pad(dechex((int)round((100-(int)$settings['mark_degree'])*127/100)),2,'0',STR_PAD_LEFT);
-                $image->text((string)$settings['mark_txt'],\app\cms\Paths::resources('fonts/hgzb.ttf'),(int)$settings['mark_txt_size'],(string)$settings['mark_txt_color'].$alpha,(int)$settings['mark_sel']);
+                $image->text((string)$settings['mark_txt'],\app\cms\support\NativeFont::path(\app\cms\Paths::resources('fonts/hgzb.ttf')),(int)$settings['mark_txt_size'],(string)$settings['mark_txt_color'].$alpha,(int)$settings['mark_sel']);
             }else{
                 $water=self::watermarkFile((string)$settings['mark_img']);$mark=getimagesize($water);
                 if($mark[0]>=$info[0]||$mark[1]>=$info[1])return ['watermarked'=>false,'reason'=>'watermark_larger_than_image'];

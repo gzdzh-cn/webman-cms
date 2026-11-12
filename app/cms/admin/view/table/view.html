@@ -60,12 +60,12 @@
 
             const TABLE_NAME = "<?=htmlspecialchars($table)?>";
             const PRIMARY_KEY = "<?=htmlspecialchars($primary_key)?>";
-            const SELECT_API = "/app/admin/table/select?table=" + TABLE_NAME;
-            const UPDATE_API = "/app/admin/table/update";
-            const DELETE_API = "/app/admin/table/delete";
-            const SCHEMA_API = "/app/admin/table/schema?table=" + TABLE_NAME;
-            const INSERT_URL = "/app/admin/table/insert?table=" + TABLE_NAME;
-            const UPDATE_URL = "/app/admin/table/update?table=" + TABLE_NAME;
+            const SELECT_API = "/web-admin/table/select?table=" + TABLE_NAME;
+            const UPDATE_API = "/web-admin/table/update";
+            const DELETE_API = "/web-admin/table/delete";
+            const SCHEMA_API = "/web-admin/table/schema?table=" + TABLE_NAME;
+            const INSERT_URL = "/web-admin/table/insert?table=" + TABLE_NAME;
+            const UPDATE_URL = "/web-admin/table/update?table=" + TABLE_NAME;
 
             <?=$form->js(3)?>
 
@@ -83,7 +83,7 @@
                     dataType: "json",
                     success: function (res) {
                         if (res.code) {
-                            return layui.pearPopup.failure(res.msg);
+                            return window.CmsUI.failure(res.msg);
                         }
                         let forms = res.data.forms;
                         let cols = [{
@@ -107,7 +107,7 @@
                                 schema.templet = function (d) {
                                     form.on("switch("+field+")", function (data) {
                                         if (!PRIMARY_KEY) {
-                                            return layui.pearPopup.warning("该表没有主键，无法完成此操作");
+                                            return window.CmsUI.warning("该表没有主键，无法完成此操作");
                                         }
                                         let load = layer.load();
                                         let postData = { table: TABLE_NAME };
@@ -116,9 +116,9 @@
                                         $.post(UPDATE_API, postData, function (res) {
                                             layer.close(load);
                                             if (res.code) {
-                                                return layui.pearPopup.failure(res.msg);
+                                                return window.CmsUI.failure(res.msg);
                                             }
-                                            return layui.pearPopup.success("操作成功");
+                                            return window.CmsUI.success("操作成功");
                                         })
                                     });
                                     let checked = d[field] === 1 ? "checked" : "";
@@ -200,7 +200,7 @@
                                     dateType: "json",
                                     success: function (res) {
                                         if (res.code) {
-                                            return layui.pearPopup.failure(res.msg);
+                                            return window.CmsUI.failure(res.msg);
                                         }
                                         function travel(items) {
                                             for (let k in items) {
@@ -293,7 +293,7 @@
 
                 window.edit = function(obj) {
                     if (!PRIMARY_KEY) {
-                        return layui.pearPopup.warning("该表没有主键，无法完成此操作");
+                        return window.CmsUI.warning("该表没有主键，无法完成此操作");
                     }
                     let value = obj.data[PRIMARY_KEY];
                     window.CmsUI.layer({
@@ -312,7 +312,7 @@
                 window.batchRemove = function(obj) {
                     var checkIds = common.checkField(obj, PRIMARY_KEY);
                     if (checkIds === "") {
-                        layui.pearPopup.warning("未选中数据");
+                        window.CmsUI.warning("未选中数据");
                         return false;
                     }
                     window.doRemove(checkIds.split(","));
@@ -320,7 +320,7 @@
 
                 window.doRemove = function (ids) {
                     if (!PRIMARY_KEY) {
-                        return layui.pearPopup.warning("该表没有主键，无法完成此操作");
+                        return window.CmsUI.warning("该表没有主键，无法完成此操作");
                     }
                     let data = {
                         table: TABLE_NAME
@@ -337,9 +337,9 @@
                             success: function(res) {
                                 layer.close(loading);
                                 if (res.code) {
-                                    return layui.pearPopup.failure(res.msg);
+                                    return window.CmsUI.failure(res.msg);
                                 }
-                                return layui.pearPopup.success("操作成功", refreshTable);
+                                return window.CmsUI.success("操作成功", refreshTable);
                             }
                         })
                     });

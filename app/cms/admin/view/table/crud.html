@@ -13,7 +13,7 @@
             }
         </style>
     </head>
-    <body class="cms-editor-page" data-cms-return-url="/app/admin/table/index"><header class="cms-editor-heading"><button type="button" data-cms-back aria-label="返回数据表列表">←</button><div><h1>生成管理模块</h1><p>开发维护操作，请先核对目标；保存后返回列表。</p></div></header>
+    <body class="cms-editor-page" data-cms-return-url="/web-admin/table/index"><header class="cms-editor-heading"><button type="button" data-cms-back aria-label="返回数据表列表">←</button><div><h1>生成管理模块</h1><p>开发维护操作，请先核对目标；保存后返回列表。</p></div></header>
 
         <form data-cms-page-editor class="layui-form" action="">
 
@@ -75,11 +75,11 @@
         <script src="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/admin/js/permission.js'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>"></script>
         <script>
 
-            const CRUD_API = "/app/admin/table/crud";
+            const CRUD_API = "/web-admin/table/crud";
 
             layui.use(["jquery", "xmSelect", "pearPopup"], function() {
                 layui.$.ajax({
-                    url: "/app/admin/rule/select?format=tree&type=0,1",
+                    url: "/web-admin/rule/select?format=tree&type=0,1",
                     dataType: "json",
                     success: function (res) {
                         let value = layui.$("#pid").attr("value");
@@ -97,7 +97,7 @@
                             tree: {show:true, strict:false, clickCheck:true, clickExpand:false},
                         });
                         if (res.code) {
-                            return layui.pearPopup.failure(res.msg);
+                            return window.CmsUI.failure(res.msg);
                         }
                     }
                 });
@@ -125,7 +125,7 @@
                             if (res.code) {
                                 window.CmsUI.error(cmsForm,res.msg,res.fields||res.data?.fields);return false;
                             }
-                            return layui.pearPopup.success("操作成功", function () {
+                            return window.CmsUI.success("操作成功", function () {
                                 window.CmsUI.saved();
                             });
                         }

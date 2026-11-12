@@ -36,6 +36,16 @@ class TagArclist extends Base
     public $archives_db;
     public $url_screen_var;
 
+    private bool $paginationCounting = false;
+
+    /** Count through the same controlled conditions; never execute saved SQL. */
+    public function paginationCount(array $arguments): int
+    {
+        $this->paginationCounting = true;
+        try { $count = $this->getArclist(...$arguments); return is_int($count) ? $count : 0; }
+        finally { $this->paginationCounting = false; }
+    }
+
     //初始化
     protected function _initialize()
     {
@@ -71,6 +81,9 @@ class TagArclist extends Base
      */
     public function getArclist($param = array(),  $row = 15, $orderby = '', $addfields = '', $ordermode = '', $tagid = '', $tag = '', $pagesize = 0, $thumb = '', $arcrank = '', $type = '',$siteall = null)
     {
+        $paginationArguments = [$param, $row, $orderby, $addfields, $ordermode, $tagid, $tag, $pagesize, $thumb, $arcrank, $type, $siteall];
+        $paginationArguments[0]['typeid'] = !empty($param['typeid']) ? $param['typeid'] : $this->tid;
+
         $condition = array();
 
         // 提取特定文档（文档ID）
@@ -90,7 +103,9 @@ class TagArclist extends Base
         if (!empty($tagid)) {
             $url_screen_var = 0;
             if (!empty($tag['url_params'])) {
-                $param_new = $tag['url_params'] = json_decode(base64_decode($tag['url_params']), true);
+                // Keep persisted attributes in their canonical encoded form.
+                $param_new = json_decode(base64_decode((string)$tag['url_params'], true) ?: '', true, 16, JSON_THROW_ON_ERROR);
+                if (!is_array($param_new)) throw new \InvalidArgumentException('分页筛选格式无效');
                 $url_screen_var = !empty($param_new[$this->url_screen_var]) ? $param_new[$this->url_screen_var] : 0;
             } else {
                 $UrlParams = $param_new = input('param.');
@@ -450,6 +465,11 @@ class TagArclist extends Base
                 }else if(!empty($idrange)){
                     $where2['a.aid'] = ['between', $idrange];
                 }
+                if ($this->paginationCounting) {
+                    $query = $this->archives_db->alias('a')->where($where_str)->where($where2);
+                    if (!empty($group_user_where)) $query->join('weapp_users_group_archives c', 'a.aid = c.archives_id', 'LEFT')->where($group_user_where);
+                    return (int)$query->count();
+                }
                 $uiset = input('param.uiset/s', 'off');
                 $uiset = trim($uiset, '/');
                 $web_cmsmode = tpCache('global.web_cmsmode');  //系统模式
@@ -464,9 +484,7 @@ class TagArclist extends Base
                 // Older object-shaped caches must be rebuilt as plain query rows.
                 if (!is_array($result)) $result = [];
 
-                if ((\app\cms\cache\CachePolicy::isOperational((int)$web_cmsmode) || 'Buildhtml' == \app\cms\compat\Runtime::constant('CONTROLLER_NAME') ) && true && 'rand()' != $orderby && !empty($result)){
-                    $querysql = cache("buildhtml_arc_querysql_".$cache_key_suffix);
-                } else {
+                if (!((\app\cms\cache\CachePolicy::isOperational((int)$web_cmsmode) || 'Buildhtml' == \app\cms\compat\Runtime::constant('CONTROLLER_NAME')) && 'rand()' != $orderby && !empty($result))) {
                     if ('rand()' == $orderby) { // 如果是随便获取数据，将先查询1000条，然后再从其中随机，提高大数据情况下的性能
                         if (empty($group_user_where)){
                             $result = $this->archives_db
@@ -542,7 +560,6 @@ class TagArclist extends Base
                                 ->select();
                         }
                     }
-                    $querysql = $this->archives_db->getLastSql(); // 用于arclist标签的分页
                     // 每页文档所对应的栏目信息
                     $typeid_arr = [];
                     foreach ($result as $key => $val) {
@@ -740,7 +757,6 @@ class TagArclist extends Base
                 
                     if (true && 'rand()' != $orderby){
                         cache("buildhtml_arc_result_".$cache_key_suffix, serialize($result), null, 'archives');
-                        cache("buildhtml_arc_querysql_".$cache_key_suffix, $querysql, null, 'archives');
                     }
                 }
                 break;
@@ -752,7 +768,8 @@ class TagArclist extends Base
             $arcmulti_db = \app\cms\compat\Db::name('arcmulti');
             $arcmultiRow = $arcmulti_db->field('tagid')->where(['tagid'=>$tagidmd5])->find();
             $attstr = addslashes(serialize($tag)); //记录属性,以便分页样式统一调用
-            $querysql = \app\cms\template\PaginationRecord::seal($tagidmd5, (string)$querysql, $attstr, (int)$pagesize);
+            if (isset($tag['url_params'])) $paginationArguments[6]['url_params'] = $tag['url_params'];
+            $querysql = \app\cms\template\PaginationRecord::encode('arclist', $tagidmd5, $paginationArguments, $attstr, (int)$pagesize);
             if (empty($arcmultiRow)) {
                 $arcmulti_db->insert([
                     'tagid' => $tagidmd5,

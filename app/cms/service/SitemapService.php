@@ -57,7 +57,16 @@ class SitemapService extends StaticGenerationService
         $languages=$includeHomeLanguage?$this->generationLanguages($languages,$this->languages()):array_values(array_unique($languages));
         (new LanguageAccessService($this->repository))->assertLanguages($languages);
         $formats=$input['formats']??array_values(array_filter(['xml','txt','html','ai'],fn($format)=>$this->formatEnabled($settings,$format)));
-        if(!is_array($formats)||!$formats||array_diff($formats,['xml','txt','html','ai']))throw new \InvalidArgumentException('请选择地图格式');
+        if(!is_array($formats)||!array_is_list($formats)||!$formats)throw new \InvalidArgumentException('请选择有效的地图格式');
+        foreach($formats as$format)if(!is_string($format)||!in_array($format,['xml','txt','html','ai'],true))throw new \InvalidArgumentException('请选择有效的地图格式');
+        $formats=array_values(array_unique($formats));
+        if(array_key_exists('formats',$input))foreach($formats as$format)if(!$this->formatEnabled($settings,$format))throw new \InvalidArgumentException(strtoupper($format).' 地图尚未启用，请先保存设置');
+        return $this->generateFiles($languages,$formats);
+    }
+
+    /** Internal queue already checked its stored site identity; HTTP callers authorize above. */
+    private function generateFiles(array $languages,array $formats):array
+    {
         $files=[];$failures=[];
         foreach($languages as $lang){
             try{
@@ -229,7 +238,7 @@ class SitemapService extends StaticGenerationService
                     ||(isset($task['dialect_version'])&&$task['dialect_version']!==\app\cms\template\TemplateDialect::VERSION)
                     ||($task['site_signature']??'legacy')!==\app\cms\template\TemplateMode::siteSignature($site))throw new \RuntimeException('Sitemap任务模式、编译版本或站点签名不匹配，请重新创建');
                 if(empty($this->settings($site)['sitemap_auto']))$result=['complete'=>true,'skipped'=>true];
-                else $result=$this->generate(['lang'=>$task['lang'],'languages'=>[$task['lang']]],false);
+                else $result=$this->generateFiles([$task['lang']],array_values(array_filter(['xml','txt','html','ai'],fn($format)=>$this->formatEnabled($this->settings($site),$format))));
             }catch(\Throwable$error){$result=['complete'=>false,'failures'=>[['lang'=>$task['lang'],'message'=>$error->getMessage()]]];}
             finally{CmsContext::set($previous);Runtime::boot($previous);}
             $this->store->locked(function()use($key,$task,$result){$manifest=$this->manifest();if(($manifest['automatic'][$key]['revision']??'')===$task['revision']){$manifest['automatic'][$key]['state']=!empty($result['complete'])?'complete':'failed';$manifest['automatic'][$key]['finished_at']=time();$manifest['automatic'][$key]['result']=$result;$this->store->write('manifest.json',$manifest);}});

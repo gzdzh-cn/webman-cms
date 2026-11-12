@@ -611,7 +611,7 @@ class ArctypeController extends \plugin\admin\app\controller\Crud
     
     /**
      * 新增页面 - 基础设置 Tab 内容
-     * 仅返回视图，用于通过 /app/admin/arctype/base 加载 base.html
+     * 仅返回视图，用于通过 /web-admin/arctype/base 加载 base.html
      * @return Response
      */
     public function base(Request $request): Response
@@ -621,7 +621,7 @@ class ArctypeController extends \plugin\admin\app\controller\Crud
 
     /**
      * 新增页面 - 高级设置 Tab 内容
-     * 仅返回视图，用于通过 /app/admin/arctype/advanced 加载 advanced.html
+     * 仅返回视图，用于通过 /web-admin/arctype/advanced 加载 advanced.html
      * @return Response
      */
     public function advanced(Request $request): Response
@@ -658,8 +658,8 @@ class ArctypeController extends \plugin\admin\app\controller\Crud
         $themeRow = $repository->table('config')->where(['name' => 'web_tpl_theme', 'lang' => $language, 'is_del' => 0])->find();
         try { $theme = \app\cms\ThemeCatalog::configured($themeRow ? (string)$themeRow['value'] : null); }
         catch (\InvalidArgumentException $error) { return $this->json(1, '模板主题目录错误'); }
-        $root = realpath(base_path('template'));
-        $templateDir = realpath(base_path('template/' . ($theme === '' ? '' : $theme . '/') . $device));
+        $root = realpath(\app\cms\Paths::templates(''));
+        $templateDir = realpath(\app\cms\Paths::templates(($theme === '' ? '' : $theme . '/') . $device));
         if (!$root || !$templateDir || !str_starts_with($templateDir . DIRECTORY_SEPARATOR, $root . DIRECTORY_SEPARATOR) || !is_dir($templateDir)) { return $this->json(1, '模板目录不存在'); }
         $prefix = (string)$request->get('prefix', '');
         $family = $type === 'list' ? 'lists_' : 'view_';

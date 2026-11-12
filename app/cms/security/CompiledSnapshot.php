@@ -2,7 +2,7 @@
 declare(strict_types=1);
 namespace app\cms\security;
 
-/** PHP includes only an authenticated, render-scoped memory snapshot, never runtime paths. */
+/** PHP includes only a checked, render-scoped memory snapshot, never runtime paths. */
 final class CompiledSnapshot
 {
     public $context;

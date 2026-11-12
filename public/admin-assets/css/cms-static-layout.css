@@ -1,2 +1,33 @@
 /* Static generation keeps its task controls in an independent sticky panel. */
-.cms-static-page .cms-static-layout{display:grid;grid-template-columns:minmax(0,1fr) 290px;gap:24px;align-items:start;min-width:0}.cms-static-page #settings{min-width:0}.cms-static-page #settings fieldset{padding:12px 0 0;margin:0;border:0;border-top:1px solid #edf0f5;border-radius:0;min-width:0}.cms-static-page #settings legend{padding:0 10px 0 0;color:#344258;font-size:13px}.cms-static-page .cms-static-row{display:grid;grid-template-columns:116px minmax(0,1fr);gap:16px;align-items:center;margin:0 0 16px;font-size:13px}.cms-static-page .cms-static-row>span:first-child{color:#657287}.cms-static-page .cms-static-row>select,.cms-static-page .cms-static-row>input{width:100%;max-width:420px;min-width:0}.cms-static-page .cms-static-row .checks{margin:0;gap:8px 16px;min-width:0}.cms-static-page .cms-static-category{align-items:start}.cms-static-page .cms-static-ids{display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-width:0}.cms-static-page .cms-static-ids label{font-size:12px;color:#768398;gap:6px}.cms-static-page .cms-static-ids input{width:82px;min-width:0}.cms-static-page .cms-static-ids small{font-size:12px;color:#8792a3}.cms-static-page .cms-static-offset{margin-left:132px;font-size:13px}.cms-static-page .cms-static-progress{position:sticky;top:16px;padding:16px;border:1px solid #e3e9f3;border-radius:8px;background:#fafcff;min-width:0}.cms-static-page .cms-static-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:16px}.cms-static-page .cms-static-heading h2{margin:0;font-size:14px}.cms-static-page .cms-static-heading span{font-size:11px;color:#91a0b2}.cms-static-page #progress-text{font-size:13px;margin:8px 0 12px;overflow-wrap:anywhere}.cms-static-page #recent{max-height:180px;overflow:auto;font:12px/1.7 system-ui,sans-serif;color:#68778c}.cms-static-page #failures{max-height:200px;overflow:auto;margin:12px 0;padding-left:18px;font-size:12px}.cms-static-page #recent:empty,.cms-static-page #failures:empty{display:none}.cms-static-page .cms-static-history{margin-top:24px;padding-top:16px;border-top:1px solid #edf0f5;min-width:0}.cms-static-page .cms-static-history h2{margin:0 0 6px}.cms-static-page input[type=checkbox]{width:15px;height:15px;padding:0;margin:0;min-height:15px;flex:0 0 15px}@media(max-width:959px){.cms-static-page .cms-static-layout{grid-template-columns:minmax(0,1fr)}.cms-static-page .cms-static-progress{position:static}}@media(max-width:767px){.cms-static-page .cms-static-row{grid-template-columns:minmax(0,1fr);gap:6px;margin-bottom:14px}.cms-static-page .cms-static-offset{margin-left:0}.cms-static-page .cms-static-layout{gap:18px}.cms-static-page .cms-static-progress{padding:14px}.cms-static-page .cms-static-history .table-wrap{max-width:100%;overflow:auto}.cms-static-page .cms-static-history table{min-width:470px}}.cms-static-page progress{appearance:none;border:0;border-radius:5px;background:#e8eef6;overflow:hidden}.cms-static-page progress::-webkit-progress-bar{background:#e8eef6;border-radius:5px}.cms-static-page progress::-webkit-progress-value{background:var(--cms-page-blue,#2563eb);border-radius:5px}.cms-static-page progress::-moz-progress-bar{background:var(--cms-page-blue,#2563eb);border-radius:5px}
+.cms-static-page .cms-static-layout{display:grid;grid-template-columns:minmax(0,1fr) 290px;gap:24px;align-items:start;min-width:0}
+.cms-static-page #settings{min-width:0}
+.cms-static-page #settings fieldset{padding:12px 0 0;margin:0;border:0;border-top:1px solid #edf0f5;border-radius:0;min-width:0}
+.cms-static-page #settings legend{padding:0 10px 0 0;color:#344258;font-size:13px}
+.cms-static-page .cms-static-row{display:grid;grid-template-columns:116px minmax(0,1fr);gap:16px;align-items:center;margin:0 0 16px;font-size:13px}
+.cms-static-page .cms-static-row>span:first-child{color:#657287}
+.cms-static-page .cms-static-row>select,.cms-static-page .cms-static-row>input{width:100%;max-width:420px;min-width:0}
+.cms-static-page .cms-static-row .checks{margin:0;gap:8px 16px;min-width:0}
+.cms-static-page .cms-static-category{align-items:start}
+.cms-static-page .cms-static-ids{display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-width:0}
+.cms-static-page .cms-static-ids label{font-size:12px;color:#768398;gap:6px}
+.cms-static-page .cms-static-ids input{width:82px;min-width:0}
+.cms-static-page .cms-static-ids small{font-size:12px;color:#8792a3}
+.cms-static-page .cms-static-offset{margin-left:132px;font-size:13px}
+.cms-static-page .cms-static-progress{position:sticky;top:16px;padding:16px;border:1px solid #e3e9f3;border-radius:8px;background:#fafcff;min-width:0}
+.cms-static-page .cms-static-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:16px}
+.cms-static-page .cms-static-heading h2{margin:0;font-size:14px}
+.cms-static-page .cms-static-heading span{font-size:11px;color:#91a0b2}
+.cms-static-page #progress-text{font-size:13px;margin:8px 0 12px;overflow-wrap:anywhere}
+.cms-static-page #recent{max-height:180px;overflow:auto;font:12px/1.7 system-ui,sans-serif;color:#68778c}
+.cms-static-page #failures{max-height:200px;overflow:auto;margin:12px 0;padding-left:18px;font-size:12px}
+.cms-static-page #recent:empty,.cms-static-page #failures:empty{display:none}
+.cms-static-page .cms-static-history{margin-top:24px;padding-top:16px;border-top:1px solid #edf0f5;min-width:0}
+.cms-static-page .cms-static-history h2{margin:0 0 6px}
+.cms-static-page input[type=checkbox]{width:15px;height:15px;padding:0;margin:0;min-height:15px;flex:0 0 15px}
+@media(max-width:959px){.cms-static-page .cms-static-layout{grid-template-columns:minmax(0,1fr)}.cms-static-page .cms-static-progress{position:static}}
+@media(max-width:767px){.cms-static-page .cms-static-row{grid-template-columns:minmax(0,1fr);gap:6px;margin-bottom:14px}.cms-static-page .cms-static-offset{margin-left:0}.cms-static-page .cms-static-layout{gap:18px}.cms-static-page .cms-static-progress{padding:14px}.cms-static-page .cms-static-history .table-wrap{max-width:100%;overflow:auto}.cms-static-page .cms-static-history table{min-width:470px}}
+
+.cms-static-page progress{appearance:none;border:0;border-radius:5px;background:#e8eef6;overflow:hidden}
+.cms-static-page progress::-webkit-progress-bar{background:#e8eef6;border-radius:5px}
+.cms-static-page progress::-webkit-progress-value{background:var(--cms-page-blue,#2563eb);border-radius:5px}
+.cms-static-page progress::-moz-progress-bar{background:var(--cms-page-blue,#2563eb);border-radius:5px}

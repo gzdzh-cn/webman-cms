@@ -17,8 +17,8 @@ final class InstallerLegacyV2
     private const PLAN = 'config/cms-install-plan.json';
     private const FORMAT = 2;
 
-    public function __construct(?string $root = null) { $this->root = rtrim($root ?? base_path(), '/'); }
-    private function path(string $relative): string { return $this->root . '/' . $relative; }
+    public function __construct(?string $root = null) { $this->root = rtrim($root ?? \app\cms\Paths::root(), '/'); }
+    private function path(string $relative): string { return $this->root === \app\cms\Paths::root() ? \app\cms\Paths::logical($relative) : $this->root . '/' . $relative; }
     private function fail(string $field, string $message): never { throw new InstallerValidationException([$field=>$message], $message); }
 
     private function assertPaths(): void
@@ -52,7 +52,7 @@ final class InstallerLegacyV2
     public function environment(): array
     {
         $checks=['php'=>version_compare(PHP_VERSION,'8.2','>='),'pdo_mysql'=>extension_loaded('pdo_mysql'),'pcntl'=>extension_loaded('pcntl'),'posix'=>extension_loaded('posix'),'mbstring'=>extension_loaded('mbstring'),'gd'=>extension_loaded('gd'),'config_writable'=>is_writable($this->path('config')),'root_writable'=>is_writable($this->root),'public_writable'=>is_writable($this->path('public')),'baseline_present'=>is_file($this->path('install/database/cms-empty.sql'))&&is_file($this->path('install/database/cms-internal.sql'))&&is_file($this->path('install/database/webman-admin.sql'))];
-        try{$checks['assets_ready']=(new \app\cms\maintenance\AssetMaintenance($this->root))->inspect(true)['ok'];}catch(\Throwable $error){$checks['assets_ready']=false;}
+        try{$checks['assets_ready']=(new \app\cms\maintenance\AssetMaintenance($this->root === \app\cms\Paths::root() ? null : $this->root))->inspect(true)['ok'];}catch(\Throwable $error){$checks['assets_ready']=false;}
         return ['php_version'=>PHP_VERSION,'checks'=>$checks,'ready'=>!in_array(false,$checks,true)];
     }
     public function inspect(array $input): array
@@ -212,7 +212,7 @@ final class InstallerLegacyV2
     }
     private function finish(array $in,array &$journal): array
     {
-        $result=['installed'=>true,'pending'=>false,'done'=>true,'task_id'=>$journal['id'],'tables'=>$journal['total'],'template_mode'=>$in['template_mode'],'db_prefix'=>$in['db_prefix'],'import_demo'=>$in['import_demo'],'demo'=>$in['import_demo'],'login_url'=>'/app/admin','restart_required'=>true];
+        $result=['installed'=>true,'pending'=>false,'done'=>true,'task_id'=>$journal['id'],'tables'=>$journal['total'],'template_mode'=>$in['template_mode'],'db_prefix'=>$in['db_prefix'],'import_demo'=>$in['import_demo'],'demo'=>$in['import_demo'],'login_url'=>'/web-admin','restart_required'=>true];
         try{
             $this->writeEnvironment($in);$this->writeInstalled($in,'installer');
             // Until the lock exists the same form can retry database_complete; do
@@ -228,7 +228,7 @@ final class InstallerLegacyV2
         $baseline=SqlImporter::tables($this->path('install/database/cms-empty.sql'),'cms_',$in['cms_prefix']);$sourcePrefix=null;$sourceSha=null;
         if($in['import_sql']){
             $file=$in['sql_file'];$real=realpath($file);$install=realpath($this->path('install'));
-            if(!$real||!$install||!str_starts_with($real,$install.'/')||!is_file($real)||is_link($file)||filesize($real)>50*1024*1024)$this->fail('sql_file','上传 SQL 文件无效或超出私有安装目录');
+            if(!$real||!$install||!str_starts_with($real,$install.'/')||!is_file($real)||is_link($file)||filesize($real)>\app\cms\config\DeploymentConfig::get('limits.install_sql_bytes'))$this->fail('sql_file','上传 SQL 文件无效或超出私有安装目录');
             $sourceSha=hash_file('sha256',$real);if($in['sql_sha256']!==''&&!hash_equals($sourceSha,$in['sql_sha256']))$this->fail('sql_file','上传 SQL 文件校验失败，请重新上传');
             try{
                 $sourcePrefix=SqlImporter::detectPrefix($real);$tables=SqlImporter::tables($real,$sourcePrefix,$in['cms_prefix'],$in['convert_innodb'],true);

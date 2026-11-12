@@ -1,0 +1,24 @@
+[Unit]
+Description=CMS website
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=cms
+Group=cms
+WorkingDirectory=/srv/cms
+Environment=CMS_PROCESS_MANAGER=systemd
+Environment=CMS_ENV_FILE=/srv/cms/.env
+ExecStart=/srv/cms/cms start
+Restart=always
+RestartSec=2
+KillSignal=SIGQUIT
+KillMode=mixed
+TimeoutStopSec=45
+UMask=0027
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

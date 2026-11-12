@@ -84,7 +84,7 @@
     </style>
 </head>
 
-<body class="cms-editor-page cms-embedded-editor" data-cms-return-url="/app/admin/archive/index">
+<body class="cms-editor-page cms-embedded-editor" data-cms-return-url="/web-admin/archive/index">
 <header class="cms-editor-heading"><button type="button" data-cms-archive-back aria-label="返回文章列表">←</button><div><h1>编辑单页</h1></div></header>
 
     <form data-cms-page-editor class="layui-form" action="" lay-filter="arctype-form">
@@ -125,7 +125,7 @@
                 <div class="layui-form-item" style="margin-bottom: 0;">
                     <div class="layui-input-block">
                         <button id="single-page-save" class="pear-btn pear-btn-primary pear-btn-xs layui-btn-disabled" lay-submit lay-filter="save" disabled>保存</button>
-                        <button id="single-page-reset" type="button" class="pear-btn pear-btn-xs" disabled>还原修改</button>
+                        <button id="single-page-reset" type="button" class="pear-btn pear-btn-xs" disabled>重置</button>
                         <button id="single-page-retry" type="button" class="pear-btn pear-btn-xs" style="display:none;" hidden>重新加载</button>
                         <span id="single-page-load-status" role="status" aria-live="polite" style="margin-left:12px;">正在加载栏目…</span>
                     </div>
@@ -153,7 +153,7 @@
             var element = layui.element;
 
             const PRIMARY_KEY = "id";
-            const UPDATE_API = "/app/admin/archive/singlePage";
+            const UPDATE_API = "/web-admin/archive/singlePage";
 
             // 获取URL参数
             var urlParams = new URLSearchParams(window.location.search);
@@ -231,7 +231,7 @@
                 editorReady[fieldName] = false;
                 editorElements[fieldName] = elem;
                 var instance = tinymce.render({
-                    images_upload_url: '/app/admin/upload/image',
+                    images_upload_url: '/web-admin/upload/image',
                     file_picker_types: 'file',
                     file_picker_callback: window.cmsAttachmentPicker,
                     elem: elem,
@@ -286,7 +286,7 @@
                 // 超时只进入失败状态，绝不以等待时长判断编辑器已经就绪。
                 loadDeadline = setTimeout(function () { if (generation === loadGeneration) failLoad('内容加载超时'); }, 30000);
                 $.ajax({
-                    url: "/app/admin/arctype/select",
+                    url: "/web-admin/arctype/select",
                     type: 'get',
                     dataType: 'json',
                     data: { id: currentTypeId },
@@ -311,7 +311,7 @@
             function loadContentData(typeId, generation) {
                 $('#single-page-load-status').text('正在加载正文和扩展内容…');
                 $.ajax({
-                    url: "/app/admin/archive/select",
+                    url: "/web-admin/archive/select",
                     type: 'get',
                     dataType: 'json',
                     data: { typeid: typeId, limit: 1 },
@@ -330,7 +330,7 @@
                             var archiveData = result.data[0];
                             if (archiveData && Number(archiveData.aid) > 0 && Number(archiveData.typeid) === Number(typeId) && Number(archiveData.channel) === channelId) {
                                 $.ajax({
-                                    url: "/app/admin/archive/getContent",
+                                    url: "/web-admin/archive/getContent",
                                     type: 'get',
                                     dataType: 'json',
                                     data: { aid: archiveData.aid, channel_id: channelId },
@@ -429,7 +429,7 @@
                 }
 
                 $.ajax({
-                    url: "/app/admin/channelfield/select",
+                    url: "/web-admin/channelfield/select",
                     type: 'get',
                     dataType: 'json',
                     data: requestData,
@@ -679,7 +679,7 @@
                         // 单图上传
                         upload.render({
                             elem: '#upload-' + fieldName,
-                            url: '/app/admin/upload/image',
+                            url: '/web-admin/upload/image',
                             accept: 'images',
                             done: function (res) {
                                 if (res.code === 0) {
@@ -699,7 +699,7 @@
                         var index = 0;
                         upload.render({
                             elem: '#upload-' + fieldName,
-                            url: '/app/admin/upload/image',
+                            url: '/web-admin/upload/image',
                             accept: 'images',
                             multiple: true,
                             done: function (res) {
@@ -712,7 +712,7 @@
                         // 文件上传
                         upload.render({
                             elem: '#upload-' + fieldName,
-                            url: '/app/admin/upload/file',
+                            url: '/web-admin/upload/file',
                             accept: 'file',
                             done: function (res) {
                                 if (res.code === 0) {
@@ -782,21 +782,21 @@
             async function restoreSinglePage() {
                 const cmsForm = document.querySelector('form[data-cms-page-editor]');
                 if (loadPhase !== 'ready' || !restoreSnapshot || cmsForm.dataset.cmsSubmitting === '1') return;
-                if (JSON.stringify(captureRestoreData()) !== JSON.stringify(restoreSnapshot) && !await window.CmsUI.confirm('将放弃未保存的修改，恢复本次读取的单页内容。', {title:'还原修改', confirmText:'还原修改', cancelText:'继续编辑'})) return;
+                if (JSON.stringify(captureRestoreData()) !== JSON.stringify(restoreSnapshot) && !await window.CmsUI.confirm('将放弃未保存的修改，恢复本次读取的单页内容。', {title:'重置', confirmText:'重置', cancelText:'继续编辑'})) return;
                 try {
                     fillFormData(JSON.parse(JSON.stringify(restoreSnapshot)));
                     Object.values(editors).forEach(function (editor) {editor.setDirty?.(false);});
                     window.CmsUI.clean(cmsForm);
-                    $('#single-page-load-status').text('已还原本次读取的内容');
+                    $('#single-page-load-status').text('已恢复最近读取的内容');
                 } catch (error) {
-                    window.CmsUI.error(cmsForm, '内容还原失败，请核对当前内容后再保存');
+                    window.CmsUI.error(cmsForm, '内容重置失败，请核对当前内容后再保存');
                 }
             }
 
             // 表单保存
             form.on("submit(save)", function (data) {
                 if (loadPhase !== 'ready') {
-                    layer.msg(loadPhase === 'error' ? '内容加载失败，请重新加载后再保存' : '内容仍在加载，请稍候', {icon: 2});
+                    window.CmsUI.failure(loadPhase === 'error' ? '内容加载失败，请重新加载后再保存' : '内容仍在加载，请稍候');
                     return false;
                 }
                 var formData = data.field;
@@ -838,11 +838,11 @@
                             window.CmsUI.error(cmsForm,res.msg,res.fields||res.data?.fields);
                             return false;
                         }
-                        return layui.pearPopup.success("操作成功", function () {
+                        return window.CmsUI.success("操作成功", function () {
                             // 通知父页面刷新
                             window.CmsModuleNavigation?.markClean(cmsForm);delete cmsForm.dataset.cmsDirty;
                             if (parent!==window && typeof parent.refreshTable==='function') parent.refreshTable();
-                            else window.CmsUI.saved('/app/admin/archive/index');
+                            else window.CmsUI.saved('/web-admin/archive/index');
                         });
                     },
                     error: function () {

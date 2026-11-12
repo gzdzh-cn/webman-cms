@@ -20,45 +20,27 @@ return [
 
     'type' => 'file', // or redis or redis_cluster
 
-    'handler' => \app\cms\security\SignedSessionHandler::class,
+    'handler' => \app\cms\security\SessionStorageHandler::class,
 
-    'config' => [
-        'file' => [
-            'save_path' => runtime_path() . '/sessions',
-        ],
-        'redis' => [
-            'host' => '127.0.0.1',
-            'port' => 6379,
-            'auth' => '',
-            'timeout' => 2,
-            'database' => '',
-            'prefix' => 'redis_session_',
-        ],
-        'redis_cluster' => [
-            'host' => ['127.0.0.1:7000', '127.0.0.1:7001', '127.0.0.1:7001'],
-            'timeout' => 2,
-            'auth' => '',
-            'prefix' => 'redis_session_',
-        ]
-    ],
+    'config' => ['file'=>['save_path'=>\app\cms\Paths::runtime('sessions')]],
 
-    'session_name' => 'PHPSID',
+    'session_name' => \app\cms\config\DeploymentConfig::get('session.name'),
     
     'auto_update_timestamp' => false,
 
-    'lifetime' => 7*24*60*60,
+    'lifetime' => \app\cms\config\DeploymentConfig::get('session.lifetime'),
 
-    'cookie_lifetime' => 365*24*60*60,
+    'cookie_lifetime' => \app\cms\config\DeploymentConfig::get('session.cookie_lifetime'),
 
-    'cookie_path' => '/',
+    'cookie_path' => \app\cms\config\DeploymentConfig::get('session.cookie_path'),
 
-    'domain' => '',
+    'domain' => \app\cms\config\DeploymentConfig::get('session.domain'),
     
-    'http_only' => true,
+    'http_only' => \app\cms\config\DeploymentConfig::get('session.http_only'),
 
-    'secure' => false,
+    'secure' => \app\cms\config\DeploymentConfig::get('session.secure'),
     
-    'same_site' => '',
+    'same_site' => \app\cms\config\DeploymentConfig::get('session.same_site'),
 
     'gc_probability' => [1, 1000],
 

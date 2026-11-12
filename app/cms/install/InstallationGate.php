@@ -18,6 +18,10 @@ final class InstallationGate
         $checkPath = $path;
         $base = rtrim((string)\app\cms\config\SiteSettings::get('base_path'), '/');
         if ($base !== '' && str_starts_with($checkPath, $base . '/')) $checkPath = substr($checkPath, strlen($base));
+        if (\app\cms\support\EmbeddedResources::binary()) {
+            if(preg_match('#^/(?:public/)?install(?:_|/|$)#i',$checkPath)) return response('Not Found',404);
+            return null; // Installed database was checked before starting workers.
+        }
         if (preg_match('#^/(?:public/)?install(?:_[^/]+)?(?:/|$)#i', $checkPath)
             && !in_array($path, self::INSTALL_ROUTES, true)) {
             return response('Not Found', 404)->header('Cache-Control', 'no-store');
@@ -54,7 +58,7 @@ final class InstallationGate
         if (in_array($path, ['/', '/index.php'], true)
             && ($module === 'api' || ($module === 'home' && $controller === 'ajax'))) return true;
         if (preg_match('#^/(?:index\.php/)?(?:api/|home/ajax/)#i', $path)) return true;
-        if (!str_starts_with($path, '/app/admin/')) return false;
+        if (!str_starts_with($path, '/web-admin/')) return false;
         $path = \app\cms\admin\support\AdminRoutes::normalizePath($path);
         $readActions = [
             'account'=>['info','login','logout'], 'config'=>['get'], 'dict'=>['get'],

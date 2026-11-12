@@ -9,7 +9,7 @@ final class AdminTemplateStorage implements DriverInterface
     private TemplateCache $cache;
     public function __construct()
     {
-        $scope = json_encode(['admin-views-v1', \app\cms\template\TemplateDialect::VERSION,
+        $scope = json_encode(['admin-views-v1', \app\cms\support\BuildIdentity::version(), \app\cms\template\TemplateDialect::VERSION,
             \app\cms\template\TemplateMode::current(), \app\cms\template\TemplateMode::siteSignature()], JSON_THROW_ON_ERROR);
         $this->cache = new TemplateCache('template.admin', $scope, 3600);
     }

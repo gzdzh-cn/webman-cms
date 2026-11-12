@@ -1,1 +1,1 @@
-var editor_bd_style="";
+var editor_bd_style = '';

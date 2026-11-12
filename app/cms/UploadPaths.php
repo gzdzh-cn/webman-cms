@@ -10,10 +10,10 @@ final class UploadPaths
         if (!preg_match('#^uploads(?:/[A-Za-z0-9_-]+)*$#D', $relative)) {
             throw new \InvalidArgumentException('上传目录无效');
         }
-        $public = realpath(public_path());
+        $public = realpath(\app\cms\Paths::uploads());
         if ($public === false || !is_dir($public)) throw new \RuntimeException('公共目录不可用');
         $path = $public;
-        foreach (explode('/', $relative) as $part) {
+        foreach (array_filter(explode('/', substr($relative, 7))) as $part) {
             $path .= DIRECTORY_SEPARATOR . $part;
             clearstatcache(true, $path);
             if (is_link($path)) throw new \InvalidArgumentException('上传目录不能包含符号链接');
@@ -54,9 +54,15 @@ final class UploadPaths
     {
         if (!is_string($path) || $path === '' || str_contains($path, '://')) return null;
         $project = rtrim(base_path(), '/');
-        $prefixes = [$project . '/public/', $project . '/', './public/', 'public/', '/public/', './', '', '/'];
+        $prefixes = [rtrim(Paths::root(), '/') . '/public/', rtrim(Paths::root(), '/') . '/', $project . '/public/', $project . '/', './public/', 'public/', '/public/', './', '', '/'];
         $base = trim((string)\app\cms\config\SiteSettings::get('base_path'), '/');
         if ($base !== '') $prefixes[] = '/' . $base . '/';
+        $uploadRoot=Paths::uploads();
+        if($path===$uploadRoot||str_starts_with($path,$uploadRoot.'/')) {
+            if(str_contains($path,"\0")||str_contains($path,'\\')||in_array('..',explode('/',$path),true)||in_array('.',explode('/',$path),true))throw new \InvalidArgumentException('上传资源路径无效');
+            \app\cms\config\Entry::assertPath($path);
+            return ['physical'=>$path,'physical_root'=>$uploadRoot,'virtual_root'=>$uploadRoot];
+        }
         foreach ($prefixes as $prefix) {
             foreach (['uploads', 'upload'] as $folder) {
                 $virtual = $prefix . $folder;
@@ -66,7 +72,7 @@ final class UploadPaths
                     throw new \InvalidArgumentException('上传资源路径无效');
                 }
                 // Both historical URL spellings share one physical store.
-                $physicalRoot = rtrim(public_path('uploads'), '/');
+                $physicalRoot = rtrim(\app\cms\Paths::publicRoot('uploads'), '/');
                 $physical = $physicalRoot . $relative;
                 // Check the nearest existing ancestor for both reads and writes.
                 // A symlink inside an upload bucket must not escape that bucket.

@@ -47,13 +47,11 @@ final class AssetManifest
     {
         $relative = $entry['target'];
         if (str_starts_with($relative, '/') || str_contains($relative, '\\') || preg_match('#(^|/)\.[^/]*(/|$)#', $relative)) return null;
-        $path = rtrim(base_path(), '/');
-        foreach (explode('/', $relative) as $segment) {
-            $path .= '/' . $segment;
-            if (is_link($path)) return null;
-        }
-        $actual = realpath($path);
-        return $actual && is_file($actual) && str_starts_with($actual, realpath(base_path()) . '/') ? $actual : null;
+        $path = Paths::logical($relative);
+        if (str_starts_with($path, 'phar://')) return \app\cms\support\EmbeddedResources::realpath($path) && is_file($path) ? $path : null;
+        \app\cms\config\Entry::assertPath($path);
+        $actual = \app\cms\support\EmbeddedResources::realpath($path);
+        return $actual && is_file($actual) && $actual === $path ? $actual : null;
     }
 
     public static function resolve(string $url): ?string
@@ -123,17 +121,11 @@ final class AssetManifest
 
     public static function isPublicTarget(string $file, bool $htmlOnly = false): bool
     {
-        self::load();
-        $root = rtrim(base_path(), '/') . '/';
-        if (!str_starts_with($file, $root)) return false;
-        $entry = self::$targets[substr($file, strlen($root))] ?? null;
-        return $entry && $entry['public'] && (!$htmlOnly || $entry['html_allowed']) && self::physical($entry) === realpath($file);
+        self::load();$relative=Paths::relative($file);$entry=$relative===null?null:(self::$targets[$relative]??null);
+        return $entry && $entry['public'] && (!$htmlOnly || $entry['html_allowed']) && self::physical($entry) === \app\cms\support\EmbeddedResources::realpath($file);
     }
-
     public static function isManagedFile(string $file): bool
     {
-        self::load();
-        $root = rtrim(base_path(), '/') . '/';
-        return str_starts_with($file, $root) && isset(self::$targets[substr($file, strlen($root))]);
+        self::load();$relative=Paths::relative($file);return $relative!==null&&isset(self::$targets[$relative]);
     }
 }

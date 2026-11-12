@@ -43,7 +43,7 @@ final class AssetCompatibility
                 }
                 if (!in_array(basename($parts['path']), ['mzp-packed.js', 'navbarscroll.js'], true)) return $attribute[0];
                 $file = AssetResolver::resolve($parts['path']);
-                $root = realpath(Paths::commonAssets('compat'));
+                $root = \app\cms\support\EmbeddedResources::realpath(Paths::commonAssets('compat'));
                 if (!$file || !$root || !str_starts_with($file, $root . DIRECTORY_SEPARATOR)) return $attribute[0];
                 $query = [];
                 foreach (explode('&', $parts['query'] ?? '') as $entry) {
@@ -65,9 +65,8 @@ final class AssetCompatibility
     {
         $asset = basename($source);
         if (!in_array($asset, ['mzp-packed.js', 'navbarscroll.js'], true)) return $source;
-        $root = realpath(base_path());
-        if (!$root || !str_starts_with($source, $root . DIRECTORY_SEPARATOR)) return $source;
-        $relative = str_replace(DIRECTORY_SEPARATOR, '/', substr($source, strlen($root) + 1));
+        $relative = Paths::relative($source);
+        if ($relative === null) return $source;
         // Never use a supplied filename or theme name as a supplemental path.
         if ($asset === 'mzp-packed.js') {
             if (!preg_match('#^template/(?:(?:default|official)/)?(?:pc|mobile)/skin/Lib/MagicZoom/mzp-packed\.js$#D', $relative)) return $source;
@@ -86,8 +85,8 @@ final class AssetCompatibility
         if (!is_array($entry) || hash_file('sha256', $source) !== ($entry['source_sha256'] ?? null)) return $source;
         $name = (string)($entry['compat_file'] ?? '');
         if (!preg_match($namePattern, $name)) return $source;
-        $target = realpath(Paths::commonAssets('compat/' . $family . '/' . $name));
-        $directory = realpath(Paths::commonAssets('compat/' . $family));
+        $target = \app\cms\support\EmbeddedResources::realpath(Paths::commonAssets('compat/' . $family . '/' . $name));
+        $directory = \app\cms\support\EmbeddedResources::realpath(Paths::commonAssets('compat/' . $family));
         if (!$target || !$directory || !is_file($target) || !str_starts_with($target, $directory . DIRECTORY_SEPARATOR)) return $source;
         return hash_file('sha256', $target) === ($entry['compat_sha256'] ?? null) ? $target : $source;
     }

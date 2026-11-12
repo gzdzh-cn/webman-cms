@@ -132,7 +132,7 @@
     </style>
 </head>
 
-<body class="cms-editor-page cms-embedded-editor" data-cms-return-url="/app/admin/archive/index">
+<body class="cms-editor-page cms-embedded-editor" data-cms-return-url="/web-admin/archive/index">
 <header class="cms-editor-heading"><button type="button" data-cms-archive-back aria-label="返回文章列表">←</button><div><h1>编辑文章</h1></div></header>
 
     <form data-cms-page-editor class="layui-form">
@@ -545,8 +545,8 @@
 
         // 相关接口
         const PRIMARY_KEY = "aid";
-        const SELECT_API = "/app/admin/archive/select" + location.search;
-        const UPDATE_API = "/app/admin/archive/update";
+        const SELECT_API = "/web-admin/archive/select" + location.search;
+        const UPDATE_API = "/web-admin/archive/update";
 
  
 
@@ -640,7 +640,7 @@
                 $('#tag_loading').show();
                 $.ajax({
                     type: 'post',
-                    url: '/app/admin/archive/getCommonTags',
+                    url: '/web-admin/archive/getCommonTags',
                     data: {tags: val, is_click: 1, lang: currentArchiveLang()},
                     dataType: 'json',
                     success: function(res) {
@@ -659,12 +659,12 @@
                                 $('#often_tags').html(html).show();
                             }
                         } else {
-                            layui.pearPopup.failure(res.msg || '获取标签失败');
+                            window.CmsUI.failure(res.msg || '获取标签失败');
                         }
                     },
                     error: function(e) {
                         $('#tag_loading').hide();
-                        layui.pearPopup.failure('获取标签失败');
+                        window.CmsUI.failure('获取标签失败');
                     }
                 });
             };
@@ -679,7 +679,7 @@
                 }
                 $.ajax({
                     type: 'post',
-                    url: '/app/admin/archive/getCommonTags',
+                    url: '/web-admin/archive/getCommonTags',
                     data: {tags: val, type: 1, lang: currentArchiveLang()},
                     dataType: 'json',
                     success: function(res) {
@@ -779,7 +779,7 @@
             // 初始化封面图片上传
             upload.render({
                 elem: '#upload-litpic',
-                url: '/app/admin/upload/image',
+                url: '/web-admin/upload/image',
                 accept: 'images',
                 acceptMime: 'image/*',
                 done: function(res) {
@@ -904,7 +904,7 @@
 
             var litpicListUploaderInst = upload.render({
                 elem: '#litpic_list_upload_input',
-                url: '/app/admin/upload/image',
+                url: '/web-admin/upload/image',
                 accept: 'images',
                 acceptMime: 'image/*',
                 multiple: true,
@@ -1058,7 +1058,7 @@
                         var aid = archiveData && archiveData.aid ? archiveData.aid : 0;
                         loadChannelfields(typeid, selectedChannelId, aid);
                     } else {
-                        layui.pearPopup.failure('无法获取栏目对应的模型ID，请重新选择栏目');
+                        window.CmsUI.failure('无法获取栏目对应的模型ID，请重新选择栏目');
                     }
                 } else {
                     // 清空动态字段
@@ -1100,7 +1100,7 @@
                 formData[PRIMARY_KEY] = layui.url().search[PRIMARY_KEY];
 
                 if (!collectChangedEditorFields(formData)) {
-                    layui.pearPopup.failure('正文或附加字段尚未加载完成，请稍候或刷新后重试');
+                    window.CmsUI.failure('正文或附加字段尚未加载完成，请稍候或刷新后重试');
                     return false;
                 }
 
@@ -1186,10 +1186,10 @@
                         if (res.code) {
                             window.CmsUI.error(cmsForm,res.msg,res.fields||res.data?.fields);return false;
                         }
-                        return layui.pearPopup.success("操作成功", function () {
+                        return window.CmsUI.success("操作成功", function () {
                             window.CmsModuleNavigation?.markClean(cmsForm);delete cmsForm.dataset.cmsDirty;
                             if (parent!==window && typeof parent.refreshTable==='function') parent.refreshTable();
-                            else window.CmsUI.saved('/app/admin/archive/index');
+                            else window.CmsUI.saved('/web-admin/archive/index');
                         });
                     }
                 });
@@ -1214,7 +1214,7 @@
                 }
 
                 $.ajax({
-                    url: "/app/admin/channelfield/getArctypeList",
+                    url: "/web-admin/channelfield/getArctypeList",
                     type: 'get',
                     dataType: 'json',
                     data: requestParams,
@@ -1346,7 +1346,7 @@
                             archiveData = res.data[0];
                             loadArctypeOptions();
                             var attachmentModule = {4: 'downloadfile', 5: 'mediafile'}[parseInt(archiveData.channel)];
-                            if (attachmentModule) { $('#cms-attachment-link').attr('href', '/app/admin/' + attachmentModule + '/index?aid=' + archiveData.aid).show(); }
+                            if (attachmentModule) { $('#cms-attachment-link').attr('href', '/web-admin/' + attachmentModule + '/index?aid=' + archiveData.aid).show(); }
 
                             // 给表单初始化数据
                             layui.each(archiveData, function (key, value) {
@@ -1395,7 +1395,7 @@
                         }
                     },
                     error: function (xhr, status, error) {
-                        layui.pearPopup.failure('加载数据失败：' + error);
+                        window.CmsUI.failure('加载数据失败：' + error);
                     }
                 });
             }
@@ -1409,7 +1409,7 @@
           
                 // 如果 channelId 为 0，提示频道ID不存在
                 if (!channelId || channelId === 0) {
-                    layui.pearPopup.failure("频道ID不存在，无法加载动态字段");
+                    window.CmsUI.failure("频道ID不存在，无法加载动态字段");
                     return;
                 }
 
@@ -1422,7 +1422,7 @@
                 };
 
                 $.ajax({
-                    url: "/app/admin/channelfield/select",
+                    url: "/web-admin/channelfield/select",
                     type: 'get',
                     dataType: 'json',
                     data: requestData,
@@ -1436,11 +1436,11 @@
                                 loadContentData(aid, channelId, result.data, requestVersion);
                             }
                         } else {
-                            layui.pearPopup.failure(result.msg || '加载附加字段失败，请刷新后重试');
+                            window.CmsUI.failure(result.msg || '加载附加字段失败，请刷新后重试');
                         }
                     },
                     error: function () {
-                        if (requestVersion === contentRequestVersion) layui.pearPopup.failure('加载附加字段失败，请刷新后重试');
+                        if (requestVersion === contentRequestVersion) window.CmsUI.failure('加载附加字段失败，请刷新后重试');
                     }
                 });
 
@@ -1460,7 +1460,7 @@
                     lang: $('#typeid-select option:selected').attr('data-lang') || (archiveData && archiveData.lang) || layui.url().search.lang || 'cn'
                 };
                 var requestVersion = ++templateRequestVersion;
-                $.getJSON('/app/admin/arctype/getTemplates', params, function (res) {
+                $.getJSON('/web-admin/arctype/getTemplates', params, function (res) {
                     if (requestVersion !== templateRequestVersion) return;
                     if (res.code === 0 && Array.isArray(res.data)) {
                         var $tempviewSelect = $('select[name="tempview"]');
@@ -1618,7 +1618,7 @@
             // 加载附加表数据
             function loadContentData(aid, channelId, fields, requestVersion) {
                 $.ajax({
-                    url: "/app/admin/archive/getContent",
+                    url: "/web-admin/archive/getContent",
                     type: 'get',
                     dataType: 'json',
                     data: { aid: aid, channel_id: channelId, lang: currentArchiveLang() },
@@ -1695,11 +1695,11 @@
                             form.render();
                             contentDataReady = true;
                         } else {
-                            layui.pearPopup.failure(result.msg || '加载正文失败，请刷新后重试');
+                            window.CmsUI.failure(result.msg || '加载正文失败，请刷新后重试');
                         }
                     },
                     error: function () {
-                        if (requestVersion === contentRequestVersion) layui.pearPopup.failure('加载正文失败，请刷新后重试');
+                        if (requestVersion === contentRequestVersion) window.CmsUI.failure('加载正文失败，请刷新后重试');
                     }
                 });
             }
@@ -1805,7 +1805,7 @@
                         if ($editorContent.length > 0 && typeof tinymce !== 'undefined' && !editors['content']) {
                             var contentValue = $editorContent.val();
                             editors['content'] = tinymce.render({
-                                images_upload_url: '/app/admin/upload/image',
+                                images_upload_url: '/web-admin/upload/image',
                                 file_picker_types: 'file',
                                 file_picker_callback: window.cmsAttachmentPicker,
                                 elem: '#editor-content',
@@ -1840,7 +1840,7 @@
                         if ($editorContentEyM.length > 0 && typeof tinymce !== 'undefined' && !editors['content_ey_m']) {
                             var contentEyMValue = $editorContentEyM.val();
                             editors['content_ey_m'] = tinymce.render({
-                                images_upload_url: '/app/admin/upload/image',
+                                images_upload_url: '/web-admin/upload/image',
                                 file_picker_types: 'file',
                                 file_picker_callback: window.cmsAttachmentPicker,
                                 elem: '#editor-content-ey-m',
@@ -1889,7 +1889,7 @@
                             if ($editor.length > 0 && typeof tinymce !== 'undefined' && !editors[fieldName]) {
                                 var editorValue = $editor.val();
                                 editors[fieldName] = tinymce.render({
-                                    images_upload_url: '/app/admin/upload/image',
+                                    images_upload_url: '/web-admin/upload/image',
                                     file_picker_types: 'file',
                                     file_picker_callback: window.cmsAttachmentPicker,
                                     elem: '#' + editorId,
@@ -1951,7 +1951,7 @@
                     if (fieldType === 'img') {
                         upload.render({
                             elem: '#upload-' + fieldName,
-                            url: '/app/admin/upload/image',
+                            url: '/web-admin/upload/image',
                             accept: 'images',
                             done: function (res) {
                                 if (res.code === 0) {
@@ -1966,7 +1966,7 @@
                     } else if (fieldType === 'imgs') {
                         upload.render({
                             elem: '#upload-' + fieldName,
-                            url: '/app/admin/upload/image',
+                            url: '/web-admin/upload/image',
                             accept: 'images',
                             multiple: true,
                             done: function (res) {
@@ -1978,7 +1978,7 @@
                     } else if (fieldType === 'files') {
                         upload.render({
                             elem: '#upload-' + fieldName,
-                            url: '/app/admin/upload/file',
+                            url: '/web-admin/upload/file',
                             accept: 'file',
                             done: function (res) {
                                 if (res.code === 0) {

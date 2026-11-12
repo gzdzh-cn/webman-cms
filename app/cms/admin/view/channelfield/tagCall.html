@@ -92,7 +92,7 @@
             try {
                 if (navigator.clipboard && navigator.clipboard.writeText) {
                     navigator.clipboard.writeText(text).then(function() {
-                        layui.pearPopup.success(successMsg || '已复制到剪贴板');
+                        window.CmsUI.success(successMsg || '已复制到剪贴板');
                     }).catch(function() {
                         fallbackCopy(text, successMsg);
                     });
@@ -115,9 +115,9 @@
             
             try {
                 document.execCommand('copy');
-                layui.pearPopup.success(successMsg || '已复制到剪贴板');
+                window.CmsUI.success(successMsg || '已复制到剪贴板');
             } catch (err) {
-                layui.pearPopup.failure('复制失败，请手动复制');
+                window.CmsUI.failure('复制失败，请手动复制');
             }
             
             document.body.removeChild(textarea);

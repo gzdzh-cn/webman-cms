@@ -9,7 +9,7 @@ use InvalidArgumentException;
 class CitysiteService
 {
     public const SETTINGS = ['web_citysite_open','site_template','site_default_home','site_seoset','site_seo_title','site_seo_keywords','site_seo_description'];
-    private const RESERVED = ['www','admin','api','home','index','index.php','public','static','template','uploads','upload','data','runtime','vendor','app','plugin','search','tags','sitemap','robots','weapp','install','login','user','member','shop'];
+    private const RESERVED = ['www','admin','web-admin','api','home','index','index.php','public','static','template','uploads','upload','data','runtime','vendor','app','plugin','search','tags','sitemap','robots','weapp','install','login','user','member','shop'];
     public function __construct(private ?CmsRepository $repository = null) { $this->repository ??= new CmsRepository(); }
     public function listing(string $search = ''): array
     {

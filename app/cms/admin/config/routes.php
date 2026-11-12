@@ -3,7 +3,7 @@
 $routes = array (
   'plugin\\admin\\app\\controller\\AccountController' => 
   array (
-    'path' => '/app/admin/account',
+    'path' => '/web-admin/account',
     'actions' => 
     array (
       0 => 'captcha',
@@ -20,7 +20,7 @@ $routes = array (
   ),
   'plugin\\admin\\app\\controller\\AdController' => 
   array (
-    'path' => '/app/admin/ad',
+    'path' => '/web-admin/ad',
     'actions' => 
     array (
       0 => 'delete',
@@ -31,7 +31,7 @@ $routes = array (
   ),
   'plugin\\admin\\app\\controller\\AdminController' => 
   array (
-    'path' => '/app/admin/admin',
+    'path' => '/web-admin/admin',
     'actions' => 
     array (
       0 => 'delete',
@@ -43,7 +43,7 @@ $routes = array (
   ),
   'plugin\\admin\\app\\controller\\AdpositionController' => 
   array (
-    'path' => '/app/admin/adposition',
+    'path' => '/web-admin/adposition',
     'actions' => 
     array (
       0 => 'delete',
@@ -54,7 +54,7 @@ $routes = array (
   ),
   'plugin\\admin\\app\\controller\\ArchiveController' => 
   array (
-    'path' => '/app/admin/archive',
+    'path' => '/web-admin/archive',
     'actions' => 
     array (
       0 => 'delete',
@@ -72,7 +72,7 @@ $routes = array (
   ),
   'plugin\\admin\\app\\controller\\ArctypeController' => 
   array (
-    'path' => '/app/admin/arctype',
+    'path' => '/web-admin/arctype',
     'actions' => 
     array (
       0 => 'advanced',
@@ -87,7 +87,7 @@ $routes = array (
   ),
   'plugin\\admin\\app\\controller\\ChannelfieldController' => 
   array (
-    'path' => '/app/admin/channelfield',
+    'path' => '/web-admin/channelfield',
     'actions' => 
     array (
       0 => 'ajaxGetRegionData',
@@ -104,7 +104,7 @@ $routes = array (
   ),
   'plugin\\admin\\app\\controller\\ChanneltypeController' => 
   array (
-    'path' => '/app/admin/channeltype',
+    'path' => '/web-admin/channeltype',
     'actions' => 
     array (
       0 => 'delete',
@@ -116,7 +116,7 @@ $routes = array (
   ),
   'plugin\\admin\\app\\controller\\CitysiteController' => 
   array (
-    'path' => '/app/admin/citysite',
+    'path' => '/web-admin/citysite',
     'actions' => 
     array (
       0 => 'delete',
@@ -129,7 +129,7 @@ $routes = array (
   ),
   'plugin\\admin\\app\\controller\\CmsDataController' => 
   array (
-    'path' => '/app/admin/cmsdata',
+    'path' => '/web-admin/cmsdata',
     'actions' => 
     array (
       0 => 'delete',
@@ -140,7 +140,7 @@ $routes = array (
   ),
   'plugin\\admin\\app\\controller\\ConfigController' => 
   array (
-    'path' => '/app/admin/config',
+    'path' => '/web-admin/config',
     'actions' => 
     array (
       0 => 'get',
@@ -150,7 +150,7 @@ $routes = array (
   ),
   'plugin\\admin\\app\\controller\\DevController' => 
   array (
-    'path' => '/app/admin/dev',
+    'path' => '/web-admin/dev',
     'actions' => 
     array (
       0 => 'formBuild',
@@ -158,7 +158,7 @@ $routes = array (
   ),
   'plugin\\admin\\app\\controller\\DictController' => 
   array (
-    'path' => '/app/admin/dict',
+    'path' => '/web-admin/dict',
     'actions' => 
     array (
       0 => 'delete',
@@ -171,7 +171,7 @@ $routes = array (
   ),
   'plugin\\admin\\app\\controller\\DownloadfileController' => 
   array (
-    'path' => '/app/admin/downloadfile',
+    'path' => '/web-admin/downloadfile',
     'actions' => 
     array (
       0 => 'delete',
@@ -182,7 +182,7 @@ $routes = array (
   ),
   'plugin\\admin\\app\\controller\\EmailtemplateController' => 
   array (
-    'path' => '/app/admin/emailtemplate',
+    'path' => '/web-admin/emailtemplate',
     'actions' => 
     array (
       0 => 'delete',
@@ -193,7 +193,7 @@ $routes = array (
   ),
   'plugin\\admin\\app\\controller\\FaqController' => 
   array (
-    'path' => '/app/admin/faq',
+    'path' => '/web-admin/faq',
     'actions' => 
     array (
       0 => 'delete',
@@ -205,7 +205,7 @@ $routes = array (
   ),
   'plugin\\admin\\app\\controller\\FilemanagerController' => 
   array (
-    'path' => '/app/admin/filemanager',
+    'path' => '/web-admin/filemanager',
     'actions' => 
     array (
       0 => 'activate',
@@ -221,7 +221,7 @@ $routes = array (
   ),
   'plugin\\admin\\app\\controller\\FormController' => 
   array (
-    'path' => '/app/admin/form',
+    'path' => '/web-admin/form',
     'actions' => 
     array (
       0 => 'delete',
@@ -232,7 +232,7 @@ $routes = array (
   ),
   'plugin\\admin\\app\\controller\\FormfieldController' => 
   array (
-    'path' => '/app/admin/formfield',
+    'path' => '/web-admin/formfield',
     'actions' => 
     array (
       0 => 'delete',
@@ -243,14 +243,14 @@ $routes = array (
   ),
   'plugin\\admin\\app\\controller\\GeneratedModuleController' => 
   array (
-    'path' => '/app/admin/generatedmodule',
+    'path' => '/web-admin/generatedmodule',
     'actions' => 
     array (
     ),
   ),
   'plugin\\admin\\app\\controller\\GlobalvariableController' => 
   array (
-    'path' => '/app/admin/globalvariable',
+    'path' => '/web-admin/globalvariable',
     'actions' => 
     array (
       0 => 'delete',
@@ -264,7 +264,7 @@ $routes = array (
   ),
   'plugin\\admin\\app\\controller\\GuestbookController' => 
   array (
-    'path' => '/app/admin/guestbook',
+    'path' => '/web-admin/guestbook',
     'actions' => 
     array (
       0 => 'delete',
@@ -275,7 +275,7 @@ $routes = array (
   ),
   'plugin\\admin\\app\\controller\\IndexController' => 
   array (
-    'path' => '/app/admin/index',
+    'path' => '/web-admin/index',
     'actions' => 
     array (
       0 => 'dashboard',
@@ -286,7 +286,7 @@ $routes = array (
   ),
   'plugin\\admin\\app\\controller\\InstallController' => 
   array (
-    'path' => '/app/admin/install',
+    'path' => '/web-admin/install',
     'actions' => 
     array (
       0 => 'step1',
@@ -295,7 +295,7 @@ $routes = array (
   ),
   'plugin\\admin\\app\\controller\\LanguageController' => 
   array (
-    'path' => '/app/admin/language',
+    'path' => '/web-admin/language',
     'actions' => 
     array (
       0 => 'delete',
@@ -317,7 +317,7 @@ $routes = array (
   ),
   'plugin\\admin\\app\\controller\\LanguagepackController' => 
   array (
-    'path' => '/app/admin/languagepack',
+    'path' => '/web-admin/languagepack',
     'actions' => 
     array (
       0 => 'batch',
@@ -337,7 +337,7 @@ $routes = array (
   ),
   'plugin\\admin\\app\\controller\\LinksController' => 
   array (
-    'path' => '/app/admin/links',
+    'path' => '/web-admin/links',
     'actions' => 
     array (
       0 => 'delete',
@@ -348,7 +348,7 @@ $routes = array (
   ),
   'plugin\\admin\\app\\controller\\LinksgroupController' => 
   array (
-    'path' => '/app/admin/linksgroup',
+    'path' => '/web-admin/linksgroup',
     'actions' => 
     array (
       0 => 'delete',
@@ -359,7 +359,7 @@ $routes = array (
   ),
   'plugin\\admin\\app\\controller\\MediafileController' => 
   array (
-    'path' => '/app/admin/mediafile',
+    'path' => '/web-admin/mediafile',
     'actions' => 
     array (
       0 => 'delete',
@@ -370,7 +370,7 @@ $routes = array (
   ),
   'plugin\\admin\\app\\controller\\NavigationController' => 
   array (
-    'path' => '/app/admin/navigation',
+    'path' => '/web-admin/navigation',
     'actions' => 
     array (
       0 => 'delete',
@@ -381,7 +381,7 @@ $routes = array (
   ),
   'plugin\\admin\\app\\controller\\NavigationpositionController' => 
   array (
-    'path' => '/app/admin/navigationposition',
+    'path' => '/web-admin/navigationposition',
     'actions' => 
     array (
       0 => 'delete',
@@ -392,7 +392,7 @@ $routes = array (
   ),
   'plugin\\admin\\app\\controller\\OperationlogController' => 
   array (
-    'path' => '/app/admin/operationlog',
+    'path' => '/web-admin/operationlog',
     'actions' => 
     array (
       0 => 'delete',
@@ -403,7 +403,7 @@ $routes = array (
   ),
   'plugin\\admin\\app\\controller\\PluginController' => 
   array (
-    'path' => '/app/admin/plugin',
+    'path' => '/web-admin/plugin',
     'actions' => 
     array (
       0 => 'captcha',
@@ -418,7 +418,7 @@ $routes = array (
   ),
   'plugin\\admin\\app\\controller\\ProductparameterController' => 
   array (
-    'path' => '/app/admin/productparameter',
+    'path' => '/web-admin/productparameter',
     'actions' => 
     array (
       0 => 'index',
@@ -434,7 +434,7 @@ $routes = array (
   ),
   'plugin\\admin\\app\\controller\\RecycleController' => 
   array (
-    'path' => '/app/admin/recycle',
+    'path' => '/web-admin/recycle',
     'actions' => 
     array (
       0 => 'index',
@@ -445,7 +445,7 @@ $routes = array (
   ),
   'plugin\\admin\\app\\controller\\RoleController' => 
   array (
-    'path' => '/app/admin/role',
+    'path' => '/web-admin/role',
     'actions' => 
     array (
       0 => 'delete',
@@ -459,7 +459,7 @@ $routes = array (
   ),
   'plugin\\admin\\app\\controller\\RuleController' => 
   array (
-    'path' => '/app/admin/rule',
+    'path' => '/web-admin/rule',
     'actions' => 
     array (
       0 => 'delete',
@@ -473,7 +473,7 @@ $routes = array (
   ),
   'plugin\\admin\\app\\controller\\SearchwordController' => 
   array (
-    'path' => '/app/admin/searchword',
+    'path' => '/web-admin/searchword',
     'actions' => 
     array (
       0 => 'delete',
@@ -484,7 +484,7 @@ $routes = array (
   ),
   'plugin\\admin\\app\\controller\\SeoController' => 
   array (
-    'path' => '/app/admin/seo',
+    'path' => '/web-admin/seo',
     'actions' => 
     array (
       0 => 'index',
@@ -494,7 +494,7 @@ $routes = array (
   ),
   'plugin\\admin\\app\\controller\\SitemapController' => 
   array (
-    'path' => '/app/admin/sitemap',
+    'path' => '/web-admin/sitemap',
     'actions' => 
     array (
       0 => 'clean',
@@ -506,7 +506,7 @@ $routes = array (
   ),
   'plugin\\admin\\app\\controller\\SmsconfigController' => 
   array (
-    'path' => '/app/admin/smsconfig',
+    'path' => '/web-admin/smsconfig',
     'actions' => 
     array (
       0 => 'index',
@@ -516,7 +516,7 @@ $routes = array (
   ),
   'plugin\\admin\\app\\controller\\SmslogController' => 
   array (
-    'path' => '/app/admin/smslog',
+    'path' => '/web-admin/smslog',
     'actions' => 
     array (
       0 => 'delete',
@@ -527,7 +527,7 @@ $routes = array (
   ),
   'plugin\\admin\\app\\controller\\SmstemplateController' => 
   array (
-    'path' => '/app/admin/smstemplate',
+    'path' => '/web-admin/smstemplate',
     'actions' => 
     array (
       0 => 'delete',
@@ -538,7 +538,7 @@ $routes = array (
   ),
   'plugin\\admin\\app\\controller\\SpecialnodeController' => 
   array (
-    'path' => '/app/admin/specialnode',
+    'path' => '/web-admin/specialnode',
     'actions' => 
     array (
       0 => 'choices',
@@ -551,7 +551,7 @@ $routes = array (
   ),
   'plugin\\admin\\app\\controller\\StaticgenerateController' => 
   array (
-    'path' => '/app/admin/staticgenerate',
+    'path' => '/web-admin/staticgenerate',
     'actions' => 
     array (
       0 => 'clean',
@@ -564,7 +564,7 @@ $routes = array (
   ),
   'plugin\\admin\\app\\controller\\TableController' => 
   array (
-    'path' => '/app/admin/table',
+    'path' => '/web-admin/table',
     'actions' => 
     array (
       0 => 'create',
@@ -584,7 +584,7 @@ $routes = array (
   ),
   'plugin\\admin\\app\\controller\\TagsController' => 
   array (
-    'path' => '/app/admin/tags',
+    'path' => '/web-admin/tags',
     'actions' => 
     array (
       0 => 'delete',
@@ -595,7 +595,7 @@ $routes = array (
   ),
   'plugin\\admin\\app\\controller\\UisetController' => 
   array (
-    'path' => '/app/admin/uiset',
+    'path' => '/web-admin/uiset',
     'actions' => 
     array (
       0 => 'clear',
@@ -606,7 +606,7 @@ $routes = array (
   ),
   'plugin\\admin\\app\\controller\\UploadController' => 
   array (
-    'path' => '/app/admin/upload',
+    'path' => '/web-admin/upload',
     'actions' => 
     array (
       0 => 'attachment',
@@ -622,7 +622,7 @@ $routes = array (
   ),
   'plugin\\admin\\app\\controller\\UserController' => 
   array (
-    'path' => '/app/admin/user',
+    'path' => '/web-admin/user',
     'actions' => 
     array (
       0 => 'delete',
@@ -634,7 +634,7 @@ $routes = array (
   ),
   'plugin\\admin\\app\\controller\\WebsiteconfigController' => 
   array (
-    'path' => '/app/admin/websiteconfig',
+    'path' => '/web-admin/websiteconfig',
     'actions' => 
     array (
       0 => 'configure',
@@ -648,6 +648,6 @@ $routes = array (
 );
 
 foreach (["TagsController"=>["tools","batchPreview","batchRun","relations","saveRelations"],"SearchwordController"=>["tools","batchPreview","batchRun","searchSettings","saveSearchSettings","export"],"GuestbookController"=>["tools","export"],"CitysiteController"=>["migrationPreview","migrateSettings"],"ArchiveController"=>["batch","rebackdraft","resubmit","copyPlan","copy"],"ArctypeController"=>["batch","batchPreview","batchRun","batchStatus"]] as $short=>$actions) { $key="plugin\\admin\\app\\controller\\".$short; $routes[$key]["actions"]=array_values(array_unique(array_merge($routes[$key]["actions"],$actions))); }
-$routes['plugin\\admin\\app\\controller\\DatabasebackupController']=['path'=>'/app/admin/databasebackup','actions'=>['index','select','create','preview','restore','status','tasks','cleanupPreview','cleanup']];
-$routes['plugin\\admin\\app\\controller\\RobotsController']=['path'=>'/app/admin/robots','actions'=>['index','select','save','revisions','restore']];
+$routes['plugin\\admin\\app\\controller\\DatabasebackupController']=['path'=>'/web-admin/databasebackup','actions'=>['index','select','create','preview','restore','status','tasks','cleanupPreview','cleanup']];
+$routes['plugin\\admin\\app\\controller\\RobotsController']=['path'=>'/web-admin/robots','actions'=>['index','select','save','revisions','restore']];
 return $routes;

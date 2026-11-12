@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="renderer" content="webkit|ie-comp|ie-stand">
+<meta http-equiv="X-UA-Compatible" content="IE=Edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no">
+<title>{$eyou.field.seo_title|htmlspecialchars=###,ENT_QUOTES+ENT_SUBSTITUTE+ENT_HTML5,'UTF-8',false}</title>
+<meta name="description" content="{$eyou.field.seo_description|htmlspecialchars=###,ENT_QUOTES+ENT_SUBSTITUTE+ENT_HTML5,'UTF-8',false}" />
+<meta name="keywords" content="{$eyou.field.seo_keywords|htmlspecialchars=###,ENT_QUOTES+ENT_SUBSTITUTE+ENT_HTML5,'UTF-8',false}" />
+<link href="{eyou:global name='web_cmspath' /}/favicon.ico" rel="shortcut icon" type="image/x-icon" />
+<meta http-equiv="Cache-Control" content="no-transform" />
+<meta name="applicable-device" content="wap">
+<meta name="MobileOptimized" content="width" />
+<meta name="HandheldFriendly" content="true" />
+<script type="text/javascript" src="{eyou:global name='web_templets_m' /}/skin/js/jquery-1.12.4.min.js"></script>
+<link rel="stylesheet" href="{eyou:global name='web_templets_m' /}/skin/css/you.css">
+<link rel="stylesheet" href="{eyou:global name='web_templets_m' /}/skin/css/font-awesome.min.css">
+<script type="text/javascript" src="{eyou:global name='web_templets_m' /}/skin/js/you.js"></script>
+<link rel="stylesheet" href="{eyou:global name='web_templets_m' /}/skin/css/animate.min.css">
+</head>
+<body>
+{eyou:include file="header.htm" /}
+<div class="main container">
+  <nav aria-label="当前位置">{eyou:position style=" " /}</nav>
+  <div class="page_tit">
+    <h1><span>{$eyou.field.typename|htmlspecialchars}</span></h1>
+  </div>
+  <div class="pro_menu">
+    <ul>
+      {eyou:channel type='first' id='field' currentstyle='on'}
+      <li class="{$field.currentstyle}"><a href="{$field.typeurl}">{$field.typename}</a></li>
+      {/eyou:channel}
+    </ul>
+  </div>
+  <div class="i_box1_list pro_list" id="pro_list">
+    <ul>
+      {eyou:list titlelen='20' pagesize='6'}
+      <li> <a href="{$field.arcurl}">
+        <div class="imgauto1"><img src="{$field.litpic}" alt="{$field.title|htmlspecialchars}"></div>
+        <span class="ellipsis">{$field.title}</span> </a> </li>
+      {/eyou:list}
+    </ul>
+  </div>
+  <div class="page">
+    <div class="pagination"> {eyou:pagelist listitem='index,pre,next,end' listsize='2' /} </div>
+  </div>
+  <script type="text/javascript">
+                $(function () {
+                    $('.imgauto1 img').imgAuto();
+                })
+            </script> 
+</div>
+{eyou:include file="footer.htm" /}
+</body>
+</html>

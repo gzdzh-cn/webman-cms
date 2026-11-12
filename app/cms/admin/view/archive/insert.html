@@ -132,7 +132,7 @@
     </style>
 </head>
 
-<body class="cms-editor-page cms-embedded-editor" data-cms-return-url="/app/admin/archive/index">
+<body class="cms-editor-page cms-embedded-editor" data-cms-return-url="/web-admin/archive/index">
 <header class="cms-editor-heading"><button type="button" data-cms-archive-back aria-label="返回文章列表">←</button><div><h1>新增文章</h1></div></header>
 
     <form data-cms-page-editor class="layui-form" action="">
@@ -532,7 +532,7 @@
     <script>
 
         // 相关接口
-        const INSERT_API = "/app/admin/archive/insert";
+        const INSERT_API = "/web-admin/archive/insert";
 
         var editors = {}; // 存储编辑器实例
         var fieldsData = {}; // 存储字段数据（包含初始值dfvalue）
@@ -569,7 +569,7 @@
                 $('#tag_loading').show();
                 $.ajax({
                     type: 'post',
-                    url: '/app/admin/archive/getCommonTags',
+                    url: '/web-admin/archive/getCommonTags',
                     data: {tags: val, is_click: 1, lang: currentArchiveLang()},
                     dataType: 'json',
                     success: function(res) {
@@ -588,12 +588,12 @@
                                 $('#often_tags').html(html).show();
                             }
                         } else {
-                            layui.pearPopup.failure(res.msg || '获取标签失败');
+                            window.CmsUI.failure(res.msg || '获取标签失败');
                         }
                     },
                     error: function(e) {
                         $('#tag_loading').hide();
-                        layui.pearPopup.failure('获取标签失败');
+                        window.CmsUI.failure('获取标签失败');
                     }
                 });
             };
@@ -608,7 +608,7 @@
             }
                 $.ajax({
                     type: 'post',
-                    url: '/app/admin/archive/getCommonTags',
+                    url: '/web-admin/archive/getCommonTags',
                     data: {tags: val, type: 1, lang: currentArchiveLang()},
                     dataType: 'json',
                     success: function(res) {
@@ -765,7 +765,7 @@
             }
             var litpicListUploaderInst = upload.render({
                 elem: '#litpic_list_upload_input',
-                url: '/app/admin/upload/image',
+                url: '/web-admin/upload/image',
                 accept: 'images',
                 acceptMime: 'image/*',
                 multiple: true,
@@ -874,7 +874,7 @@
             // 初始化封面图片上传
             upload.render({
                 elem: '#upload-litpic',
-                url: '/app/admin/upload/image',
+                url: '/web-admin/upload/image',
                 accept: 'images',
                 acceptMime: 'image/*',
                 done: function(res) {
@@ -927,7 +927,7 @@
                         toggleLitpicComponents(selectedChannelId);
                         loadChannelfields(typeid, selectedChannelId);
                     } else {
-                        layui.pearPopup.failure('无法获取栏目对应的模型ID，请重新选择栏目');
+                        window.CmsUI.failure('无法获取栏目对应的模型ID，请重新选择栏目');
                     }
                 } else {
                     // 清空动态字段
@@ -963,7 +963,7 @@
                     var $editorContent = $('#editor-content');
                     if ($editorContent.length > 0 && typeof tinymce !== 'undefined' && !editors['content']) {
                         editors['content'] = tinymce.render({
-                            images_upload_url: '/app/admin/upload/image',
+                            images_upload_url: '/web-admin/upload/image',
                             file_picker_types: 'file',
                             file_picker_callback: window.cmsAttachmentPicker,
                             elem: '#editor-content',
@@ -976,7 +976,7 @@
                     var $editorContentEyM = $('#editor-content-ey-m');
                     if ($editorContentEyM.length > 0 && typeof tinymce !== 'undefined' && !editors['content_ey_m']) {
                         editors['content_ey_m'] = tinymce.render({
-                            images_upload_url: '/app/admin/upload/image',
+                            images_upload_url: '/web-admin/upload/image',
                             file_picker_types: 'file',
                             file_picker_callback: window.cmsAttachmentPicker,
                             elem: '#editor-content-ey-m',
@@ -1046,10 +1046,10 @@
                         if (res.code) {
                             window.CmsUI.error(cmsForm,res.msg,res.fields||res.data?.fields);return false;
                         }
-                        return layui.pearPopup.success("操作成功", function () {
+                        return window.CmsUI.success("操作成功", function () {
                             window.CmsModuleNavigation?.markClean(cmsForm);delete cmsForm.dataset.cmsDirty;
                             if (parent!==window && typeof parent.refreshTable==='function') parent.refreshTable();
-                            else window.CmsUI.saved('/app/admin/archive/index');
+                            else window.CmsUI.saved('/web-admin/archive/index');
                         });
                     }
                 });
@@ -1070,7 +1070,7 @@
                 }
 
                 $.ajax({
-                    url: "/app/admin/channelfield/getArctypeList",
+                    url: "/web-admin/channelfield/getArctypeList",
                     type: 'get',
                     dataType: 'json',
                     data: requestParams,
@@ -1136,7 +1136,7 @@
                                 };
 
                                 $.ajax({
-                                    url: "/app/admin/channelfield/select",
+                                    url: "/web-admin/channelfield/select",
                                     type: 'get',
                                     dataType: 'json',
                                     data: requestData,
@@ -1163,7 +1163,7 @@
                     lang: $('#typeid-select option:selected').attr('data-lang') || layui.url().search.lang || 'cn'
                 };
                 var requestVersion = ++templateRequestVersion;
-                $.getJSON('/app/admin/arctype/getTemplates', params, function (res) {
+                $.getJSON('/web-admin/arctype/getTemplates', params, function (res) {
                     if (requestVersion !== templateRequestVersion) return;
                     if (res.code === 0 && Array.isArray(res.data)) {
                         var $tempviewSelect = $('select[name="tempview"]');
@@ -1289,7 +1289,7 @@
                         var $editorContent = $('#editor-content');
                         if ($editorContent.length > 0 && typeof tinymce !== 'undefined' && !editors['content']) {
                             editors['content'] = tinymce.render({
-                                images_upload_url: '/app/admin/upload/image',
+                                images_upload_url: '/web-admin/upload/image',
                                 file_picker_types: 'file',
                                 file_picker_callback: window.cmsAttachmentPicker,
                                 elem: '#editor-content',
@@ -1303,7 +1303,7 @@
                         var $editorContentEyM = $('#editor-content-ey-m');
                         if ($editorContentEyM.length > 0 && typeof tinymce !== 'undefined' && !editors['content_ey_m']) {
                             editors['content_ey_m'] = tinymce.render({
-                                images_upload_url: '/app/admin/upload/image',
+                                images_upload_url: '/web-admin/upload/image',
                                 file_picker_types: 'file',
                                 file_picker_callback: window.cmsAttachmentPicker,
                                 elem: '#editor-content-ey-m',
@@ -1324,7 +1324,7 @@
                             var $editor = $('#' + editorId);
                             if ($editor.length > 0 && typeof tinymce !== 'undefined' && !editors[fieldName]) {
                                 editors[fieldName] = tinymce.render({
-                                    images_upload_url: '/app/admin/upload/image',
+                                    images_upload_url: '/web-admin/upload/image',
                                     file_picker_types: 'file',
                                     file_picker_callback: window.cmsAttachmentPicker,
                                     elem: '#' + editorId,
@@ -1366,7 +1366,7 @@
                     if (fieldType === 'img') {
                         upload.render({
                             elem: '#upload-' + fieldName,
-                            url: '/app/admin/upload/image',
+                            url: '/web-admin/upload/image',
                             accept: 'images',
                             done: function (res) {
                                 if (res.code === 0) {
@@ -1381,7 +1381,7 @@
                     } else if (fieldType === 'imgs') {
                         upload.render({
                             elem: '#upload-' + fieldName,
-                            url: '/app/admin/upload/image',
+                            url: '/web-admin/upload/image',
                             accept: 'images',
                             multiple: true,
                             done: function (res) {
@@ -1393,7 +1393,7 @@
                     } else if (fieldType === 'files') {
                         upload.render({
                             elem: '#upload-' + fieldName,
-                            url: '/app/admin/upload/file',
+                            url: '/web-admin/upload/file',
                             accept: 'file',
                             done: function (res) {
                                 if (res.code === 0) {
@@ -1537,7 +1537,7 @@
                 form.render();
 
                 // 提示用户
-                layui.pearPopup.success('表单已重置');
+                window.CmsUI.success('表单已重置');
             }
 
 

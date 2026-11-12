@@ -453,7 +453,7 @@ class TableController extends \plugin\admin\app\controller\Base
             'controller_file' => base_path(ltrim($controller, '/')), 'model_file' => base_path(ltrim($model, '/')),
             'template_path' => $template,
             'template_directory' => $cms ? base_path('app/cms/admin/view/' . $template) : base_path('app/' . ($app ? "$app/" : '') . 'view/' . $template),
-            'url' => $cms ? '/app/admin/' . $template : '/' . ($app ? "$app/" : '') . $template,
+            'url' => $cms ? '/web-admin/' . $template : '/' . ($app ? "$app/" : '') . $template,
             'permission_key' => $cms ? 'plugin\\admin\\app\\controller\\' . $controllerClass : $controllerNamespace . '\\' . $controllerClass,
             'legacy_controller_file' => base_path('app/cms/admin/legacy/app/controller/' . $controllerClass . '.php'),
             'legacy_model_file' => base_path('app/cms/admin/legacy/app/model/' . $modelClass . '.php'),
@@ -538,7 +538,7 @@ class TableController extends \plugin\admin\app\controller\Base
                     throw new \RuntimeException('后台路由权限标识无效');
                 }
                 $path = $definition['path'] ?? null;
-                if (!is_string($path) || !preg_match('#^/app/admin/[a-z][a-z0-9-]*$#D', $path)) throw new \RuntimeException('后台路由地址无效');
+                if (!is_string($path) || !preg_match('#^/web-admin/[a-z][a-z0-9-]*$#D', $path)) throw new \RuntimeException('后台路由地址无效');
                 $canonicalIdentity = strtolower($identity);
                 $canonicalPath = strtolower(str_replace('-', '', $path));
                 if (isset($identities[$canonicalIdentity])) throw new \RuntimeException('生成控制器与已有后台权限标识冲突');

@@ -201,11 +201,7 @@ class Monitor
         if (PHP_OS_FAMILY !== 'Linux') {
             return $this->ppid;
         }
-        $cmdline = "/proc/$this->ppid/cmdline";
-        if (!is_readable($cmdline) || !($content = file_get_contents($cmdline)) || (!str_contains($content, 'WorkerMan') && !str_contains($content, 'php'))) {
-            // Process not exist
-            $this->ppid = 0;
-        }
+        try { if(\app\cms\support\ProcessLauncher::master()!==$this->ppid)$this->ppid=0; } catch(\Throwable) { $this->ppid=0; }
         return $this->ppid;
     }
 

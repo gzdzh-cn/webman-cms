@@ -38,7 +38,7 @@ final class AdminView
             'cache_path' => $cache . '/',
             'view_suffix' => 'html',
             // Vendor checkCache() otherwise deserializes an untrusted disk header
-            // before the storage driver can authenticate it. Always recompile.
+            // before our storage boundary. Always compile trusted application sources.
             'tpl_cache' => false,
             'display_cache' => false,
             'compile_type' => \app\cms\security\AdminTemplateStorage::class,
@@ -57,17 +57,20 @@ final class AdminView
     private static function languageBootstrap(string $html): string
     {
         if (!str_contains(strtolower($html), '<head')) return $html;
+        // Login also uses the shared feedback API, before any authenticated
+        // language state exists. Load its assets independently of that state.
+        $uiCss=htmlspecialchars(\app\cms\AssetManifest::url('/admin-assets/css/cms-ui.css'),ENT_QUOTES,'UTF-8');
+        $uiJs=htmlspecialchars(\app\cms\AssetManifest::url('/admin-assets/js/cms-ui.js'),ENT_QUOTES,'UTF-8');
+        $ui='<link rel="stylesheet" href="'.$uiCss.'"><script defer src="'.$uiJs.'"></script>';
+        $html = preg_replace('/<head\b[^>]*>/i', '$0'.$ui, $html, 1);
         $request = request();
         if (!$request || !function_exists('admin') || !admin()) return $html;
         $state = LanguageAdminContext::state($request);
         $state['edit'] = $state['lang'];
         $state['csrf'] = LanguageAdminSecurity::token($request);
-        $uiCss=htmlspecialchars(\app\cms\AssetManifest::url('/admin-assets/css/cms-ui.css'),ENT_QUOTES,'UTF-8');
-        $uiJs=htmlspecialchars(\app\cms\AssetManifest::url('/admin-assets/js/cms-ui.js'),ENT_QUOTES,'UTF-8');
-        $ui='<link rel="stylesheet" href="'.$uiCss.'"><script defer src="'.$uiJs.'"></script>';
         $json = json_encode($state, JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT|JSON_THROW_ON_ERROR);
         $url = htmlspecialchars(\app\cms\AssetManifest::url('/admin-assets/js/cms-language-context.js'), ENT_QUOTES, 'UTF-8');
-        return preg_replace('/<head\b[^>]*>/i', '$0'.$ui.'<script>window.CmsLanguageInitial='.$json.';</script><script src="'.$url.'"></script>', $html, 1);
+        return preg_replace('/<head\b[^>]*>/i', '$0'.'<script>window.CmsLanguageInitial='.$json.';</script><script src="'.$url.'"></script>', $html, 1);
     }
 
     private static function variables(array $vars): array
@@ -87,6 +90,7 @@ final class AdminView
             $file .= '/' . $segment;
             if (is_link($file)) throw new RuntimeException('后台模板不能使用符号链接');
         }
+        if ($packed = \app\cms\support\PackagedFiles::template($file, $root)) return $packed;
         $actual = realpath($file);
         if (!$actual || !is_file($actual) || !str_starts_with($actual, (string)realpath($root) . '/')) {
             throw new RuntimeException('后台模板不存在：' . $template);

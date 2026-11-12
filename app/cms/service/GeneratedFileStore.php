@@ -68,7 +68,7 @@ final class GeneratedFileStore
         $decoded = rawurldecode($path);
         foreach (explode('/', $decoded) as $segment) if ($segment === '.' || $segment === '..') throw new \InvalidArgumentException('生成URL包含越界路径');
         if ($base !== '' && $path !== $base && !str_starts_with($path, rtrim($base, '/') . '/')) throw new \InvalidArgumentException('生成URL超出站点目录');
-        if (preg_match('#(?:^|/)(?:app|admin|template|uploads?|public|config|vendor|runtime)(?:/|$)#i', $decoded) || preg_match('/\.(?:php[0-9]?|phtml|phar|inc|css|js|json|svg|png|jpe?g|gif|webp|ico|woff2?|ttf|zip|pdf)(?:\/|$)/i', $decoded) && !preg_match('#(?:^|/)index\.php$#i', $decoded)) throw new \InvalidArgumentException('生成URL不是公开HTML页面');
+        if (preg_match('#(?:^|/)(?:app|admin|web-admin|template|uploads?|public|config|vendor|runtime)(?:/|$)#i', $decoded) || preg_match('/\.(?:php[0-9]?|phtml|phar|inc|css|js|json|svg|png|jpe?g|gif|webp|ico|woff2?|ttf|zip|pdf)(?:\/|$)/i', $decoded) && !preg_match('#(?:^|/)index\.php$#i', $decoded)) throw new \InvalidArgumentException('生成URL不是公开HTML页面');
         parse_str($parts['query'] ?? '', $query);
         if (array_filter($query, 'is_array')) throw new \InvalidArgumentException('生成URL查询参数无效');
         ksort($query);

@@ -1,1 +1,131 @@
-(function(window){"use strict";var choiceTypes=["checkbox","checkboxs","radio","radios","select","selects"];function escape(value){return String(value==null?"":value).replace(/[&<>"']/g,function(char){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[char]})}function delimited(value,labels){return String(value==null?"":value).split(",").filter(function(entry){return labels?entry.trim()!=="":entry!==""}).map(function(entry){var parts=entry.split("|");return labels?{text:parts[0].trim(),value:(parts.length>1?parts[1]:parts[0]).trim()}:{text:entry,value:entry}})}function sqlOptions(definition){var match=String(definition).match(/^\s*(?:enum|set)\s*\(([\s\S]*)\)\s*$/i);if(!match)return null;var values=[],text=match[1],offset=0;while(offset<text.length){while(/[\s,]/.test(text.charAt(offset))&&offset<text.length)offset++;var quote=text.charAt(offset++),value="";if(quote!=="'"&&quote!=='"')return[];var closed=false;while(offset<text.length){var char=text.charAt(offset++);if(char==="\\"&&offset<text.length)value+=text.charAt(offset++);else if(char===quote){if(text.charAt(offset)===quote){value+=quote;offset++}else{closed=true;break}}else value+=char}if(!closed)return[];values.push({text:value,value:value});while(/\s/.test(text.charAt(offset))&&offset<text.length)offset++;if(offset<text.length&&text.charAt(offset)!==",")return[]}return values}function resolve(field){if(Array.isArray(field.options))return field.options.map(function(option){return{value:String(option.value),text:String(option.text==null?option.value:option.text)}});var type=field.dtype,definition=String(field.define||""),defaults=field.dfvalue;if(defaults!=null&&String(defaults)!==""&&(type==="radio"||type==="radios"||(type==="select"||type==="checkbox")&&definition.indexOf("|")<0))return delimited(defaults,false);var sql=sqlOptions(definition);if(sql!==null)return sql;var storageType=/^\s*(?:tinytext|text|mediumtext|longtext|(?:var)?char\(\d+\)|(?:tiny|small|medium|big)?int(?:\(\d+\))?)\s*$/i.test(definition);if(definition&&!storageType)return delimited(definition,true);if(defaults!=null&&String(defaults)!=="")return delimited(defaults,false);return[]}function defaultValue(field){if(field.dtype==="checkbox"||field.dtype==="checkboxs")return"";var options=resolve(field),first=options.length?options[0].value:"";if(Array.isArray(field.options))return first;if(field.dtype==="radio"||field.dtype==="select")first=String(field.dfvalue==null?"":field.dfvalue).split(",")[0];return first==="0"?"":first}function render(field){var type=field.dtype,name=escape(field.name),defaults=defaultValue(field);var options=resolve(field),html="",values=defaults?defaults.split(","):[];if(type==="select"||type==="selects"){html='<select name="'+name+'"'+(field.ifrequire==1?' lay-verify="required"':"")+'><option value="">请选择</option>';options.forEach(function(option){html+='<option value="'+escape(option.value)+'"'+(defaults===option.value?" selected":"")+">"+escape(option.text)+"</option>"});return html+"</select>"}options.forEach(function(option){var checkbox=type==="checkbox"||type==="checkboxs";var checked=checkbox?values.indexOf(option.value)>=0:defaults===option.value;html+='<input type="'+(checkbox?"checkbox":"radio")+'" name="'+name+(checkbox?"[]":"")+'" value="'+escape(option.value)+'" title="'+escape(option.text)+'"'+(checked?" checked":"")+">"});return html}function restore(container,name,type,value){if(choiceTypes.indexOf(type)<0)return false;container=container&&container.jquery?container[0]:container;if(!container)return true;var nodes=function(){return Array.prototype.filter.call(container.querySelectorAll("input,select"),function(input){return input.name===name||input.name===name+"[]"})};nodes().filter(function(input){return input.hasAttribute("data-cms-legacy-option")}).forEach(function(input){var appearance=input.nextElementSibling;if(appearance&&(appearance.classList.contains("layui-form-checkbox")||appearance.classList.contains("layui-form-radio")))appearance.remove();input.remove()});nodes().filter(function(input){return input.tagName==="SELECT"}).forEach(function(select){Array.prototype.slice.call(select.options).filter(function(option){return option.hasAttribute("data-cms-legacy-option")}).forEach(function(option){option.remove()})});var checkbox=type==="checkbox"||type==="checkboxs";var selected=checkbox?Array.isArray(value)?value.map(String):String(value==null?"":value).split(","):[String(value==null?"":value)];selected=selected.filter(function(entry){return entry!==""});var inputs=nodes(),select=inputs.find(function(input){return input.tagName==="SELECT"});if(select){selected.forEach(function(entry){if(Array.prototype.some.call(select.options,function(option){return option.value===entry}))return;var option=select.ownerDocument.createElement("option");option.value=entry;option.textContent="历史值："+entry;option.setAttribute("data-cms-legacy-option","1");select.appendChild(option)});select.value=selected[0]||"";return true}var anchor=inputs[0],parent=anchor&&anchor.parentNode;if(!parent){var wrappers=Array.prototype.filter.call(container.querySelectorAll("[data-field-name]"),function(field){return field.getAttribute("data-field-name")===name});var wrapper=container.getAttribute&&container.getAttribute("data-field-name")===name?container:wrappers[0];parent=wrapper&&(wrapper.querySelector(".layui-input-block")||wrapper)}if(!parent)return true;selected.forEach(function(entry){if(inputs.some(function(input){return input.value===entry}))return;var input=parent.ownerDocument.createElement("input");input.type=checkbox?"checkbox":"radio";input.name=name+(checkbox?"[]":"");input.value=entry;input.title="历史值："+entry;input.setAttribute("data-cms-legacy-option","1");parent.appendChild(input);inputs.push(input)});inputs.forEach(function(input){input.checked=selected.indexOf(input.value)>=0});return true}window.cmsFieldOptions={resolve:resolve,defaultValue:defaultValue,render:render,restore:restore,escape:escape,types:choiceTypes.slice()}})(window);
+/* First-party enterprise field choices; original modern values are parameter IDs. */
+(function (window) {
+    'use strict';
+    var choiceTypes = ['checkbox', 'checkboxs', 'radio', 'radios', 'select', 'selects'];
+
+    function escape(value) {
+        return String(value == null ? '' : value).replace(/[&<>"']/g, function (char) {
+            return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char];
+        });
+    }
+
+    function delimited(value, labels) {
+        return String(value == null ? '' : value).split(',').filter(function (entry) { return labels ? entry.trim() !== '' : entry !== ''; }).map(function (entry) {
+            var parts = entry.split('|');
+            return labels ? {text:parts[0].trim(),value:(parts.length > 1 ? parts[1] : parts[0]).trim()} : {text:entry,value:entry};
+        });
+    }
+
+    function sqlOptions(definition) {
+        var match = String(definition).match(/^\s*(?:enum|set)\s*\(([\s\S]*)\)\s*$/i);
+        if (!match) return null;
+        var values = [], text = match[1], offset = 0;
+        while (offset < text.length) {
+            while (/[\s,]/.test(text.charAt(offset)) && offset < text.length) offset++;
+            var quote = text.charAt(offset++), value = '';
+            if (quote !== "'" && quote !== '"') return [];
+            var closed = false;
+            while (offset < text.length) {
+                var char = text.charAt(offset++);
+                if (char === '\\' && offset < text.length) value += text.charAt(offset++);
+                else if (char === quote) {
+                    if (text.charAt(offset) === quote) { value += quote; offset++; }
+                    else { closed = true; break; }
+                } else value += char;
+            }
+            if (!closed) return [];
+            values.push({text:value,value:value});
+            while (/\s/.test(text.charAt(offset)) && offset < text.length) offset++;
+            if (offset < text.length && text.charAt(offset) !== ',') return [];
+        }
+        return values;
+    }
+
+    function resolve(field) {
+        if (Array.isArray(field.options)) return field.options.map(function (option) {
+            return {value:String(option.value),text:String(option.text == null ? option.value : option.text)};
+        });
+        var type = field.dtype, definition = String(field.define || ''), defaults = field.dfvalue;
+        // Original singular fields store raw comma-separated labels, including spaces.
+        // Preserve the pre-existing explicit Label|value extension parser separately.
+        if (defaults != null && String(defaults) !== '' && (type === 'radio' || type === 'radios' || ((type === 'select' || type === 'checkbox') && definition.indexOf('|') < 0))) return delimited(defaults, false);
+        var sql = sqlOptions(definition);
+        if (sql !== null) return sql;
+        var storageType = /^\s*(?:tinytext|text|mediumtext|longtext|(?:var)?char\(\d+\)|(?:tiny|small|medium|big)?int(?:\(\d+\))?)\s*$/i.test(definition);
+        if (definition && !storageType) return delimited(definition, true);
+        if (defaults != null && String(defaults) !== '') return delimited(defaults, false);
+        return [];
+    }
+
+    function defaultValue(field) {
+        if (field.dtype === 'checkbox' || field.dtype === 'checkboxs') return '';
+        var options = resolve(field), first = options.length ? options[0].value : '';
+        // Original plural choices use the first parameter ID regardless of dfvalue.
+        if (Array.isArray(field.options)) return first;
+        if (field.dtype === 'radio' || field.dtype === 'select') first = String(field.dfvalue == null ? '' : field.dfvalue).split(',')[0];
+        // PHP empty('0') makes an original singular first label of "0" unset.
+        return first === '0' ? '' : first;
+    }
+
+    function render(field) {
+        var type = field.dtype, name = escape(field.name), defaults = defaultValue(field);
+        var options = resolve(field), html = '', values = defaults ? defaults.split(',') : [];
+        if (type === 'select' || type === 'selects') {
+            html = '<select name="' + name + '"' + (field.ifrequire == 1 ? ' lay-verify="required"' : '') + '><option value="">请选择</option>';
+            options.forEach(function (option) { html += '<option value="' + escape(option.value) + '"' + (defaults === option.value ? ' selected' : '') + '>' + escape(option.text) + '</option>'; });
+            return html + '</select>';
+        }
+        options.forEach(function (option) {
+            var checkbox = type === 'checkbox' || type === 'checkboxs';
+            var checked = checkbox ? values.indexOf(option.value) >= 0 : defaults === option.value;
+            html += '<input type="' + (checkbox ? 'checkbox' : 'radio') + '" name="' + name + (checkbox ? '[]' : '') + '" value="' + escape(option.value) + '" title="' + escape(option.text) + '"' + (checked ? ' checked' : '') + '>';
+        });
+        return html;
+    }
+
+    function restore(container, name, type, value) {
+        if (choiceTypes.indexOf(type) < 0) return false;
+        container = container && container.jquery ? container[0] : container;
+        if (!container) return true;
+        var nodes = function () { return Array.prototype.filter.call(container.querySelectorAll('input,select'), function (input) { return input.name === name || input.name === name + '[]'; }); };
+        // Previous reload-only legacy controls must not accumulate or affect other fields.
+        nodes().filter(function (input) { return input.hasAttribute('data-cms-legacy-option'); }).forEach(function (input) {
+            var appearance = input.nextElementSibling;
+            if (appearance && (appearance.classList.contains('layui-form-checkbox') || appearance.classList.contains('layui-form-radio'))) appearance.remove();
+            input.remove();
+        });
+        nodes().filter(function (input) { return input.tagName === 'SELECT'; }).forEach(function (select) {
+            Array.prototype.slice.call(select.options).filter(function (option) { return option.hasAttribute('data-cms-legacy-option'); }).forEach(function (option) { option.remove(); });
+        });
+        var checkbox = type === 'checkbox' || type === 'checkboxs';
+        var selected = checkbox ? (Array.isArray(value) ? value.map(String) : String(value == null ? '' : value).split(',')) : [String(value == null ? '' : value)];
+        selected = selected.filter(function (entry) { return entry !== ''; });
+        var inputs = nodes(), select = inputs.find(function (input) { return input.tagName === 'SELECT'; });
+        if (select) {
+            selected.forEach(function (entry) {
+                if (Array.prototype.some.call(select.options, function (option) { return option.value === entry; })) return;
+                var option = select.ownerDocument.createElement('option');
+                option.value = entry; option.textContent = '历史值：' + entry; option.setAttribute('data-cms-legacy-option', '1'); select.appendChild(option);
+            });
+            select.value = selected[0] || '';
+            return true;
+        }
+        var anchor = inputs[0], parent = anchor && anchor.parentNode;
+        if (!parent) {
+            var wrappers = Array.prototype.filter.call(container.querySelectorAll('[data-field-name]'), function (field) { return field.getAttribute('data-field-name') === name; });
+            var wrapper = container.getAttribute && container.getAttribute('data-field-name') === name ? container : wrappers[0];
+            parent = wrapper && (wrapper.querySelector('.layui-input-block') || wrapper);
+        }
+        if (!parent) return true;
+        selected.forEach(function (entry) {
+            if (inputs.some(function (input) { return input.value === entry; })) return;
+            var input = parent.ownerDocument.createElement('input');
+            input.type = checkbox ? 'checkbox' : 'radio'; input.name = name + (checkbox ? '[]' : ''); input.value = entry;
+            input.title = '历史值：' + entry; input.setAttribute('data-cms-legacy-option', '1'); parent.appendChild(input); inputs.push(input);
+        });
+        inputs.forEach(function (input) { input.checked = selected.indexOf(input.value) >= 0; });
+        return true;
+    }
+
+    window.cmsFieldOptions = {resolve:resolve,defaultValue:defaultValue,render:render,restore:restore,escape:escape,types:choiceTypes.slice()};
+})(window);

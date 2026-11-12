@@ -1,1 +1,1 @@
-var gmap_ak="";
+var gmap_ak = '';

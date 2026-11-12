@@ -45,3 +45,24 @@
 # Private database restore coordination; never part of a source package.
 /config/cms-database-traffic.lock
 /config/cms-database-maintenance.json
+
+# Local deployment configuration and private before-images.
+/config/manifest/config.yaml
+/config/manifest/.config*
+/config/manifest/.backups/
+/config/manifest/.migration-*/
+
+# Binary releases, runtime caches and deployment YAML.
+/bin/
+/config.yaml
+/config/config.yaml
+/config/.config*
+/config/.backups/
+/config/.migration-*/
+/.config*
+/.backups/
+/.migration-*/
+!/uploads/**/*.zip
+!/uploads/**/*.tar.gz
+!/uploads/**/*.tar.bz2
+!/uploads/**/*.tar.xz

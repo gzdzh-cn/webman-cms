@@ -4,6 +4,7 @@ use app\controller\CmsController;
 
 // Only explicit front routes and the CMS fallback are public; implementation classes are private.
 Route::disableDefaultRoute();
+if(!\app\cms\support\EmbeddedResources::binary()) {
 Route::get('/install', [\app\cms\install\InstallerController::class, 'index']);
 Route::get('/install/', [\app\cms\install\InstallerController::class, 'index']);
 Route::get('/install/status', [\app\cms\install\InstallerController::class, 'status']);
@@ -14,6 +15,7 @@ Route::post('/install', [\app\cms\install\InstallerController::class, 'install']
 // Legacy EyouCMS installer URL, served by the same guarded application controller.
 Route::get('/install/index.php', [\app\cms\install\InstallerController::class, 'index']);
 Route::post('/install/index.php', [\app\cms\install\InstallerController::class, 'install']);
+}
 
 
 // Backend is an application module; no physical plugin discovery is required.
@@ -46,6 +48,7 @@ foreach (['template', 'uploads', 'upload', 'public'] as $prefix) {
 }
 foreach (['upload', 'uploads'] as $prefix) {
     Route::get('/app/admin/' . $prefix . '/avatar/{file:.+}', [CmsController::class, 'asset']);
+    Route::get('/web-admin/' . $prefix . '/avatar/{file:.+}', [CmsController::class, 'asset']);
 }
 \app\cms\admin\support\AdminRoutes::registerFallback();
 Route::any('/index.php/{path:.+}', [CmsController::class, 'resolve']);

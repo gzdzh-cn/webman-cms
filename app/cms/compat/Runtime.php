@@ -17,7 +17,7 @@ final class Runtime
         if (!defined('WEAPP_DIR_NAME')) define('WEAPP_DIR_NAME', 'weapp');
         require_once __DIR__ . '/functions.php';
         if ($context !== null && method_exists(CmsContext::class, 'set')) CmsContext::set($context);
-        foreach (['DS'=>DIRECTORY_SEPARATOR,'EXT'=>'.php','THINK_PATH'=>__DIR__.DIRECTORY_SEPARATOR,'VENDOR_PATH'=>base_path('vendor/'),'ROOT_PATH'=>base_path().DIRECTORY_SEPARATOR,'UPLOAD_PATH'=>'uploads/','DATA_PATH'=>\app\cms\Paths::legacyData().DIRECTORY_SEPARATOR,'APP_PATH'=>base_path('app/'),'EXTEND_PATH'=>base_path('extend/'),'WEAPP_PATH'=>base_path('weapp/'),'RUNTIME_PATH'=>runtime_path('cms/'),'CACHE_PATH'=>runtime_path('cms/cache/'),'TEMP_PATH'=>runtime_path('cms/templates/'),'EYOUCMS_CACHE_TIME'=>3600,'THINK_VERSION'=>'5.0-compat','HTML_ROOT'=>''] as $name=>$value) {
+        foreach (['DS'=>DIRECTORY_SEPARATOR,'EXT'=>'.php','THINK_PATH'=>__DIR__.DIRECTORY_SEPARATOR,'VENDOR_PATH'=>base_path('vendor/'),'ROOT_PATH'=>\app\cms\Paths::root().DIRECTORY_SEPARATOR,'UPLOAD_PATH'=>'uploads/','DATA_PATH'=>\app\cms\Paths::legacyData().DIRECTORY_SEPARATOR,'APP_PATH'=>base_path('app/'),'EXTEND_PATH'=>base_path('extend/'),'WEAPP_PATH'=>base_path('weapp/'),'RUNTIME_PATH'=>runtime_path('cms/'),'CACHE_PATH'=>runtime_path('cms/cache/'),'TEMP_PATH'=>runtime_path('cms/templates/'),'EYOUCMS_CACHE_TIME'=>3600,'THINK_VERSION'=>'5.0-compat','HTML_ROOT'=>''] as $name=>$value) {
             if (!defined($name)) define($name, $value);
         }
     }
@@ -452,7 +452,8 @@ final class Runtime
         // symlink replacements, including a restored alias after rejection.
         // Clearing only the leaf retains stale parent entries in PHP's cache.
         clearstatcache(true);
-        $root = realpath(ThemeCatalog::physical($allowedRoot ?? base_path('template')));
+        $rootPath = ThemeCatalog::physical($allowedRoot ?? \app\cms\Paths::templates(''));
+        $root = str_starts_with($rootPath, 'phar://') ? $rootPath : realpath($rootPath);
         if (!$root) throw new \RuntimeException('CMS template directory is missing');
         if (str_contains($file,"\0")) throw new \RuntimeException('Invalid template path');
         $file=str_replace('\\','/',$file);
@@ -460,11 +461,13 @@ final class Runtime
         if (!pathinfo($file,PATHINFO_EXTENSION)) $file.='.htm';
         if (!in_array(strtolower(pathinfo($file,PATHINFO_EXTENSION)),['htm','html'],true)) throw new \RuntimeException('Only .htm/.html template files are allowed');
         if (preg_match('#^(?:/|\./)template/(pc|mobile)/#', $file) && self::constant('TPL_THEME')!=='') $file=preg_replace('#^(/|\./)template/#','$1template/'.self::constant('TPL_THEME'),$file);
-        if (str_starts_with($file,'/template/')) $candidate=base_path(ltrim($file,'/'));
-        elseif (str_starts_with($file,'./template/')) $candidate=base_path(substr($file,2));
+        if (str_starts_with($file,'phar://')) $candidate=$file;
+        elseif (str_starts_with($file,'/template/')) $candidate=\app\cms\Paths::logical(ltrim($file,'/'));
+        elseif (str_starts_with($file,'./template/')) $candidate=\app\cms\Paths::logical(substr($file,2));
         elseif (str_starts_with($file,'/')) $candidate=$file;
         else $candidate=rtrim($viewPath,'/').'/'.$file;
         $candidate = ThemeCatalog::physical($candidate);
+        if ($packed = \app\cms\support\PackagedFiles::template($candidate, $root)) return $packed;
         $current = '';
         foreach (explode('/', trim($candidate, '/')) as $part) {
             if ($part === '..' || $part === '.') throw new \RuntimeException('Template traversal is forbidden');

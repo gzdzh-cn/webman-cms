@@ -143,12 +143,12 @@
 
         // 相关常量
         const PRIMARY_KEY = "aid";
-        const SELECT_API = "/app/admin/archive/select";
-        const UPDATE_API = "/app/admin/archive/update";
-        const DELETE_API = "/app/admin/archive/delete";
-        const INSERT_URL = "/app/admin/archive/insert";
-        const UPDATE_URL = "/app/admin/archive/update";
-        const ARCTYPE_SELECT_API = "/app/admin/arctype/select";
+        const SELECT_API = "/web-admin/archive/select";
+        const UPDATE_API = "/web-admin/archive/update";
+        const DELETE_API = "/web-admin/archive/delete";
+        const INSERT_URL = "/web-admin/archive/insert";
+        const UPDATE_URL = "/web-admin/archive/update";
+        const ARCTYPE_SELECT_API = "/web-admin/arctype/select";
         const WORKFLOW_PERMISSIONS = <?= json_encode([
             'review'=>\plugin\admin\api\Auth::canAccess(\plugin\admin\app\controller\ArchiveController::class,'updateStatus'),
             'update'=>\plugin\admin\api\Auth::canAccess(\plugin\admin\app\controller\ArchiveController::class,'update'),
@@ -577,7 +577,7 @@
                     $("#formContainer").hide();
                     $("#singlePageContainer").show();
                     // 加载单页模型编辑页面到iframe
-                    $("#singlePageIframe").attr("src", "/app/admin/archive/singlePage?id=" + currentTypeId);
+                    $("#singlePageIframe").attr("src", "/web-admin/archive/singlePage?id=" + currentTypeId);
                 } else {
                     // 其他模型，显示内容列表
                     // 隐藏单页表单容器和表单容器，显示列表容器
@@ -619,9 +619,9 @@
                 } else if (obj.event === "view") {
                     view(obj);
                 } else if (obj.event === "specialnode") {
-                    window.open('/app/admin/specialnode/index?'+new URLSearchParams({aid:obj.data.aid,lang:obj.data.lang||'cn'}),'_blank','noopener');
+                    window.open('/web-admin/specialnode/index?'+new URLSearchParams({aid:obj.data.aid,lang:obj.data.lang||'cn'}),'_blank','noopener');
                 } else if (obj.event === "productparameter") {
-                    window.open('/app/admin/productparameter/index?'+new URLSearchParams({aid:obj.data.aid,lang:obj.data.lang||'cn'}),'_blank','noopener');
+                    window.open('/web-admin/productparameter/index?'+new URLSearchParams({aid:obj.data.aid,lang:obj.data.lang||'cn'}),'_blank','noopener');
                 } else if (obj.event === "returnDraft") {
                     returnDrafts([obj.data]);
                 } else if (obj.event === "resubmit") {
@@ -779,7 +779,7 @@
                         // 获取选中的栏目ID
                         var selectedTypeId = $('#dialog-typeid-select').val();
                         if (!selectedTypeId || selectedTypeId === '') {
-                            layui.pearPopup.warning('请选择栏目');
+                            window.CmsUI.warning('请选择栏目');
                             return false;
                         }
 
@@ -818,7 +818,7 @@
                         }
 
                         if (selectedChannelId === 0) {
-                            layui.pearPopup.warning('无法获取栏目模型ID');
+                            window.CmsUI.warning('无法获取栏目模型ID');
                             return false;
                         }
 
@@ -897,7 +897,7 @@
                     $("#formContainer").hide();
                     $("#singlePageContainer").show();
                     // 加载单页模型编辑页面到iframe
-                    $("#singlePageIframe").attr("src", "/app/admin/archive/singlePage?id=" + typeid);
+                    $("#singlePageIframe").attr("src", "/web-admin/archive/singlePage?id=" + typeid);
                 } else {
                     // 其他模型，打开新增页面
                     openInsertPage(typeid, channelId);
@@ -944,7 +944,7 @@
             // 浏览数据
             let view = function (obj) {
                 let value = obj.data[PRIMARY_KEY];
-                window.open('/app/admin/archive/view?aid=' + encodeURIComponent(value), '_blank', 'noopener,noreferrer');
+                window.open('/web-admin/archive/view?aid=' + encodeURIComponent(value), '_blank', 'noopener,noreferrer');
             }
 
             // 删除一行
@@ -956,7 +956,7 @@
             let batchRemove = function (obj) {
                 let checkIds = common.checkField(obj, PRIMARY_KEY);
                 if (checkIds === "") {
-                    layui.pearPopup.warning("未选中数据");
+                    window.CmsUI.warning("未选中数据");
                     return false;
                 }
                 doRemove(checkIds.split(","));
@@ -964,18 +964,18 @@
 
             function batchMove() {
                 const rows = table.checkStatus("data-table").data;
-                if (!rows.length) return layui.pearPopup.warning("未选中数据");
+                if (!rows.length) return window.CmsUI.warning("未选中数据");
                 const channel = Number(rows[0].channel), language = rows[0].lang;
-                if (rows.some(row => Number(row.channel) !== channel || row.lang !== language)) return layui.pearPopup.warning("请选择相同模型和语言的文档");
+                if (rows.some(row => Number(row.channel) !== channel || row.lang !== language)) return window.CmsUI.warning("请选择相同模型和语言的文档");
                 const choices = Object.values(arctypeInfoMap).filter(row => Number(row.current_channel) === channel && row.lang === language && !Number(row.is_del));
-                if (!choices.length) return layui.pearPopup.warning("没有可移动的同模型栏目");
+                if (!choices.length) return window.CmsUI.warning("没有可移动的同模型栏目");
                 const select = $("<select>").addClass("layui-select").css({width:"100%",padding:"8px"});
                 choices.forEach(row => select.append($("<option>").val(row.id).text(row.typename)));
                 const content = $("<div>").css("padding","20px").append(select);
                 window.CmsUI.layer({type:1,title:"移动到栏目",kind:"picker",area:["1040px","85vh"],content:content,btn:["移动","取消"],yes:function(index){
-                    $.post("/app/admin/archive/move",{aids:rows.map(row => row.aid),typeid:select.val()},function(result){
-                        if (result.code) return layui.pearPopup.failure(result.msg);
-                        layer.close(index);layui.pearPopup.success("移动成功",refreshTable);
+                    $.post("/web-admin/archive/move",{aids:rows.map(row => row.aid),typeid:select.val()},function(result){
+                        if (result.code) return window.CmsUI.failure(result.msg);
+                        layer.close(index);window.CmsUI.success("移动成功",refreshTable);
                     },"json");
                 }});
             }
@@ -985,7 +985,7 @@
             async function workflowRequest(path,data,errorBox) {
                 try {
                     const result=await $.ajax({
-                        url:'/app/admin/archive/'+path, type:'POST', dataType:'json', data:data
+                        url:'/web-admin/archive/'+path, type:'POST', dataType:'json', data:data
                     });
                     if (!result || result.code) {workflowError(errorBox,result && result.msg);return null;}
                     return result;
@@ -999,7 +999,7 @@
             }
             function finishWorkflow(result,index) {
                 if (index!=null) layer.close(index);
-                layui.pearPopup.success(result.msg||'操作成功',refreshTable);
+                window.CmsUI.success(result.msg||'操作成功',refreshTable);
             }
             function setWorkflowBusy(index,busy) {
                 workflowRunning=busy;
@@ -1007,13 +1007,13 @@
             }
             function batchWorkflow() {
                 const rows=table.checkStatus('data-table').data;
-                if (!rows.length) return layui.pearPopup.warning('请先选择文档');
-                if (rows.length>100) return layui.pearPopup.warning('每次最多操作100篇文档');
+                if (!rows.length) return window.CmsUI.warning('请先选择文档');
+                if (rows.length>100) return window.CmsUI.warning('每次最多操作100篇文档');
                 const options=[];
                 if (WORKFLOW_PERMISSIONS.review) options.push(['audit','审核通过'],['pending','设为待审核'],['return','退回文档'],['attributes','设置文档属性']);
                 if (WORKFLOW_PERMISSIONS.update) options.push(['resubmit','重新提交已退回文档']);
                 if (WORKFLOW_PERMISSIONS.copy) options.push(['copy','复制到栏目']);
-                if (!options.length) return layui.pearPopup.warning('没有可用的批量操作权限');
+                if (!options.length) return window.CmsUI.warning('没有可用的批量操作权限');
                 const panel=workflowPanel(rows),select=$('<select>').addClass('layui-input').attr('aria-label','批量操作类型');
                 options.forEach(item=>select.append($('<option>').val(item[0]).text(item[1])));panel.body.append(select);
                 window.CmsUI.layer({type:1,title:'批量操作',area:['720px','300px'],content:panel.body,btn:['下一步','取消'],yes:function(index){
@@ -1026,18 +1026,18 @@
             }
             async function reviewRows(rows,operation) {
                 if (workflowRunning) return;
-                if (operation==='resubmit' && rows.some(row=>Number(row.arcrank)!==-2)) return layui.pearPopup.warning('请只选择已退回的文档');
+                if (operation==='resubmit' && rows.some(row=>Number(row.arcrank)!==-2)) return window.CmsUI.warning('请只选择已退回的文档');
                 const title={audit:'审核通过',pending:'设为待审核',resubmit:'重新提交审核'}[operation];
                 if (!await window.CmsUI.confirm('确认将 '+rows.length+' 篇文档'+title+'？',{title:title,confirmText:'确认'})) return;
                 workflowRunning=true;const loading=layer.load();
                 const error=$('<p>');
                 try {
                     const result=await workflowRequest(operation==='resubmit'?'resubmit':'batch',{aids:rows.map(row=>row.aid),operation:operation},error);
-                    if (result) finishWorkflow(result);else layui.pearPopup.failure(error.text());
+                    if (result) finishWorkflow(result);else window.CmsUI.failure(error.text());
                 } finally {workflowRunning=false;layer.close(loading);}
             }
             function returnDrafts(rows) {
-                if (!WORKFLOW_PERMISSIONS.review) return layui.pearPopup.warning('无文档审核权限');
+                if (!WORKFLOW_PERMISSIONS.review) return window.CmsUI.warning('无文档审核权限');
                 const panel=workflowPanel(rows,'退回后需要编辑并重新提交审核。'),input=$('<textarea>').addClass('layui-textarea').attr({placeholder:'请填写退回原因（必填，最多2000字）',maxlength:2000,'aria-label':'退回原因'});
                 panel.body.append($('<label>').text('退回原因'),input);
                 window.CmsUI.layer({type:1,title:'退回文档',area:['720px','390px'],content:panel.body,btn:['确认退回','取消'],cancel:function(){return !workflowRunning;},btn2:function(){return !workflowRunning;},yes:async function(index){
@@ -1064,9 +1064,9 @@
             }
             function copyRows(rows) {
                 const channel=Number(rows[0].channel),lang=rows[0].lang;
-                if(rows.some(row=>Number(row.channel)!==channel||row.lang!==lang))return layui.pearPopup.warning('请选择相同模型和语言的文档');
+                if(rows.some(row=>Number(row.channel)!==channel||row.lang!==lang))return window.CmsUI.warning('请选择相同模型和语言的文档');
                 const choices=Object.values(arctypeInfoMap).filter(row=>Number(row.current_channel)===channel&&row.lang===lang&&!Number(row.is_del));
-                if(!choices.length)return layui.pearPopup.warning('没有可复制到的同模型栏目');
+                if(!choices.length)return window.CmsUI.warning('没有可复制到的同模型栏目');
                 const panel=workflowPanel(rows,'每篇复制一份；先核验正文和关联，再确认创建。'),select=$('<select>').addClass('layui-input').attr('aria-label','复制目标栏目'),summary=$('<div>').addClass('cms-workflow-summary');
                 choices.forEach(row=>select.append($('<option>').val(row.id).text(row.typename)));
                 if(choices.some(row=>Number(row.id)===Number(rows[0].typeid)))select.val(rows[0].typeid);
@@ -1102,9 +1102,9 @@
                         success: function (res) {
                             layer.close(loading);
                             if (res.code) {
-                                return layui.pearPopup.failure(res.msg);
+                                return window.CmsUI.failure(res.msg);
                             }
-                            return layui.pearPopup.success("操作成功", refreshTable);
+                            return window.CmsUI.success("操作成功", refreshTable);
                         }
                     })
                 });
@@ -1163,13 +1163,13 @@
                     data: data,
                     success: function (res) {
                         if (res.code) {
-                            layui.pearPopup.failure(res.msg);
+                            window.CmsUI.failure(res.msg);
                             return;
                         }
                         if (callback) callback();
                     },
                     error: function () {
-                        layui.pearPopup.failure("请求失败");
+                        window.CmsUI.failure("请求失败");
                     }
                 });
             }
@@ -1198,7 +1198,7 @@
                         $this.data('value', newValue);
                         $this.attr('style', originalStyle);
                         $this.text(newValue);
-                        layer.msg('更新成功', { icon: 1, time: 1000 });
+                        window.CmsUI.success('更新成功');
                     }, function () {
                         $this.attr('style', originalStyle);
                         $this.text(oldValue);
@@ -1229,12 +1229,12 @@
                 if (isNaN(currentValue)) {
                     currentValue = -1;
                 }
-                if(currentValue===-2)return layui.pearPopup.warning('文档已退回，请编辑后点击“重新提交”');
+                if(currentValue===-2)return window.CmsUI.warning('文档已退回，请编辑后点击“重新提交”');
                 $this.data('busy',true).attr('aria-disabled','true');
                 // 使用单独的更新状态接口，避免触发标签删除逻辑
                 // 前端发送当前状态值，后端负责切换
                 $.ajax({
-                    url: '/app/admin/archive/updateStatus',
+                    url: '/web-admin/archive/updateStatus',
                     type: "POST",
                     dataType: "json",
                     data: {
@@ -1244,14 +1244,14 @@
                     },
                     success: function (res) {
                         if (res.code) {
-                            layui.pearPopup.failure(res.msg);
+                            window.CmsUI.failure(res.msg);
                             return;
                         }
                         refreshTable();
-                        layer.msg('更新成功', { icon: 1, time: 1000 });
+                        window.CmsUI.success('更新成功');
                     },
                     error: function () {
-                        layui.pearPopup.failure("请求失败");
+                        window.CmsUI.failure("请求失败");
                     },
                     complete: function () {
                         $this.data('busy',false).removeAttr('aria-disabled');

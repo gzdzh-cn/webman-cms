@@ -3,12 +3,12 @@
 <link rel="stylesheet" href="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/admin/css/cms-module-navigation.css?v=20261106-basic2'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>">
 <script src="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/admin/js/cms-module-navigation.js?v=20261106-basic2'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>"></script>
 <link rel="stylesheet" href="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/admin/css/cms-page-adapters.css?v=20261105-adapters1'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>">
-<link rel="stylesheet" href="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/admin/css/cms-seo.css?v=20261106-rows1'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>">
+<link rel="stylesheet" href="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/admin/css/cms-seo.css?ui=20261111-robotstab3'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>">
 </head><body class="cms-module-page cms-page-adapted cms-seo-page">
 <div data-cms-module-navigation></div>
-<main class="cms-page-panel"><p><a href="/app/admin/robots/index">robots.txt 管理 →</a></p>
+<main class="cms-page-panel">
 
-<header class="cms-filterbar" data-cms-filter><label>后台语言 <select id="lang" name="lang" form="settings" aria-label="后台语言"><option value="">加载中</option></select></label><button type="button" id="reload">刷新</button><button type="button" id="reset" disabled>还原未保存修改</button></header>
+<header class="cms-filterbar" data-cms-filter><label>后台语言 <select id="lang" name="lang" form="settings" aria-label="后台语言"><option value="">加载中</option></select></label></header>
 <p class="cms-seo-note" id="scope-note">加载当前URL与SEO配置…</p>
 <p id="status" role="status" aria-live="polite"></p>
 <div class="cms-seo-layout" id="seo-layout"><form id="settings" class="cms-settings-form" aria-label="SEO配置">
@@ -46,7 +46,7 @@
 <div class="cms-seo-checks" id="cache-options"><span>发布/编辑文档后</span><label><input type="checkbox" name="seo_uphtml_after_home13" value="1">清除首页缓存</label><label><input type="checkbox" name="seo_uphtml_after_channel13" value="1">清除相关栏目缓存</label><label><input type="checkbox" name="seo_uphtml_after_pernext13" value="1">清除上下篇缓存</label></div>
 <p class="cms-seo-help" id="operation-note"></p>
 </fieldset>
-<div class="cms-seo-actions"><button type="submit" id="save" class="cms-primary-action" disabled>保存SEO设置</button><span id="permission-note"></span></div>
+<div class="cms-seo-actions"><button type="submit" id="save" class="cms-primary-action" disabled>保存SEO设置</button><button type="button" id="reset" title="恢复最近读取或保存的配置" disabled>重置</button><span id="permission-note"></span></div>
 </form>
 <aside id="seo-quick-panel" class="cms-seo-quick" aria-labelledby="seo-quick-title" hidden>
  <header class="cms-quick-heading"><h2 id="seo-quick-title">静态页面生成</h2><span>快速操作</span></header>
@@ -60,7 +60,7 @@
  </form>
  <p id="quick-status" role="status" aria-live="polite"></p><button id="quick-retry" type="button" hidden>重新读取生成配置</button>
  <section id="quick-progress-panel" aria-label="快捷生成任务进度" hidden><progress id="quick-progress" value="0" max="1"></progress><p id="quick-progress-text"></p><ul id="quick-failures"></ul></section>
- <a id="quick-details" class="cms-quick-details" href="/app/admin/staticgenerate/index" data-cms-navigation>更多静态生成配置与任务 →</a>
+ <a id="quick-details" class="cms-quick-details" href="/web-admin/staticgenerate/index" data-cms-navigation>更多静态生成配置与任务 →</a>
 </aside></div>
 </main>
 <script src="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/admin/js/cms-seo-quick.js?v=20261106-rows1'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>"></script>
@@ -73,8 +73,9 @@ const flags=Array.from(form.querySelectorAll('input[type=checkbox]')).map(input=
 function message(text,error=false){status.textContent=text;status.dataset.error=error?'1':'0';}
 const pendingWrites=new WeakMap();
 async function withPendingWrite(enabled,run){if(!enabled)return run();const roots=[document.body,...document.querySelectorAll('dialog[open]')];roots.forEach(root=>{pendingWrites.set(root,(pendingWrites.get(root)||0)+1);root.setAttribute('data-cms-submit-busy','');root.setAttribute('aria-busy','true')});try{return await run()}finally{roots.forEach(root=>{const count=(pendingWrites.get(root)||1)-1;if(count)pendingWrites.set(root,count);else{pendingWrites.delete(root);root.removeAttribute('data-cms-submit-busy');root.removeAttribute('aria-busy')}})}}
-async function api(action,data,post=false){return withPendingWrite(post,async()=>{
- const response=await fetch('/app/admin/seo/'+action+(post?'':'?'+new URLSearchParams(data)),{method:post?'POST':'GET',headers:{Accept:'application/json'},body:post?data:undefined,credentials:'same-origin'});
+async function api(...args){return args[2]===true&&args[0]==='save'?window.CmsUI.persist(()=>rawSaveRequest(...args)):rawSaveRequest(...args);}
+async function rawSaveRequest(action,data,post=false){return withPendingWrite(post,async()=>{
+ const response=await fetch('/web-admin/seo/'+action+(post?'':'?'+new URLSearchParams(data)),{method:post?'POST':'GET',headers:{Accept:'application/json'},body:post?data:undefined,credentials:'same-origin'});
  let result;try{result=await response.json();}catch{throw Error('请求失败，请检查登录状态');}
  if(result.code!==0)throw Error(result.msg||'操作失败');return result;
 })}
@@ -95,8 +96,8 @@ function controls(){
  quickState();
  const canSave=!!state?.permissions.save;
  for(const input of form.elements)input.disabled=busy||!state||(!canSave&&input.id!=='lang');
- $('lang').disabled=busy||!state;$('reload').disabled=busy;
- $('reset').disabled=busy||!state;
+ $('lang').disabled=busy||!state;
+ $('reset').disabled=busy;
  if(state){
   $('seo_pseudo_2').disabled=busy||!canSave||!state.static_allowed;
   for(const input of $('cache-options').querySelectorAll('input'))input.disabled=busy||!canSave||!state.operation_mode;
@@ -129,14 +130,13 @@ async function load(){
 }
 form.addEventListener('input',update);form.addEventListener('change',update);
 $('lang').addEventListener('change',async()=>{const target=$('lang').value;if(form.dataset.cmsDirty==='1'){if(!await window.CmsUI.confirm('当前配置尚未保存，放弃修改并切换语言？',{title:'切换语言',confirmText:'放弃修改并切换',cancelText:'继续编辑'})){$('lang').value=currentLang;return;}window.CmsUI.clean(form);}currentLang=target;load();});
-$('reload').addEventListener('click',load);
-$('reset').addEventListener('click',async()=>{if(busy||!state)return;if(form.dataset.cmsDirty==='1'&&!await window.CmsUI.confirm('放弃本次未保存的修改，恢复到最近读取的配置？',{title:'还原修改',confirmText:'还原修改',cancelText:'继续编辑'}))return;fill(state);controls();message('已还原为最近读取的配置。');});
+$('reset').addEventListener('click',async()=>{if(busy)return;if(!state){load();return;}if(form.dataset.cmsDirty==='1'&&!await window.CmsUI.confirm('放弃本次未保存的修改，恢复到最近读取的配置？',{title:'重置配置',confirmText:'确认重置',cancelText:'继续编辑'}))return;fill(state);controls();message('已恢复最近读取或保存的配置。');});
 form.addEventListener('submit',async event=>{
  event.preventDefault();if(busy||!state?.permissions.save)return;
  const body=new FormData(form);body.set('lang',currentLang);
  for(const name of flags)body.set(name,!form.elements[name].disabled&&form.elements[name].checked?'1':'0');
  busy=true;controls();message('正在保存…');
- try{const result=await api('save',body,true);fill({...result.data,permissions:state.permissions});message(result.data.config.seo_pseudo==='2'?result.msg+'，请在静态生成页更新所需页面。':result.msg+'，已生效。');}
+ try{const result=await api('save',body,true);fill({...result.data,permissions:state.permissions});message('');}
  catch(error){message(error.message,true);}finally{busy=false;controls();}
 });
 load();

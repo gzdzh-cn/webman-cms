@@ -11,7 +11,7 @@ final class AdminRestartService
     private string $root;
     public function __construct(?string $root = null)
     {
-        $this->root = realpath($root ?? base_path()) ?: throw new RuntimeException('项目路径无效');
+        $this->root = realpath($root ?? \app\cms\Paths::root()) ?: throw new RuntimeException('项目路径无效');
     }
 
     public function start(int $adminId): array
@@ -55,6 +55,11 @@ final class AdminRestartService
 
     private function launch(string $id): void
     {
+        if (\app\cms\support\ProcessLauncher::managed()) {
+            \app\cms\support\ProcessLauncher::assertManaged();
+            \Workerman\Timer::add(1.5, function () use ($id): void { $this->execute($id); }, [], false);
+            return;
+        }
         try {
             $environment = Environment::processEnvironment();
             $pid = pcntl_fork();
@@ -62,7 +67,8 @@ final class AdminRestartService
             if ($pid === 0) {
                 try {
                     foreach (get_resources('stream') as $stream) if (is_resource($stream) && $stream !== STDIN && $stream !== STDOUT && $stream !== STDERR) @fclose($stream);
-                    pcntl_exec(PHP_BINARY, [$this->root.'/app/cms/maintenance/admin-restart.php', $id], $environment);
+                    $command=\app\cms\support\ProcessLauncher::command(['cms:restart-executor','admin',$id]);
+                    pcntl_exec(array_shift($command), $command, $environment);
                     $this->failed($id, '无法启动独立重启进程，请检查 PHP 执行权限');
                 } catch (\Throwable) { $this->failed($id, '无法启动独立重启进程，请检查 PHP 执行权限'); }
                 finally { posix_kill(getmypid(), SIGKILL); exit(1); }
@@ -90,11 +96,17 @@ final class AdminRestartService
                 return $record;
             });
             if (!$record) return;
+            $this->preflight();
+            if (\app\cms\support\ProcessLauncher::managed()) {
+                \app\cms\support\ProcessLauncher::assertManaged();
+                if (!posix_kill($record['old_master'], SIGQUIT)) throw new RuntimeException('无法停止当前服务');
+                return;
+            }
             $log = $this->logFile();
-            $process = proc_open([PHP_BINARY, $this->root.'/start.php', 'restart', '-d'],
+            $process = proc_open(\app\cms\support\ProcessLauncher::command(['restart','-d','-g']),
                 [0=>['file','/dev/null','r'],1=>['file',$log,'a'],2=>['file',$log,'a']], $pipes, $this->root, Environment::processEnvironment());
             if (!is_resource($process)) throw new RuntimeException('重启命令启动失败');
-            $deadline = microtime(true) + 30;
+            $deadline = microtime(true) + $this->restartTimeout();
             do { $state = proc_get_status($process); if (!$state['running']) break; usleep(100000); } while (microtime(true) < $deadline);
             if ($state['running']) { proc_terminate($process); proc_close($process); throw new RuntimeException('重启命令执行超时，请检查服务状态'); }
             $exit = $state['exitcode']; proc_close($process);
@@ -104,11 +116,33 @@ final class AdminRestartService
         finally { flock($handle, LOCK_UN); fclose($handle); }
     }
 
+    /** A fresh process reads the next configuration before the old master receives a signal. */
+    private function preflight(): void
+    {
+        $log=$this->logFile();
+        // Fresh processes select the next startup's YAML, including a newly
+        // added config.yaml with higher priority than this worker's snapshot.
+        $commands=[['cms:deployment','--check']];
+        if (\app\cms\support\EmbeddedResources::binary()) array_unshift($commands, ['cms:permissions','--fix']);
+        foreach ($commands as $arguments) {
+            $process=proc_open(\app\cms\support\ProcessLauncher::command($arguments),[0=>['file','/dev/null','r'],1=>['file',$log,'a'],2=>['file',$log,'a']],$pipes,$this->root,Environment::processEnvironment());
+            if(!is_resource($process))throw new RuntimeException('无法执行重启前部署检查，现有进程已保留');
+            $deadline=microtime(true)+30;
+            do{$state=proc_get_status($process);if(!$state['running'])break;usleep(100000);}while(microtime(true)<$deadline);
+            if($state['running']){proc_terminate($process);proc_close($process);throw new RuntimeException('重启前检查超时，现有进程已保留');}
+            $exit=$state['exitcode'];proc_close($process);
+            if($exit!==0)throw new RuntimeException('新配置、文件权限或资源检查失败，现有进程已保留，请查看重启日志');
+        }
+    }
     private function expire(?array &$record): void
     {
-        if ($record && in_array($record['status'], ['scheduled','restarting'], true) && time() > $record['created_at'] + 90) {
+        if ($record && in_array($record['status'], ['scheduled','restarting'], true) && time() > $record['created_at'] + $this->restartTimeout() + 60) {
             $record['status']='failed'; $record['failure']='重启未在规定时间内完成，请检查服务状态';
         }
+    }
+    public static function restartTimeout(): int
+    {
+        return (int)\app\cms\config\DeploymentConfig::get('server.stop_timeout') + 15;
     }
     private function failed(string $id, string $message): void
     {
@@ -116,30 +150,11 @@ final class AdminRestartService
             if ($record && hash_equals($record['id'], $id) && in_array($record['status'], ['scheduled','restarting'], true)) { $record['status']='failed'; $record['failure']=$message; }
         }); } catch (\Throwable) {}
     }
-    private function master(): int
-    {
-        $file = $this->root.'/runtime/webman.pid';
-        if (is_link($this->root.'/runtime') || is_link($file)) throw new RuntimeException('进程 PID 路径无效');
-        clearstatcache(true, $file);
-        if (!is_file($file)) return 0;
-        $pid = trim((string)file_get_contents($file));
-        if (!ctype_digit($pid) || (int)$pid < 2) throw new RuntimeException('进程 PID 无效');
-        if (!posix_kill((int)$pid, 0)) return 0;
-        $process = proc_open(['/bin/ps','-p',$pid,'-o','command='], [0=>['file','/dev/null','r'],1=>['pipe','w'],2=>['file','/dev/null','a']], $pipes);
-        if (!is_resource($process)) throw new RuntimeException('无法核验主进程身份');
-        $command = trim((string)stream_get_contents($pipes[1])); fclose($pipes[1]); proc_close($process);
-        if (!in_array($command, ['WorkerMan: master process  start_file='.$this->root.'/webman', 'WorkerMan: master process  start_file='.$this->root.'/start.php'], true)) throw new RuntimeException('PID 不属于当前项目的 Webman 主进程');
-        return (int)$pid;
-    }
+    private function master(): int { return \app\cms\support\ProcessLauncher::master(); }
     private function directory(string $part): string
     {
-        $path = $this->root;
-        foreach (explode('/', $part) as $segment) {
-            $path .= '/'.$segment;
-            if (is_link($path) || (file_exists($path) && !is_dir($path))) throw new RuntimeException('重启运行路径无效');
-            if (!is_dir($path) && !mkdir($path, 0700) && !is_dir($path)) throw new RuntimeException('无法创建重启运行路径');
-        }
-        return $path;
+        $relative=preg_replace('#^runtime/?#','',$part);$path=\app\cms\Paths::runtime($relative);
+        \app\cms\Paths::ensureDirectory($path,0700);return$path;
     }
     private function logFile(): string
     {
@@ -163,20 +178,7 @@ final class AdminRestartService
     }
     private function locked(callable $operation): mixed
     {
-        $dir=$this->directory('runtime/locks'); $lock=$dir.'/admin-restart.lock'; $file=$dir.'/admin-restart.json';
-        if (is_link($lock) || is_link($file)) throw new RuntimeException('重启任务路径无效');
-        $handle=fopen($lock,'c+b');
-        if (!$handle || !chmod($lock,0600) || !flock($handle,LOCK_EX)) throw new RuntimeException('无法锁定重启任务');
-        try {
-            $record=null;
-            if (is_file($file)) { $record=json_decode((string)file_get_contents($file),true,512,JSON_THROW_ON_ERROR); if (!is_array($record) || !isset($record['id'],$record['status'],$record['admin'],$record['old_master'],$record['created_at'])) throw new RuntimeException('重启任务记录无效'); }
-            $before=$record; $result=$operation($record);
-            if ($record !== $before) {
-                $temp=tempnam($dir,'.restart-');
-                try { $bytes=json_encode($record,JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR); if (!$temp || !chmod($temp,0600) || file_put_contents($temp,$bytes,LOCK_EX)!==strlen($bytes) || !rename($temp,$file)) throw new RuntimeException('无法保存重启任务'); }
-                finally { if ($temp && is_file($temp)) unlink($temp); }
-            }
-            return $result;
-        } finally { flock($handle,LOCK_UN); fclose($handle); }
+        $store=new \app\cms\persistence\StateStore('maintenance:restart:'.substr(hash('sha256',$this->root),0,20));
+        return $store->locked(function($store)use($operation){$record=$store->read('current')?:null;$before=$record;$result=$operation($record);if($record!==$before)$store->write('current',$record??[]);return$result;});
     }
 }

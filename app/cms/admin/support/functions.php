@@ -95,7 +95,7 @@ function refresh_admin_session(bool $force = false)
 function admin_error_401_script(): Response
 {
   return response(<<<EOF
-<script>top.location.href = '/app/admin';</script>
+<script>top.location.href = '/web-admin';</script>
 EOF
   );
 }

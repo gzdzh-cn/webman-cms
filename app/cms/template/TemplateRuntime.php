@@ -47,12 +47,12 @@ final class TemplateRuntime
         if ($base !== '' && str_starts_with($relative, $base.'/')) $relative = substr($relative, strlen($base) + 1);
         if (preg_match('~^(?:public/)?(?:uploads|upload)/~', $relative)) {
             $physical = UploadPaths::physical($relative);
-            $allowed = realpath(public_path('uploads'));
+            $allowed = \app\cms\support\EmbeddedResources::realpath(\app\cms\Paths::publicRoot('uploads'));
         } elseif (str_starts_with($relative, 'template/')) {
             $physical = ThemeCatalog::physical($relative);
             $allowed = ThemeCatalog::root(explode('/', CmsContext::current()->theme)[0]);
         } else throw new \InvalidArgumentException('模板缩略图仅支持本站上传和当前主题图片');
-        $actual = realpath($physical);
+        $actual = \app\cms\support\EmbeddedResources::realpath($physical);
         if (!$actual) return $image;
         if (!$allowed || !str_starts_with($actual, rtrim($allowed, '/').DIRECTORY_SEPARATOR) || !is_file($actual)) throw new \InvalidArgumentException('模板缩略图超出当前资源目录');
         for ($p = $physical; dirname($p) !== $p && $p !== '.'; $p = dirname($p)) if (is_link($p)) throw new \InvalidArgumentException('模板缩略图不能使用符号链接');

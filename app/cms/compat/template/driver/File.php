@@ -36,7 +36,7 @@ class File
         $this->secureCache = new \app\cms\security\TemplateCache('template.front', $scope, $lifetime);
     }
 
-    /** This authenticates the complete header and body before dependency parsing. */
+    /** Validate metadata and the compiled AST before dependency parsing. */
     public function verifiedContent(string $cacheFile): ?string { return $this->secureCache->read($cacheFile); }
 
 

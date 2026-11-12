@@ -40,8 +40,8 @@
         <script>
 
             let PRIMARY_KEY = "id";
-            const SELECT_API = "/app/admin/table/select" + location.search;
-            const UPDATE_API = "/app/admin/table/update";
+            const SELECT_API = "/web-admin/table/select" + location.search;
+            const UPDATE_API = "/web-admin/table/update";
 
             layui.use(["form", "util", "pearPopup"], function () {
                 let $ = layui.$;
@@ -69,7 +69,7 @@
 
                         // ajax返回失败
                         if (res.code) {
-                            layui.pearPopup.failure(res.msg);
+                            window.CmsUI.failure(res.msg);
                         }
 
                     }
@@ -102,7 +102,7 @@
                             if (res.code) {
                                 window.CmsUI.error(cmsForm,res.msg,res.fields||res.data?.fields);return false;
                             }
-                            window.CmsModuleNavigation?.markClean(cmsForm);delete cmsForm.dataset.cmsDirty;return layui.pearPopup.success("保存成功", function () {
+                            window.CmsModuleNavigation?.markClean(cmsForm);delete cmsForm.dataset.cmsDirty;return window.CmsUI.success("保存成功", function () {
                                 parent.refreshTable();
                                 window.CmsUI.clean();
                                 parent.layer.close(parent.layer.getFrameIndex(window.name));

@@ -3834,8 +3834,8 @@ if (!function_exists('print_water')) {
             $image       = \app\cms\compat\Image::open($imgresource);
             if ($image->width() > $water['mark_width'] && $image->height() > $water['mark_height']) {
                 if ($water['mark_type'] == 'text') {
-                    //$image->text($water['mark_txt'],\app\cms\Paths::resources('fonts/hgzb.ttf'),20,'#000000',9)->save($imgresource);
-                    $ttf = \app\cms\Paths::resources('fonts/hgzb.ttf');
+                    //$image->text($water['mark_txt'],\app\cms\support\NativeFont::path(\app\cms\Paths::resources('fonts/hgzb.ttf')),20,'#000000',9)->save($imgresource);
+                    $ttf = \app\cms\support\NativeFont::path(\app\cms\Paths::resources('fonts/hgzb.ttf'));
                     if (\app\cms\compat\ResourceFilesystem::file_exists($ttf)) {
                         $size  = $water['mark_txt_size'] ? $water['mark_txt_size'] : 30;
                         $color = $water['mark_txt_color'] ?: '#000000';

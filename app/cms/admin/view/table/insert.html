@@ -36,7 +36,7 @@
         <script src="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/admin/js/permission.js'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>"></script>
         <script>
 
-            const INSERT_API = "/app/admin/table/insert";
+            const INSERT_API = "/web-admin/table/insert";
 
             <?=$form->js(3)?>
 
@@ -68,7 +68,7 @@
                             if (res.code) {
                                 window.CmsUI.error(cmsForm,res.msg,res.fields||res.data?.fields);return false;
                             }
-                            window.CmsModuleNavigation?.markClean(cmsForm);delete cmsForm.dataset.cmsDirty;return layui.pearPopup.success("保存成功", function () {
+                            window.CmsModuleNavigation?.markClean(cmsForm);delete cmsForm.dataset.cmsDirty;return window.CmsUI.success("保存成功", function () {
                                 parent.refreshTable();
                                 window.CmsUI.clean();
                                 parent.layer.close(parent.layer.getFrameIndex(window.name));

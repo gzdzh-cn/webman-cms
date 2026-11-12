@@ -31,7 +31,7 @@
 
  
 
-    <div class="cms-field-scope"><a href="/app/admin/channelfield/index?channel_id=0" data-cms-navigation>模型字段</a><a href="/app/admin/channelfield/index?channel_id=-99" data-cms-navigation>栏目字段</a></div>
+    <div class="cms-field-scope"><a href="/web-admin/channelfield/index?channel_id=0" data-cms-navigation>模型字段</a><a href="/web-admin/channelfield/index?channel_id=-99" data-cms-navigation>栏目字段</a></div>
 
     <!-- 数据表格 -->
     <div class="layui-card cms-page-panel">
@@ -74,11 +74,11 @@
 
         // 相关常量
         const PRIMARY_KEY = "id";
-        const SELECT_API = "/app/admin/channelfield/select" + location.search;
-        const DELETE_API = "/app/admin/channelfield/delete";
-        const UPDATE_API = "/app/admin/channelfield/update";
-        const INSERT_URL = "/app/admin/channelfield/insert" + location.search;
-        const UPDATE_URL = "/app/admin/channelfield/update";
+        const SELECT_API = "/web-admin/channelfield/select" + location.search;
+        const DELETE_API = "/web-admin/channelfield/delete";
+        const UPDATE_API = "/web-admin/channelfield/update";
+        const INSERT_URL = "/web-admin/channelfield/insert" + location.search;
+        const UPDATE_URL = "/web-admin/channelfield/update";
 
         // 表格渲染
         layui.use(["table", "form", "pearCommon", "pearPopup", "util"], function () {
@@ -199,7 +199,7 @@
                     updateSortOrder(id, newValue, function() {
                         $this.data('value', newValue);
                         $this.text(newValue);
-                        layer.msg('更新成功', { icon: 1, time: 1000 });
+                        window.CmsUI.success('更新成功');
                     }, function() {
                         $this.text(oldValue);
                     });
@@ -260,7 +260,7 @@
             let hide = function (obj) {
                 var id = obj.data[PRIMARY_KEY];
                 if (!id) {
-                    layui.pearPopup.failure("ID不能为空");
+                    window.CmsUI.failure("ID不能为空");
                     return;
                 }
                 var ifeditable = obj.data.ifeditable || 0;
@@ -298,9 +298,9 @@
                             });
                             var oldText = ifeditable == 0 ? '显示' : '隐藏';
                             $btn.text(oldText);
-                            return layui.pearPopup.failure(res.msg);
+                            return window.CmsUI.failure(res.msg);
                         }
-                        layui.pearPopup.success("操作成功");
+                        window.CmsUI.success("操作成功");
                     },
                     error: function(xhr, status, error) {
                         layer.close(loadingIndex);
@@ -311,7 +311,7 @@
                         });
                         var oldText = ifeditable == 0 ? '显示' : '隐藏';
                         $btn.text(oldText);
-                        layui.pearPopup.failure("请求失败: " + error);
+                        window.CmsUI.failure("请求失败: " + error);
                     }
                 });
             }
@@ -325,7 +325,7 @@
                     shade: 0.1,
                     maxmin: false,
                     kind: 'picker', area: ['1040px', '85vh'],
-                    content: "/app/admin/channelfield/tagCall?field_name=" + encodeURIComponent(fieldName)
+                    content: "/web-admin/channelfield/tagCall?field_name=" + encodeURIComponent(fieldName)
                 });
             }
 
@@ -342,14 +342,14 @@
                     success: function (res) {
                         if (res.code) {
                             if (errorCallback) errorCallback();
-                            return layui.pearPopup.failure(res.msg);
+                            return window.CmsUI.failure(res.msg);
                         }
                         if (successCallback) successCallback();
                         refreshTable();
                     },
                     error: function() {
                         if (errorCallback) errorCallback();
-                        layui.pearPopup.failure('更新失败');
+                        window.CmsUI.failure('更新失败');
                     }
                 });
             }
@@ -363,7 +363,7 @@
             let batchRemove = function (obj) {
                 let checkIds = common.checkField(obj, PRIMARY_KEY);
                 if (checkIds === "") {
-                    layui.pearPopup.warning("未选中数据");
+                    window.CmsUI.warning("未选中数据");
                     return false;
                 }
                 doRemove(checkIds.split(","));
@@ -384,9 +384,9 @@
                         success: function (res) {
                             layer.close(loading);
                             if (res.code) {
-                                return layui.pearPopup.failure(res.msg);
+                                return window.CmsUI.failure(res.msg);
                             }
-                            return layui.pearPopup.success("操作成功", refreshTable);
+                            return window.CmsUI.success("操作成功", refreshTable);
                         }
                     })
                 });

@@ -104,7 +104,7 @@ final class NavigationMigration
         $patch = [
             'menu.control' => false, 'menu.accordion' => true,
             'tab.enable' => true, 'tab.keepState' => true, 'tab.session' => true,
-            'tab.index.id' => '0', 'tab.index.href' => '/app/admin/index/dashboard', 'tab.index.title' => '工作台',
+            'tab.index.id' => '0', 'tab.index.href' => '/web-admin/index/dashboard', 'tab.index.title' => '工作台',
             'theme.defaultMenu' => 'light-theme', 'theme.defaultHeader' => 'light-theme', 'theme.defaultColor' => '2', 'theme.banner' => false,
             'other.autoHead' => false, 'other.footer' => false, 'layout.version' => Navigation::VERSION,
         ];

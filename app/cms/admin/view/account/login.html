@@ -2,56 +2,88 @@
 <html lang="zh-cn">
     <head>
         <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-        <title>登录</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="color-scheme" content="light">
+        <title>内容管理 · 登录</title>
         <!-- 样 式 文 件 -->
-        <link rel="stylesheet" href="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/component/pear/css/pear.css'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>" />
+        <link rel="stylesheet" href="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/component/layui/css/layui.css'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>" />
         <link rel="stylesheet" href="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/admin/css/pages/login.css'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>" />
     </head>
     <!-- 代 码 结 构 -->
-    <body background="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/admin/images/background.svg'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>" style="background-size: cover;">
-        <form class="layui-form">
+    <body class="cms-login">
+        <header class="login-brand"><span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span><span>内容管理</span><span class="brand-caption">CONTENT MANAGEMENT</span></header>
+        <main class="login-layout">
+            <section class="login-intro" aria-labelledby="intro-title">
+                <div class="intro-eyebrow"><span></span> 专注内容，连接更多可能</div>
+                <h1 id="intro-title">每一份内容，<br>都有新的可能<span>。</span></h1>
+                <p class="intro-description">让创作、管理与发布有序衔接，<br>从这里，开启高效的内容工作。</p>
+                <div class="content-visual" aria-hidden="true">
+                    <div class="visual-orbit orbit-one"></div><div class="visual-orbit orbit-two"></div>
+                    <div class="visual-window">
+                        <div class="visual-toolbar"><span></span><span></span><span></span><i></i></div>
+                        <div class="visual-workspace">
+                            <div class="visual-sidebar"><b></b><i></i><i></i><i></i><i></i></div>
+                            <div class="visual-document"><div class="document-label">CONTENT STUDIO <span>●</span></div><div class="document-title"></div><div class="document-line"></div><div class="document-line short"></div><div class="document-panels"><div class="panel-picture"><i></i><b></b></div><div class="panel-lines"><i></i><i></i><i></i></div></div></div>
+                        </div>
+                    </div>
+                    <div class="visual-badge"><span>✓</span><div>灵感，即刻呈现<small>CREATE · MANAGE · PUBLISH</small></div></div>
+                    <div class="visual-spark spark-one">+</div><div class="visual-spark spark-two">+</div>
+                </div>
+            </section>
+            <section class="login-card" aria-labelledby="login-title">
+                <div class="card-eyebrow">WELCOME BACK</div>
+                <h2 id="login-title">登录内容管理</h2>
+                <p class="login-description">欢迎回来，请使用管理员账号登录</p>
+        <!-- Authentication inputs are transient, not an unsaved content editor. -->
+        <form class="layui-form login-form" data-cms-filter>
             <div class="layui-form-item">
-                <img class="logo" src="<?=$logo?>" />
-                <div class="title pear-text"><?=$title?></div>
+                <label for="login-username">管理员账号</label>
+                <div class="login-input"><svg aria-hidden="true" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.5"/><path d="M5 21v-3a7 7 0 0 1 14 0v3"/></svg><input id="login-username" lay-verify="required" lay-reqtext="请输入管理员账号" class="layui-input" type="text" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" placeholder="请输入管理员账号" /></div>
             </div>
             <div class="layui-form-item">
-                <input lay-verify="required" hover class="layui-input" type="text" name="username" value="" placeholder="用户名" />
+                <label for="login-password">登录密码</label>
+                <div class="login-input"><svg aria-hidden="true" viewBox="0 0 24 24"><rect x="4.5" y="10" width="15" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3M12 14v3"/></svg><input id="login-password" lay-verify="required" lay-reqtext="请输入登录密码" class="layui-input" type="password" name="password" autocomplete="current-password" placeholder="请输入登录密码" /></div>
             </div>
             <div class="layui-form-item">
-                <input lay-verify="required" hover class="layui-input" type="password" name="password" value="" placeholder="密码" />
+                <label for="login-captcha">验证码 <span class="captcha-hint">点击图片可刷新</span></label>
+                <div class="captcha-row"><div class="login-input"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m12 3 8 3v6c0 5-8 9-8 9s-8-4-8-9V6Z"/><path d="m8.5 12 2.5 2.5 4.5-5"/></svg><input id="login-captcha" lay-verify="required" lay-reqtext="请输入验证码" class="code layui-input" name="captcha" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="请输入验证码" /></div>
+                <img class="codeImage" width="120" height="42" src="/web-admin/account/captcha/login?v=<?= bin2hex(random_bytes(8)) ?>" alt="验证码，点击刷新" title="点击刷新验证码" role="button" tabindex="0" fetchpriority="high" />
+                </div>
             </div>
             <div class="layui-form-item">
-                <input hover  lay-verify="required" class="code layui-input layui-input-inline" name="captcha" placeholder="验证码" />
-                <img class="codeImage" width="120px"/>
-            </div>
-            <div class="layui-form-item">
-                <button type="submit" class="pear-btn pear-btn-primary login" lay-submit lay-filter="login">
-                    登 入
-                </button>
+                <button type="submit" class="login" lay-submit lay-filter="login"><span>登 录</span><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M4 12h16m-6-6 6 6-6 6"/></svg></button>
             </div>
         </form>
+                <p class="login-security"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m12 3 8 3v6c0 5-8 9-8 9s-8-4-8-9V6Z"/><path d="m8.5 12 2.5 2.5 4.5-5"/></svg>安全访问 · 有序管理 · 高效发布</p>
+            </section>
+        </main>
+        <footer class="login-footer">内容管理平台 <span>让内容创造价值</span></footer>
         <script>
-            var color = localStorage.getItem("theme-color-color");
-            var second = localStorage.getItem("theme-color-second");
-            if (!color || !second) {
-                localStorage.setItem("theme-color-color", "#2d8cf0");
-                localStorage.setItem("theme-color-second", "#ecf5ff");
-            }
+            // Fetch the initial image from HTML; refreshing must not wait for UI modules.
+            var refreshLoginCaptcha = (function () {
+                var image = document.querySelector('.codeImage');
+                function refresh() {
+                    image.alt = '验证码加载中';
+                    image.src = '/web-admin/account/captcha/login?v=' + Date.now() + '-' + Math.random().toString(36).slice(2);
+                }
+                image.addEventListener('click', refresh);
+                image.addEventListener('keydown', function (event) {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        refresh();
+                    }
+                });
+                image.addEventListener('load', function () { image.alt = '验证码，点击刷新'; });
+                image.addEventListener('error', function () { image.alt = '验证码加载失败，点击重试'; });
+                return refresh;
+            })();
         </script>
         <!-- 资 源 引 入 -->
         <script src="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/component/layui/layui.js?v=2.13.12'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>"></script>
-        <script src="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/component/pear/pear.js'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>"></script>
         <script>
          
-            layui.use(['form', 'pearButton', 'pearPopup', 'layer', 'pearTheme', 'pearAdmin'], function() {
-                console.log('layui.use', layui);
-                
+            layui.use(['form', 'layer'], function() {
                 var $ = layui.$, layer = layui.layer, form = layui.form;
-                function switchCaptcha() {
-                    $('.codeImage').attr("src", "/app/admin/account/captcha/login?v=" + new Date().getTime());
-                }
-                switchCaptcha();
                 var loginPending = false;
                 // 登 录 提 交
                 form.on('submit(login)', function (data) {
@@ -61,7 +93,7 @@
                     submitButton.prop('disabled', true).attr('aria-busy', 'true');
                     var loadingIndex = layer.load();
                     $.ajax({
-                        url: '/app/admin/account/login',
+                        url: '/web-admin/account/login',
                         type: "POST",
                         dataType: 'json',
                         timeout: 15000,
@@ -69,17 +101,20 @@
                         success: function (res) {
                             if (res && res.code === 0) {
                                 loginSucceeded = true;
-                                layui.pearPopup.success('登录成功', function () {
-                                    location.reload();
-                                });
+                                window.CmsUI.clean(data.form);
+                                window.CmsUI.toast('登录成功', {kind: 'success', duration: 1000});
+                                window.setTimeout(function () {
+                                    window.CmsUI.clean(data.form);
+                                    location.replace(location.href);
+                                }, 800);
                             } else {
-                                layui.pearPopup.failure(res && res.msg || '登录失败，请重试');
-                                switchCaptcha();
+                                window.CmsUI.toast(res && res.msg || '登录失败，请重试', {kind: 'error'});
+                                refreshLoginCaptcha();
                             }
                         },
                         error: function (xhr, status) {
-                            layui.pearPopup.failure(status === 'timeout' ? '登录请求超时，请重试' : '登录请求失败，请检查网络后重试');
-                            switchCaptcha();
+                            window.CmsUI.toast(status === 'timeout' ? '登录请求超时，请重试' : (xhr.responseJSON && xhr.responseJSON.msg || '登录请求失败，请检查网络后重试'), {kind: 'error'});
+                            refreshLoginCaptcha();
                         },
                         complete: function () {
                             layer.close(loadingIndex);
@@ -88,9 +123,6 @@
                         }
                     });
                     return false;
-                });
-                $('.codeImage').on('click', function () {
-                    switchCaptcha();
                 });
             })
         </script>

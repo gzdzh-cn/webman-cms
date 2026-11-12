@@ -52,10 +52,10 @@
                     data: {category: function () {
                         return layui.$('input[name="category"]').val();
                     }},
-                    url: "/app/admin/upload/insert",
+                    url: "/web-admin/upload/insert",
                     field: "__file__",
                     done: function (res) {
-                        if (res.code) return layui.pearPopup.failure(res.msg);
+                        if (res.code) return window.CmsUI.failure(res.msg);
                         parent.refreshTable();
                         parent.layer.close(parent.layer.getFrameIndex(window.name));
                     }
@@ -65,7 +65,7 @@
             // 字段 类别 category
             layui.use(["jquery", "xmSelect"], function() {
                 layui.$.ajax({
-                    url: "/app/admin/dict/get/upload",
+                    url: "/web-admin/dict/get/upload",
                     dataType: "json",
                     success: function (res) {
                         let value = layui.$("#category").attr("value");
@@ -80,7 +80,7 @@
                             radio: true,
                         });
                         if (res.code) {
-                            return layui.pearPopup.failure(res.msg);
+                            return window.CmsUI.failure(res.msg);
                         }
                     }
                 });

@@ -47,7 +47,7 @@ try {
     } else {
         if ($apply && (!isset($options['plan'], $options['fingerprint'], $options['backup-dir'], $options['maintenance-confirmed']) || isset($options['prefixes']))) throw new InvalidArgumentException('apply_requires_plan_fingerprint_backup_and_maintenance');
         if (!$apply && array_intersect(['fingerprint', 'backup-dir', 'maintenance-confirmed'], array_keys($options))) throw new InvalidArgumentException('inspect_arguments_invalid');
-        require $root . '/vendor/autoload.php';
+        require_once $root . '/vendor/autoload.php';
         \app\cms\config\Environment::initialize();
         $database = \app\cms\database\DatabaseSettings::values()['DB_NAME'];
         if (!preg_match('/^[a-zA-Z0-9_]{1,64}$/D', $database)) throw new InvalidArgumentException('invalid_database_identifier');

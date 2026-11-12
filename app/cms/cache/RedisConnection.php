@@ -13,18 +13,7 @@ final class RedisConnection
     {
         $pinned = \Webman\Context::get('cms.redis.settings');
         if (is_array($pinned)) return $pinned;
-        // Webman's config() snapshot belongs to worker startup. Require only
-        // this private config again so both PHP edits and .env keys work online.
-        $path = \app\cms\Paths::root('config/cms_cache.php');
-        clearstatcache(true, $path);
-        $opcacheEnabled = filter_var(ini_get('opcache.enable'), FILTER_VALIDATE_BOOLEAN)
-            && (!in_array(PHP_SAPI, ['cli', 'phpdbg'], true) || filter_var(ini_get('opcache.enable_cli'), FILTER_VALIDATE_BOOLEAN));
-        // Even validate_timestamps=0 must not reuse old connection parameters.
-        // Fail the probe if the active opcode cache cannot be refreshed.
-        if ($opcacheEnabled && (!function_exists('opcache_invalidate') || !@opcache_invalidate($path, true))) {
-            throw new \RuntimeException('Redis PHP 配置刷新失败，请检查 OPcache 配置刷新权限');
-        }
-        $settings = require $path;
+        $settings = \app\cms\config\DeploymentConfig::group('redis', true);
         foreach (['port', 'database'] as $name) {
             $value = $settings[$name] ?? null;
             if (!(is_int($value) || (is_string($value) && preg_match('/^(?:0|[1-9][0-9]*)$/D', $value)))
@@ -100,7 +89,7 @@ final class RedisConnection
                 || $client->del($key) !== 1 || $client->exists($key) !== 0) throw new \RuntimeException();
         } catch (\Throwable) {
             self::disconnect();
-            throw new \RuntimeException('Redis 配置验证失败，未切换缓存模式。请检查 .env 的 CMS_REDIS_* 或 config/cms_cache.php 配置，以及扩展、连接、认证、读写/过期/删除权限和 PHP 配置刷新权限；修正参数后可直接重新保存');
+            throw new \RuntimeException('Redis 配置验证失败，未切换缓存模式。请检查 .env 的 CMS_REDIS_* 或 config/manifest/config.yaml 的 redis 配置，以及扩展、连接、认证、读写/过期/删除权限；修正参数后可直接重新保存');
         } finally {
             if ($key !== null && self::$client !== null) { try { self::$client->del($key); } catch (\Throwable) {} }
         }

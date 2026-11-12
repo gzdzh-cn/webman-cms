@@ -9,7 +9,7 @@ use support\exception\BusinessException;
 use support\Request;
 use support\Response;
 use Throwable;
-use Webman\Captcha\CaptchaBuilder;
+use app\cms\support\CaptchaBuilder;
 use Webman\Captcha\PhraseBuilder;
 
 
@@ -198,7 +198,10 @@ class AccountController extends \plugin\admin\app\controller\Crud
         $img_content = $captcha->get();
         
 
-        return response($img_content, 200, ['Content-Type' => 'image/jpeg']);
+        return response($img_content, 200, [
+            'Content-Type' => 'image/jpeg',
+            'Cache-Control' => 'private, no-store, max-age=0',
+        ]);
     }
 
     /**

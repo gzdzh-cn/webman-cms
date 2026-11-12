@@ -3,7 +3,24 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-        <title>主页</title>
+        <title><?= htmlspecialchars($title, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></title>
+        <script>
+            // Start private, request-scoped data alongside CSS and UI modules.
+            // Resolve failures as data until navigation owns the error display.
+            window.CmsWorkspaceBootstrap = Promise.all([
+                '/web-admin/config/get', '/web-admin/rule/get?navigation=1'
+            ].map(async function (url) {
+                var controller = new AbortController();
+                var timeout = window.setTimeout(function () { controller.abort(); }, 15000);
+                try {
+                    var response = await fetch(url, {credentials: 'same-origin', cache: 'no-store', headers: {Accept: 'application/json'}, signal: controller.signal});
+                    if (!response.ok) throw new Error('读取后台导航失败，请重新加载');
+                    return await response.json();
+                } finally { window.clearTimeout(timeout); }
+            })).then(function (data) { return {data: data}; }, function () {
+                return {error: '读取后台配置或导航失败，请检查网络后重新加载'};
+            });
+        </script>
         <!-- 依 赖 样 式 -->
         <link rel="stylesheet" href="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/component/pear/css/pear.css?v=20261105-sidebar2'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>" />
         <!-- 加 载 样 式 -->
@@ -43,7 +60,7 @@
                             <div class="cms-dropdown-heading">切换编辑语言</div>
                             <div id="cms-language-options" role="listbox" aria-label="编辑语言列表"></div>
                             <?php if (\plugin\admin\api\Auth::canAccess(\plugin\admin\app\controller\LanguageController::class, 'index')): ?>
-                            <a class="cms-language-manage" href="/app/admin/language/index"><i class="layui-icon layui-icon-edit" aria-hidden="true"></i>编辑语言<span aria-hidden="true">→</span></a>
+                            <a class="cms-language-manage" href="/web-admin/language/index"><i class="layui-icon layui-icon-edit" aria-hidden="true"></i>编辑语言<span aria-hidden="true">→</span></a>
                             <?php endif; ?>
                         </div>
                         <span id="cms-language-message" class="cms-language-message" role="status" aria-live="polite"></span>
@@ -55,7 +72,7 @@
                         <a href="#" id="cms-account-toggle" role="button" aria-label="管理员菜单" aria-haspopup="menu" aria-controls="cms-account-options" aria-expanded="false"><i class="layui-icon layui-icon-username" aria-hidden="true"></i><span class="cms-top-label cms-account-name">管理员</span></a>
                         <!-- 功 能 菜 单 -->
                         <dl class="layui-nav-child cms-account-options" id="cms-account-options" role="menu" hidden>
-                            <dd><a class="cms-account-link" role="menuitem" href="/app/admin/account/index"><i class="layui-icon layui-icon-username" aria-hidden="true"></i>个人资料</a></dd>
+                            <dd><a class="cms-account-link" role="menuitem" href="/web-admin/account/index"><i class="layui-icon layui-icon-username" aria-hidden="true"></i>个人资料</a></dd>
                             <dd><a href="#" role="menuitem" class="refresh"><i class="layui-icon layui-icon-refresh" aria-hidden="true"></i>刷新当前页</a></dd>
                             <dd><a href="#" role="menuitem" class="fullScreen"><i class="layui-icon layui-icon-screen-full" aria-hidden="true"></i>全屏显示</a></dd>
                             <dd class="setting"><a href="#" role="menuitem"><i class="layui-icon layui-icon-set" aria-hidden="true"></i>外观偏好</a></dd>
@@ -115,21 +132,31 @@
             window.Admin = {
                 Account: {}
             };
+            window.CmsBranding = {
+                setName: function(value) {
+                    if (typeof value !== 'string') return;
+                    var name = value.trim() || '网站后台';
+                    document.title = name;
+                    document.querySelectorAll('.layui-logo .title').forEach(function(node) {
+                        node.textContent = name;
+                    });
+                }
+            };
 
-            layui.use(["pearAdmin","jquery","pearPopup","pearDrawer"], function() {
+            layui.use(["pearAdmin","jquery","pearPopup"], function() {
                 var $ = layui.$;
                 var admin = layui.pearAdmin;
                 var popup = layui.pearPopup;
 
                 admin.setConfigType("json");
-                admin.setConfigPath("/app/admin/config/get");
+                admin.setConfigPath("/web-admin/config/get");
 
                 window.CmsNavigation.start(admin);
 
                 // 登出逻辑
                 admin.logout(function(){
                     $.ajax({
-                        url: "/app/admin/account/logout",
+                        url: "/web-admin/account/logout",
                         dataType: "json",
                         success: function (res) {
                             if (res.code) {
@@ -144,7 +171,7 @@
                 })
 
                 $.ajax({
-                    url: "/app/admin/account/info",
+                    url: "/web-admin/account/info",
                     dataType: 'json',
                     success: function (res) {
                         window.Admin.Account = res.data;

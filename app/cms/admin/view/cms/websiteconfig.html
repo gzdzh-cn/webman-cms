@@ -4,9 +4,9 @@
 <script src="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/admin/js/cms-module-navigation.js?v=20261106-basic2'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>"></script>
 <link rel="stylesheet" href="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/admin/css/cms-page-adapters.css?v=20261105-adapters1'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>">
 <link rel="stylesheet" href="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/admin/css/cms-basic-settings.css?v=20261106-basic2'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>">
-<script defer src="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/admin/js/cms-basic-settings.js?v=20261106-basic2'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>"></script>
+<script defer src="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/admin/js/cms-basic-settings.js?ui=20261111-branding4'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>"></script>
 </head><body class="cms-module-page cms-page-adapted cms-basic-settings"><div data-cms-module-navigation></div><main class="cms-page-panel">
-<header class="cms-basic-toolbar" data-cms-filter><label for="lang">当前语言</label><select id="lang" aria-label="当前语言" disabled></select><span id="scope-note"></span><button type="button" id="reload" disabled>刷新</button><button type="button" id="reset" disabled>还原未保存修改</button></header>
+<header class="cms-basic-toolbar" data-cms-filter><label for="lang">当前语言</label><select id="lang" aria-label="当前语言" disabled></select><span id="scope-note"></span></header>
 <p id="status" role="status" aria-live="polite">正在读取设置…</p>
-<form id="settings" class="cms-basic-form" aria-label="基本设置" autocomplete="off"><div id="fields"></div><div id="integration-links" class="cms-basic-integrations"></div><footer class="cms-basic-actions"><button class="primary" type="submit" id="save" disabled>保存配置</button></footer></form>
+<form id="settings" class="cms-basic-form" aria-label="基本设置" autocomplete="off"><div id="fields"></div><div id="integration-links" class="cms-basic-integrations"></div><footer class="cms-basic-actions"><button class="primary" type="submit" id="save" disabled>保存配置</button><button type="button" id="reset" title="恢复最近读取或保存的配置" disabled>重置</button></footer></form>
 </main></body></html>

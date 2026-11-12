@@ -35,7 +35,7 @@ function cmsEditorReturn(){
 </script>
 </head>
 
-<body class="cms-editor-page" data-cms-return-url="/app/admin/channeltype/index">
+<body class="cms-editor-page" data-cms-return-url="/web-admin/channeltype/index">
 <header class="cms-editor-heading"><button type="button" data-cms-back aria-label="返回内容模型列表">←</button><div><h1>编辑内容模型</h1><p>填写并保存后返回列表；取消不会保存本次修改。</p></div></header>
 
     <form data-cms-page-editor class="layui-form" lay-filter="channeltype-form">
@@ -114,8 +114,8 @@ function cmsEditorReturn(){
 
         // 相关接口
         const PRIMARY_KEY = "id";
-        const SELECT_API = "/app/admin/channeltype/select" + location.search;
-        const UPDATE_API = "/app/admin/channeltype/update";
+        const SELECT_API = "/web-admin/channeltype/select" + location.search;
+        const UPDATE_API = "/web-admin/channeltype/update";
 
         // 获取数据库记录并回填表单
         layui.use(["form", "util", "pearPopup"], function () {
@@ -127,7 +127,7 @@ function cmsEditorReturn(){
                 dataType: "json",
                 success: function (res) {
                     if (res.code) {
-                        return layui.pearPopup.failure(res.msg);
+                        return window.CmsUI.failure(res.msg);
                     }
                     let record = res.data && res.data[0] ? res.data[0] : {};
                     form.val("channeltype-form", record);
@@ -162,7 +162,7 @@ function cmsEditorReturn(){
                         if (res.code) {
                             window.CmsUI.error(cmsForm,res.msg,res.fields||res.data?.fields);return false;
                         }
-                        return layui.pearPopup.success("操作成功", function () {
+                        return window.CmsUI.success("操作成功", function () {
                             window.CmsUI.saved(cmsEditorReturn());
                         });
                     }

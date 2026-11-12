@@ -43,8 +43,8 @@ class TemplateFileService
         if (!in_array($lang, array_column($languages, 'mark'), true)) throw new InvalidArgumentException('语言不存在');
         $record = $this->repository->table('config')->where(['name' => 'web_tpl_theme', 'lang' => $lang, 'is_del' => 0])->value('value');
         $theme = ThemeCatalog::configured($record === null ? null : (string)$record);
-        $root = realpath(base_path('template'));
-        if ($root === false || is_link(base_path('template'))) throw new InvalidArgumentException('模板根目录不存在或无效');
+        $root = \app\cms\support\EmbeddedResources::realpath(\app\cms\Paths::templates(''));
+        if ($root === false || is_link(\app\cms\Paths::templates(''))) throw new InvalidArgumentException('模板根目录不存在或无效');
         $directory = $this->walk($root, $theme, true);
         return ['root' => $directory, 'theme' => $theme, 'lang' => $lang, 'languages' => $languages, 'legacy' => false, 'prefix' => '/template/' . $theme];
     }
@@ -65,7 +65,7 @@ class TemplateFileService
             clearstatcache(true, $current);
             if (is_link($current)) throw new InvalidArgumentException('禁止访问符号链接');
         }
-        $real = realpath($current);
+        $real = \app\cms\support\EmbeddedResources::realpath($current);
         if ($real === false || ($real !== $root && !str_starts_with($real, $root . DIRECTORY_SEPARATOR)) || ($directory ? !is_dir($real) : !is_file($real))) throw new InvalidArgumentException('模板路径不存在或越界');
         return $real;
     }
@@ -113,7 +113,7 @@ class TemplateFileService
             $items[] = ['name' => $name, 'path' => $relative, 'kind' => $kind, 'bytes' => is_file($file) ? filesize($file) : null, 'modified' => filemtime($file), 'hash' => $kind === 'image' ? hash_file('sha256', $file) : null, 'url' => $kind === 'image' ? $scope['prefix'] . '/' . $relative : null];
         }
         usort($items, static fn($a, $b) => (($a['kind'] !== 'directory') <=> ($b['kind'] !== 'directory')) ?: strnatcasecmp($a['name'], $b['name']));
-        return ['lang' => $scope['lang'], 'languages' => $scope['languages'], 'theme' => $scope['theme'], 'activepath' => $scope['prefix'] . ($path === '' ? '' : '/' . $path), 'path' => $path, 'items' => $items, 'source_extensions' => self::SOURCE_EXTENSIONS];
+        return ['lang' => $scope['lang'], 'languages' => $scope['languages'], 'theme' => $scope['theme'], 'activepath' => $scope['prefix'] . ($path === '' ? '' : '/' . $path), 'path' => $path, 'items' => $items, 'readonly' => \app\cms\support\EmbeddedResources::has('template'), 'source_extensions' => self::SOURCE_EXTENSIONS];
     }
 
     public function read(array $input): array
@@ -125,7 +125,7 @@ class TemplateFileService
         if (filesize($file) > self::MAX_SOURCE_BYTES) throw new InvalidArgumentException('源文件超过2MiB限制');
         $content = file_get_contents($file);
         if ($content === false || strlen($content) > self::MAX_SOURCE_BYTES || !mb_check_encoding($content, 'UTF-8')) throw new InvalidArgumentException('源文件必须为2MiB以内的UTF-8文本');
-        return ['path' => $path, 'content' => $content, 'hash' => hash('sha256', $content), 'lang' => $scope['lang'], 'theme' => $scope['theme']];
+        return ['path' => $path, 'content' => $content, 'hash' => hash('sha256', $content), 'lang' => $scope['lang'], 'theme' => $scope['theme'], 'readonly'=>\app\cms\support\EmbeddedResources::has('template')];
     }
 
     private function source(string $content, string $extension): string
@@ -142,6 +142,7 @@ class TemplateFileService
 
     public function save(array $input, bool $create = false): array
     {
+        \app\cms\support\EmbeddedResources::assertWritable(\app\cms\Paths::templates());
         $this->validateInput($input);
         return $this->mutate($input, (string)($input['content'] ?? ''), 'source', $create);
     }

@@ -155,12 +155,12 @@
         <script>
 
             // 相关接口
-            const INSERT_API = "/app/admin/user/insert";
+            const INSERT_API = "/web-admin/user/insert";
             
             // 字段 性别 sex
             layui.use(["jquery", "xmSelect"], function() {
                 layui.$.ajax({
-                    url: "/app/admin/dict/get/sex",
+                    url: "/web-admin/dict/get/sex",
                     dataType: "json",
                     success: function (res) {
                         let value = layui.$("#sex").attr("value");
@@ -176,7 +176,7 @@
                             radio: true,
                         });
                         if (res.code) {
-                            layui.pearPopup.failure(res.msg);
+                            window.CmsUI.failure(res.msg);
                         }
                     }
                 });
@@ -190,7 +190,7 @@
                     window.CmsUI.layer({
                         type: 2,
                         title: "选择附件",
-                        content: "/app/admin/upload/attachment?ext=jpg,jpeg,png,gif,bmp",
+                        content: "/web-admin/upload/attachment?ext=jpg,jpeg,png,gif,bmp",
                         kind: "picker", area: ["1040px", "85vh"],
                         success: function (layero, index) {
                             layui.$("#layui-layer" + index).data("callback", function (data) {
@@ -202,7 +202,7 @@
                 });
                 layui.upload.render({
                     elem: "#avatar",
-                    url: "/app/admin/upload/avatar",
+                    url: "/web-admin/upload/avatar",
                     acceptMime: "image/gif,image/jpeg,image/jpg,image/png",
                     field: "__file__",
                     done: function (res) {
@@ -262,7 +262,7 @@
                             if (res.code) {
                                 window.CmsUI.error(cmsForm,res.msg,res.fields||res.data?.fields);return false;
                             }
-                            window.CmsModuleNavigation?.markClean(cmsForm);delete cmsForm.dataset.cmsDirty;return layui.pearPopup.success("保存成功", function () {
+                            window.CmsModuleNavigation?.markClean(cmsForm);delete cmsForm.dataset.cmsDirty;return window.CmsUI.success("保存成功", function () {
                                 parent.refreshTable();
                                 window.CmsUI.clean();
                                 parent.layer.close(parent.layer.getFrameIndex(window.name));

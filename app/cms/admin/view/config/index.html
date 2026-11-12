@@ -51,7 +51,7 @@
                                 <label class="layui-form-label">网站Logo</label>
                                 <div class="layui-input-block">
                                     <img class="img-3" src=""/>
-                                    <input type="text" style="display:none" name="image" value="/app/admin/avatar.png" />
+                                    <input type="text" style="display:none" name="image" value="/web-admin/avatar.png" />
                                     <button type="button" class="pear-btn pear-btn-primary pear-btn-sm" id="image" permission="app.admin.upload.avatar">
                                         <i class="layui-icon layui-icon-upload"></i>上传图片
                                     </button>
@@ -215,7 +215,7 @@
                     window.CmsUI.layer({
                         type: 2,
                         title: "选择附件",
-                        content: "/app/admin/upload/attachment?ext=jpg,jpeg,png,gif,bmp",
+                        content: "/web-admin/upload/attachment?ext=jpg,jpeg,png,gif,bmp",
                         kind: "picker", area: ["1040px", "85vh"],
                         success: function (layero, index) {
                             layui.$("#layui-layer" + index).data("callback", function (data) {
@@ -227,11 +227,11 @@
                 });
                 layui.upload.render({
                     elem: "#image",
-                    url: "/app/admin/upload/avatar",
+                    url: "/web-admin/upload/avatar",
                     acceptMime: "image/gif,image/jpeg,image/jpg,image/png",
                     done: function (res) {
                         if (res.code) {
-                            return layui.pearPopup.failure(res.msg);
+                            return window.CmsUI.failure(res.msg);
                         }
                         this.item.prev().val(res.data.url).prev().attr("src", res.data.url);
                         this.item.prev()[0]?.dispatchEvent(new Event('change', {bubbles:true}));
@@ -246,7 +246,7 @@
                     $.ajax({
                     error:function(){window.CmsUI.error(cmsForm,"保存失败，请检查网络或登录状态后重试");},
                     complete:function(){delete cmsForm.dataset.cmsSubmitting;window.CmsUI.setBusy(cmsForm,false);},
-                        url: "/app/admin/config/update",
+                        url: "/web-admin/config/update",
                         dataType: "json",
                         type: "POST",
                         data: {logo: data.field},
@@ -254,7 +254,7 @@
                             if (res.code) {
                                 window.CmsUI.error(cmsForm,res.msg,res.fields||res.data?.fields);return false;
                             }
-                            window.CmsModuleNavigation?.markClean(cmsForm);delete cmsForm.dataset.cmsDirty;return layui.pearPopup.success("保存成功");
+                            window.CmsModuleNavigation?.markClean(cmsForm);delete cmsForm.dataset.cmsDirty;return window.CmsUI.success("保存成功");
                         }
                     });
                     return false;
@@ -273,7 +273,7 @@
                     $.ajax({
                     error:function(){window.CmsUI.error(cmsForm,"保存失败，请检查网络或登录状态后重试");},
                     complete:function(){delete cmsForm.dataset.cmsSubmitting;window.CmsUI.setBusy(cmsForm,false);},
-                        url: "/app/admin/config/update",
+                        url: "/web-admin/config/update",
                         dataType: "json",
                         type: "POST",
                         data: {menu: data.field},
@@ -281,7 +281,7 @@
                             if (res.code) {
                                 window.CmsUI.error(cmsForm,res.msg,res.fields||res.data?.fields);return false;
                             }
-                            window.CmsModuleNavigation?.markClean(cmsForm);delete cmsForm.dataset.cmsDirty;return layui.pearPopup.success("保存成功");
+                            window.CmsModuleNavigation?.markClean(cmsForm);delete cmsForm.dataset.cmsDirty;return window.CmsUI.success("保存成功");
                         }
                     });
                     return false;
@@ -307,7 +307,7 @@
                     $.ajax({
                     error:function(){window.CmsUI.error(cmsForm,"保存失败，请检查网络或登录状态后重试");},
                     complete:function(){delete cmsForm.dataset.cmsSubmitting;window.CmsUI.setBusy(cmsForm,false);},
-                        url: "/app/admin/config/update",
+                        url: "/web-admin/config/update",
                         dataType: "json",
                         type: "POST",
                         data: {tab: field},
@@ -315,7 +315,7 @@
                             if (res.code) {
                                 window.CmsUI.error(cmsForm,res.msg,res.fields||res.data?.fields);return false;
                             }
-                            window.CmsModuleNavigation?.markClean(cmsForm);delete cmsForm.dataset.cmsDirty;return layui.pearPopup.success("保存成功");
+                            window.CmsModuleNavigation?.markClean(cmsForm);delete cmsForm.dataset.cmsDirty;return window.CmsUI.success("保存成功");
                         }
                     });
                     // 删除sessionStorage缓存
@@ -328,11 +328,11 @@
                 let form = layui.form;
                 let $ = layui.$;
                 $.ajax({
-                    url: "/app/admin/config/get",
+                    url: "/web-admin/config/get",
                     dataType: "json",
                     success: function (res) {
                         if (res.code) {
-                            return layui.pearPopup.failure(res.msg);
+                            return window.CmsUI.failure(res.msg);
                         }
                         form.val("baseInfo", res.logo);
                         $("#image").prev().val(res.logo.image).prev().attr("src", res.logo.image);

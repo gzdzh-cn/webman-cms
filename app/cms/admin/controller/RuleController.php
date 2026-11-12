@@ -124,7 +124,7 @@ class RuleController extends \plugin\admin\app\controller\Crud
             $this->removeNotContain($tree_items, 'id', $rules);
         }
         $this->removeNotContain($tree_items, 'type', $types);
-        $menus = $this->empty_filter(Tree::arrayValues($tree_items));
+        $menus = \app\cms\admin\support\AdminRoutes::projectUrls($this->empty_filter(Tree::arrayValues($tree_items)));
         if ((string)$request->get('navigation', '') === '1' || $types === ['0', '1'] || $types === [0, 1]) {
             $navigation = Navigation::metadata(array_values($allRules), $rules, $menus);
             $navigation['preference_scope'] = (string)admin_id();

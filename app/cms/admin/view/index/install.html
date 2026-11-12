@@ -154,15 +154,15 @@
         form.on("submit(formStep)", function(data) {
             let loading = layer.load();
             $.ajax({
-                url: "/app/admin/install/step1",
+                url: "/web-admin/install/step1",
                 type: "POST",
                 dataType: "json",
                 data: data.field,
                 success: function (res) {
                     if (res.code) {
-                        return layui.pearPopup.failure(res.msg);
+                        return window.CmsUI.failure(res.msg);
                     }
-                    layui.pearPopup.success("操作成功", function () {
+                    window.CmsUI.success("操作成功", function () {
                         step.next("#stepForm");
                     });
                 },
@@ -176,15 +176,15 @@
         form.on("submit(formStep2)", function(data) {
             let loading = layer.load();
             $.ajax({
-                url: "/app/admin/install/step2",
+                url: "/web-admin/install/step2",
                 type: "POST",
                 dataType: "json",
                 data: data.field,
                 success: function (res) {
                     if (res.code) {
-                        return layui.pearPopup.failure(res.msg);
+                        return window.CmsUI.failure(res.msg);
                     }
-                    //layui.pearPopup.success("安装成功");
+                    //window.CmsUI.success("安装成功");
                     step.next("#stepForm");
                     layer.close(loading);
                 },

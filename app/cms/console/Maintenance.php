@@ -14,7 +14,7 @@ final class Maintenance
     {
         if(!$dryRun)throw new \RuntimeException('数据库初始化写入已停用；请使用 cms:install --preflight --input 审阅模式、统一前缀及冲突表，再通过 cms:install --input 安装');
         [$cms,$admin]=Connection::prefixes();$name=(string)(\app\cms\database\DatabaseSettings::values()['DB_NAME']);$pdo=Connection::environment(false);
-        $archive=new \app\cms\install\InstallerArchive(base_path());
+        $archive=new \app\cms\install\InstallerArchive(\app\cms\Paths::root());
         $sources=[[$archive->baselinePath('cms-empty.sql'),'cms_',$cms],[$archive->baselinePath('webman-admin.sql'),'wa_',$admin],[$archive->baselinePath('cms-internal.sql'),'cms_',$cms]];$tables=[];
         foreach($sources as[$path,$from,$to])$tables=array_merge($tables,SqlImporter::tables($path,$from,$to));
         $query=$pdo->prepare('SELECT 1 FROM information_schema.SCHEMATA WHERE SCHEMA_NAME=?');$query->execute([$name]);$exists=(bool)$query->fetchColumn();$present=[];
@@ -47,7 +47,7 @@ final class Maintenance
     public static function privateInput(string $path): array
     {
         if(!str_starts_with($path,'/')||realpath($path)!==$path||is_link($path)||!is_file($path)||(fileperms($path)&0077)!==0||filesize($path)>65536)throw new \InvalidArgumentException('Input must be an absolute private JSON file (0600)');
-        foreach([public_path(),base_path('template')]as$public)if($path===$public||str_starts_with($path,rtrim($public,'/').'/'))throw new \InvalidArgumentException('Input must not be publicly served');
+        foreach([\app\cms\Paths::publicRoot(),\app\cms\Paths::templates('')]as$public)if($path===$public||str_starts_with($path,rtrim($public,'/').'/'))throw new \InvalidArgumentException('Input must not be publicly served');
         $data=json_decode((string)file_get_contents($path),true,512,JSON_THROW_ON_ERROR);if(!is_array($data))throw new \InvalidArgumentException('Invalid JSON input');return $data;
     }
 }

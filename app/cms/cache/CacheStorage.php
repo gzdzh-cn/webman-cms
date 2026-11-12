@@ -4,7 +4,7 @@ namespace app\cms\cache;
 
 use Webman\Context;
 
-/** Logical runtime paths identify signed bytes; Redis never opens those paths. */
+/** Logical runtime paths identify disposable cache bytes; Redis never opens those paths. */
 final class CacheStorage
 {
     private static function identity(string $path): string
@@ -15,7 +15,7 @@ final class CacheStorage
         $policy = CachePolicy::snapshot();
         $identity = [\app\cms\template\TemplateMode::current(), \app\cms\template\TemplateDialect::VERSION, \app\cms\template\TemplateCapabilities::COMPILE_VERSION, \app\cms\template\TemplateMode::siteSignature(), $path];
         $generation = CachePolicy::cacheGeneration();
-        return $policy['namespace'] . ':' . $generation . ':' . hash('sha256', serialize($identity));
+        return 'storage-v2:' . $policy['namespace'] . ':' . $generation . ':' . hash('sha256', serialize($identity));
     }
     private static function memory(): MemoryStorage
     {

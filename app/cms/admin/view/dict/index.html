@@ -84,11 +84,11 @@
         <script>
 
             // 相关接口
-            const SELECT_API = "/app/admin/dict/select";
-            const UPDATE_API = "/app/admin/dict/update";
-            const DELETE_API = "/app/admin/dict/delete";
-            const INSERT_URL = "/app/admin/dict/insert";
-            const UPDATE_URL = "/app/admin/dict/update";
+            const SELECT_API = "/web-admin/dict/select";
+            const UPDATE_API = "/web-admin/dict/update";
+            const DELETE_API = "/web-admin/dict/delete";
+            const INSERT_URL = "/web-admin/dict/insert";
+            const UPDATE_URL = "/web-admin/dict/update";
 
             // 表格渲染
             layui.use(["table", "form", "pearCommon", "pearPopup", "util"], function() {
@@ -147,7 +147,7 @@
         let tableInited = false;
         const loadDictNames = () => {
           let apis = [];
-          apis.push(["name", "/app/admin/dict/get/dict_name"]);
+          apis.push(["name", "/web-admin/dict/get/dict_name"]);
           apiResults["name"] = [];
           let count = apis.length;
           layui.each(apis, function (k, item) {
@@ -157,7 +157,7 @@
               dateType: "json",
               success : function (res) {
                 if (res.code) {
-                  return layui.pearPopup.failure(res.msg);
+                  return window.CmsUI.failure(res.msg);
                 }
 
                 function travel(items) {
@@ -287,7 +287,7 @@
                 let batchRemove = function(obj) {
                     let checkIds = common.checkField(obj, "name");
                     if (checkIds === "") {
-                        layui.pearPopup.warning("未选中数据");
+                        window.CmsUI.warning("未选中数据");
                         return false;
                     }
                     doRemove(checkIds.split(","));
@@ -308,9 +308,9 @@
                             success: function(res) {
                                 layer.close(loading);
                                 if (res.code) {
-                                    return layui.pearPopup.failure(res.msg);
+                                    return window.CmsUI.failure(res.msg);
                                 }
-                                return layui.pearPopup.success("操作成功", refreshTable);
+                                return window.CmsUI.success("操作成功", refreshTable);
                             }
                         })
                     });

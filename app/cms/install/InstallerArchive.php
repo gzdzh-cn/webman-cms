@@ -12,8 +12,8 @@ final class InstallerArchive
 
     public function __construct(?string $root = null)
     {
-        $this->root = rtrim($root ?? base_path(), '/');
-        if (!is_dir($this->root) || is_link($this->root) || is_link($this->root . '/config')) {
+        $this->root = rtrim($root ?? \app\cms\Paths::root(), '/');
+        if (!is_dir($this->root) || is_link($this->root) || is_link(\app\cms\Paths::config(''))) {
             throw new RuntimeException('安装归档根目录无效');
         }
     }
@@ -21,11 +21,11 @@ final class InstallerArchive
     public function seal(bool $check = false): array
     {
         $record = $this->record();
-        $source = $this->root . '/install';
+        $source = \app\cms\Paths::install('');
         if (!$record) {
             if (!$this->exists($source)) return $this->result('absent', null, $check);
             $tree = $this->inventory($source);
-            if (!is_writable($this->root) || !is_writable($this->root . '/config')) {
+            if (!is_writable(dirname(\app\cms\Paths::install())) || !is_writable(\app\cms\Paths::config(''))) {
                 throw new RuntimeException('项目根目录或配置目录不可写，无法封存安装资料');
             }
             if ($check) return $this->result('ready', null, true);
@@ -33,12 +33,12 @@ final class InstallerArchive
                 $suffix = '';
                 for ($i = 0; $i < 12; ++$i) $suffix .= chr(97 + random_int(0, 25));
                 $directory = 'install_' . $suffix;
-            } while ($this->exists($this->root . '/' . $directory));
+            } while ($this->exists(($directory === 'install' ? \app\cms\Paths::install() : dirname(\app\cms\Paths::install()).'/'.$directory)));
             $record = ['version' => 1, 'status' => 'prepared', 'directory' => $directory,
                 'files' => $tree['files'], 'directories' => $tree['directories'], 'created_at' => time()];
             $this->write($record);
         }
-        $destination = $this->root . '/' . $record['directory'];
+        $destination = dirname(\app\cms\Paths::install()).'/'.$record['directory'];
         $sourceExists = $this->exists($source);
         $destinationExists = $this->exists($destination);
         if ($sourceExists && $destinationExists) throw new RuntimeException('原安装目录与归档目录同时存在，拒绝覆盖或删除');
@@ -51,7 +51,7 @@ final class InstallerArchive
         if (!$sourceExists && !$destinationExists) throw new RuntimeException('封存记录对应的安装资料缺失，停止恢复');
         if ($sourceExists) {
             $this->verify($source, $record);
-            if (!is_writable($this->root)) throw new RuntimeException('项目根目录不可写，无法改名安装目录');
+            if (!is_writable(dirname(\app\cms\Paths::install()))) throw new RuntimeException('项目根目录不可写，无法改名安装目录');
             if ($check) return $this->result('pending', $record['directory'], true);
             // Cooperating installers share one lock; never overwrite an existing target.
             if ($this->exists($destination) || !@rename($source, $destination)) {
@@ -71,8 +71,8 @@ final class InstallerArchive
     {
         $record = $this->record();
         if (!$record) {
-            if (!$this->exists($this->root . '/install')) return null;
-            $this->inventory($this->root . '/install');
+            if (!$this->exists(\app\cms\Paths::install(''))) return null;
+            $this->inventory(\app\cms\Paths::install(''));
             return 'install';
         }
         $result = $this->seal(true);
@@ -89,7 +89,7 @@ final class InstallerArchive
         }
         $directory = $this->deploymentDirectory();
         if ($directory === null) throw new RuntimeException('安装资料已移除；已安装站点升级请使用 cms:migrate');
-        $file = $this->root . '/' . $directory . '/database/' . $filename;
+        $file = ($directory === 'install' ? \app\cms\Paths::install() : dirname(\app\cms\Paths::install()).'/'.$directory) . '/database/' . $filename;
         if (!is_file($file) || is_link($file)) throw new RuntimeException('安装基线文件缺失');
         return $file;
     }
@@ -108,7 +108,7 @@ final class InstallerArchive
 
     private function record(): ?array
     {
-        $path = $this->root . '/' . self::RECORD;
+        $path = \app\cms\Paths::config('cms-installer-archive.json');
         if (!$this->exists($path)) return null;
         if (is_link($path) || !is_file($path) || filesize($path) > 8 * 1024 * 1024) throw new RuntimeException('安装归档记录路径无效');
         try { $record = json_decode((string)file_get_contents($path), true, 512, JSON_THROW_ON_ERROR); }
@@ -165,7 +165,7 @@ final class InstallerArchive
 
     private function write(array $record): void
     {
-        $path = $this->root . '/' . self::RECORD;
+        $path = \app\cms\Paths::config('cms-installer-archive.json');
         if (is_link($path) || is_link(dirname($path)) || !is_writable(dirname($path))) throw new RuntimeException('安装归档记录不可写');
         $temporary = tempnam(dirname($path), '.seal-');
         if ($temporary === false) throw new RuntimeException('无法创建安装归档记录');

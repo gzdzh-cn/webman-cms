@@ -17,13 +17,13 @@ final class InstallerEnvironment
     public function __construct(string $root)
     {
         $real = realpath($root);
-        if ($real === false || !is_dir($real) || realpath($real.'/config') !== $real.'/config') throw new RuntimeException('安装配置目录无效');
+        if ($real === false || !is_dir($real) || !is_dir(\app\cms\Paths::config())) throw new RuntimeException('安装配置目录无效');
         $this->root = $real;
     }
 
     private function read(): ?string
     {
-        $path = $this->root.'/.env';
+        $path = \app\cms\config\Environment::path();
         clearstatcache(true, $path);
         if (is_link($path)) throw new RuntimeException('.env 不能是链接');
         if (!file_exists($path)) return null;
@@ -97,7 +97,7 @@ final class InstallerEnvironment
         return $stat;
     }
 
-    private function lockPath(): string { return $this->root.'/config/.cms-install-env.lock'; }
+    private function lockPath(): string { return \app\cms\Paths::config('.cms-install-env.lock'); }
 
     private function assertLock(): void
     {
@@ -114,9 +114,9 @@ final class InstallerEnvironment
     {
         $before = $this->read();
         if ($this->prepare($before, $values) === $before) return;
-        $this->writable($this->root, true);
-        $this->writable($this->root.'/.env');
-        $this->writable($this->root.'/config', true);
+        $this->writable(dirname(Environment::path()), true);
+        $this->writable(\app\cms\config\Environment::path());
+        $this->writable(\app\cms\Paths::config(''), true);
         $this->assertLock();
         if (is_file($this->lockPath())) {
             $handle = fopen($this->lockPath(), 'r+');
@@ -144,11 +144,11 @@ final class InstallerEnvironment
             $this->assertLock();
             $opened = fstat($lock); $linked = lstat($this->lockPath());
             if (!$opened || !$linked || $opened['dev'] !== $linked['dev'] || $opened['ino'] !== $linked['ino']) throw new RuntimeException('.env 更新锁发生变化');
-            $parent = $this->writable($this->root, true);
-            $stat = $this->writable($this->root.'/.env');
+            $parent = $this->writable(dirname(Environment::path()), true);
+            $stat = $this->writable(\app\cms\config\Environment::path());
             $before = $this->read(); $after = $this->prepare($before, $values);
             if ($after === $before) return;
-            $tmp = $this->root.'/.env-install-'.bin2hex(random_bytes(16));
+            $tmp = dirname(Environment::path()).'/.env-install-'.bin2hex(random_bytes(16));
             $oldUmask = umask(0077);
             try { $handle = fopen($tmp, 'x+b'); } finally { umask($oldUmask); }
             if (!$handle) throw new RuntimeException('无法创建 .env 临时文件');
@@ -157,13 +157,13 @@ final class InstallerEnvironment
                     || (function_exists('fsync') && !fsync($handle))) throw new RuntimeException('写入 .env 失败');
                 $tempStat = fstat($handle);
             } finally { fclose($handle); }
-            $nowParent = $this->writable($this->root, true); $now = $this->writable($this->root.'/.env');
+            $nowParent = $this->writable(dirname(Environment::path()), true); $now = $this->writable(\app\cms\config\Environment::path());
             if ($nowParent['dev'] !== $parent['dev'] || $nowParent['ino'] !== $parent['ino'] || $now['dev'] !== $stat['dev']
                 || $now['ino'] !== $stat['ino'] || $this->read() !== $before) throw new RuntimeException('.env 在安装期间发生变化，请重新检查后重试');
             clearstatcache(true, $tmp); $tempLink = lstat($tmp);
             if (!$tempStat || !$tempLink || is_link($tmp) || !is_file($tmp) || $tempLink['nlink'] !== 1 || ($tempLink['mode'] & 0777) !== 0600
                 || $tempStat['dev'] !== $tempLink['dev'] || $tempStat['ino'] !== $tempLink['ino']) throw new RuntimeException('.env 临时文件发生变化');
-            if (!rename($tmp, $this->root.'/.env')) throw new RuntimeException('保存 .env 失败');
+            if (!rename($tmp, \app\cms\config\Environment::path())) throw new RuntimeException('保存 .env 失败');
             $tmp = null;
             Environment::refresh($this->root);
         } finally {

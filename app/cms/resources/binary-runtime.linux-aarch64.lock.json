@@ -1,0 +1,296 @@
+{
+  "format": 1,
+  "platform": "linux-aarch64",
+  "php": "8.4.27",
+  "runtime_kind": "source-build",
+  "runtime_sha256": "7336381591bc00240bd0ef424d6e77ce36d890944afd3eca8402492e68d7b1fe",
+  "extensions": [
+    "Core",
+    "date",
+    "libxml",
+    "json",
+    "pcre",
+    "zlib",
+    "bcmath",
+    "ctype",
+    "curl",
+    "dom",
+    "SPL",
+    "fileinfo",
+    "filter",
+    "gd",
+    "hash",
+    "iconv",
+    "session",
+    "mbstring",
+    "pcntl",
+    "standard",
+    "openssl",
+    "PDO",
+    "mysqlnd",
+    "pdo_mysql",
+    "Phar",
+    "posix",
+    "random",
+    "redis",
+    "Reflection",
+    "exif",
+    "SimpleXML",
+    "sockets",
+    "tokenizer",
+    "xml",
+    "xmlreader",
+    "xmlwriter",
+    "zip"
+  ],
+  "ini": {
+    "phar.readonly": "1",
+    "phar.require_hash": "1",
+    "allow_url_include": "0",
+    "session.serialize_handler": "php",
+    "zend.exception_ignore_args": "1",
+    "pcre.jit": "0"
+  },
+  "build": {
+    "tool": "static-php-cli",
+    "commit": "84ff669ee513609bc75aa43a87e2f3a349b37109",
+    "source_url": "https://api.github.com/repos/crazywhalecc/static-php-cli/tarball/84ff669ee513609bc75aa43a87e2f3a349b37109",
+    "source_sha256": "79fc511e126e8f8449915296eced1ca65cb296ce3224f835b4c476c54e88edbe",
+    "command": "./php -n bin/spc build:php 'bcmath,ctype,curl,dom,exif,fileinfo,filter,gd,iconv,mbregex,mbstring,mysqlnd,openssl,pcntl,pdo,pdo_mysql,phar,posix,redis,session,simplexml,sockets,tokenizer,xml,xmlreader,xmlwriter,zip,zlib' --with-packages=freetype,libjpeg,libwebp,libavif --build-cli --build-micro --no-download",
+    "concurrency": 4,
+    "target": "aarch64-linux-musl",
+    "gd": {
+      "GD Version": "bundled (2.1.0 compatible)",
+      "FreeType Support": true,
+      "FreeType Linkage": "with freetype",
+      "GIF Read Support": true,
+      "GIF Create Support": true,
+      "JPEG Support": true,
+      "PNG Support": true,
+      "WBMP Support": true,
+      "XPM Support": false,
+      "XBM Support": true,
+      "WebP Support": true,
+      "BMP Support": true,
+      "AVIF Support": true,
+      "TGA Read Support": true,
+      "JIS-mapped Japanese Font Support": false
+    },
+    "inputs": {
+      "zig-aarch64-linux-0.17.1.tar.xz": {
+        "version": "0.17.1",
+        "origin": {
+          "url": "https://ziglang.org/download/0.17.1/zig-aarch64-linux-0.17.1.tar.xz",
+          "version": "0.17.1"
+        },
+        "cache_type": "archive",
+        "sha256": "a1546d5646eb184437918d6635ca6b762a0e889eac09cef720ee7a1ed3fe7795"
+      },
+      "pkg-config-aarch64-linux-musl-1.2.5.txz": {
+        "version": "2026.2.17",
+        "origin": {
+          "type": "ghrel",
+          "repo": "static-php/hosted",
+          "match": "pkg-config-aarch64-linux-musl-1.2.5.txz",
+          "extract": {
+            "bin/pkg-config": "{pkg_root_path}/bin/pkg-config"
+          }
+        },
+        "cache_type": "archive",
+        "sha256": "8393329b62c79b9e50df0a8a068a67f1c525493fcd3940ac48e08fe9062ac71a"
+      },
+      "compiler-rt-22.1.8.src.tar.xz": {
+        "version": "22.1.8",
+        "origin": {
+          "url": "https://dl.static-php.dev/v3/deps/compiler-rt/compiler-rt-22.1.8.src.tar.xz"
+        },
+        "cache_type": "archive",
+        "sha256": "0738ebb31911652b8082db314ec615514dbdc5eb593906be4e127f627ffdb112"
+      },
+      "zlib-1.4.tar.gz": {
+        "version": "v1.4",
+        "origin": {
+          "type": "ghrel",
+          "repo": "madler/zlib",
+          "match": "zlib.+\\.tar\\.gz"
+        },
+        "cache_type": "archive",
+        "sha256": "02dd159783677a749c04adbdd02b55b8a2bcc7e054f51b76b549199a916ad584"
+      },
+      "libiconv-1.19.1.tar.gz": {
+        "version": "1.19.1",
+        "origin": {
+          "type": "filelist",
+          "url": "https://ftp.gnu.org/gnu/libiconv/",
+          "regex": "/href=\"(?<file>libiconv-(?<version>[^\"]+)\\.tar\\.gz)\"/"
+        },
+        "cache_type": "archive",
+        "sha256": "9a06844846d664d7122161700c10a64480d7c7bcead3091925a785b38c91edab"
+      },
+      "openssl-3.6.5.tar.gz": {
+        "version": "openssl-3.6.5",
+        "origin": {
+          "type": "ghrel",
+          "repo": "openssl/openssl",
+          "match": "openssl-3.+\\.tar\\.gz",
+          "prefer-stable": true
+        },
+        "cache_type": "archive",
+        "sha256": "a2157c2830efdec3788939b00c9b0638306d3f0bbb76dc4832ee503bb397df98"
+      },
+      "GNOME-libxml2-v2.15.4-0-g9649899.tar.gz": {
+        "version": "v2.15.4",
+        "origin": {
+          "type": "ghtagtar",
+          "repo": "GNOME/libxml2",
+          "match": "v2\\.\\d+\\.\\d+$"
+        },
+        "cache_type": "archive",
+        "sha256": "e6a7327f851b2798f228f6a0cf8cceb67e5ff11f7b01c07430c8bdfb33edc01c"
+      },
+      "curl-8.23.0.tar.xz": {
+        "version": "curl-8_23_0",
+        "origin": {
+          "type": "ghrel",
+          "repo": "curl/curl",
+          "match": "curl.+\\.tar\\.xz",
+          "prefer-stable": true
+        },
+        "cache_type": "archive",
+        "sha256": "8dadd7d2536a314f982ad05a651b713f426bf7d02cc2c76cffb9796f2218e6c5"
+      },
+      "xz-5.8.4.tar.xz": {
+        "version": "v5.8.4",
+        "origin": {
+          "type": "ghrel",
+          "repo": "tukaani-project/xz",
+          "match": "xz.+\\.tar\\.xz",
+          "prefer-stable": true
+        },
+        "cache_type": "archive",
+        "sha256": "4ce24038fd4221e0d13bc1a2de7a4db56e90b92b3bf75321f6c14be73f65de4b"
+      },
+      "phpredis_phpredis-6.3.0.zip": {
+        "version": "6.3.0",
+        "origin": {
+          "type": "pie",
+          "repo": "phpredis/phpredis"
+        },
+        "cache_type": "archive",
+        "sha256": "0bb717687263487acec10b7cee294c04b711b9c4e3842e9ce249ee3edf5cbfe5"
+      },
+      "pecl_zip-1.22.8.zip": {
+        "version": "1.22.8",
+        "origin": {
+          "type": "pie",
+          "repo": "pecl/zip",
+          "extract": "ext-zip"
+        },
+        "cache_type": "archive",
+        "sha256": "adb9a2a6b1e25b60ae7797afee581066f3aaa18767dc0608a09ac147a7dc80e3"
+      },
+      "pnggroup-libpng-v1.6.59-0-gcd952f4.tar.gz": {
+        "version": "v1.6.59",
+        "origin": {
+          "type": "ghtagtar",
+          "repo": "pnggroup/libpng",
+          "match": "v1\\.6\\.\\d+",
+          "query": "?per_page=150"
+        },
+        "cache_type": "archive",
+        "sha256": "56de06e936077ac9282b0de7e4510a18245b8dfbc305fbf94c272258f7c4b0d4"
+      },
+      "libzip-1.12.1.tar.xz": {
+        "version": "v1.12.1",
+        "origin": {
+          "type": "ghrel",
+          "repo": "nih-at/libzip",
+          "match": "libzip.+\\.tar\\.xz",
+          "prefer-stable": true
+        },
+        "cache_type": "archive",
+        "sha256": "c40062022a1963c80573d48f6070792297cecd7c6bffe3aefcac0d8b9bee8913"
+      },
+      "php-8.4.27.tar.xz": {
+        "version": "8.4.27",
+        "origin": {
+          "type": "php-release",
+          "domain": "https://www.php.net"
+        },
+        "cache_type": "archive",
+        "sha256": "dcf93923b0e38e0d5252b25b796520b5a47761a08b3488b6d0b5d1115764d3f0"
+      },
+      "php-micro": {
+        "version": "dev-master+fb6d497",
+        "origin": {
+          "type": "git",
+          "extract": "php-src/sapi/micro",
+          "rev": "master",
+          "url": "https://github.com/static-php/phpmicro"
+        },
+        "cache_type": "git",
+        "commit": "fb6d497b6f4cf138ee3851a30c905d64b7b19aed",
+        "tree_sha256": "9df7973f0c903a6577740cc516fbc6cd29f493f23e2fd75ef1447278c4b7fe92"
+      },
+      "onig-6.9.10.tar.gz": {
+        "version": "v6.9.10",
+        "origin": {
+          "type": "ghrel",
+          "repo": "kkos/oniguruma",
+          "match": "onig-.+\\.tar\\.gz"
+        },
+        "cache_type": "archive",
+        "sha256": "2a5cfc5ae259e4e97f86b68dfffc152cdaffe94e2060b770cb827238d769fc05"
+      },
+      "freetype-freetype-VER-2-15-0-0-g37515cf.tar.gz": {
+        "version": "VER-2-15-0",
+        "origin": {
+          "type": "ghtagtar",
+          "repo": "freetype/freetype",
+          "match": "VER-2-\\d+-\\d+"
+        },
+        "cache_type": "archive",
+        "sha256": "144a7ca44e8ff1de2cdfd559a3ab9551668e98df42ccc0bef04f152f8b270b64"
+      },
+      "libjpeg-turbo-libjpeg-turbo-3.2.1-0-g7b49937.tar.gz": {
+        "version": "3.2.1",
+        "origin": {
+          "type": "ghtar",
+          "repo": "libjpeg-turbo/libjpeg-turbo"
+        },
+        "cache_type": "archive",
+        "sha256": "f9d7fad5a49dcab5270cccd2a75f567e21cbc5fcea408671034f083651874c86"
+      },
+      "webmproject-libwebp-v1.6.0-0-g4fa2191.tar.gz": {
+        "version": "v1.6.0",
+        "origin": {
+          "type": "ghtagtar",
+          "repo": "webmproject/libwebp",
+          "match": "v1\\.\\d+\\.\\d+$"
+        },
+        "cache_type": "archive",
+        "sha256": "48c7b41fc22d53c5a8dd969fd0c5b302987a654df8c9f0e7e353c896703ff81c"
+      },
+      "libaom": {
+        "version": "dev-main+70fb50a",
+        "origin": {
+          "type": "git",
+          "rev": "main",
+          "url": "https://aomedia.googlesource.com/aom"
+        },
+        "cache_type": "git",
+        "commit": "70fb50a413950046bc173a582fec0debd08c9313",
+        "tree_sha256": "ae29c2660e29ba1d15d2db7c6814d3ac7cbeb515771ed7d63b2843f6f11a6675"
+      },
+      "AOMediaCodec-libavif-v1.4.2-0-gc5240fc.tar.gz": {
+        "version": "v1.4.2",
+        "origin": {
+          "type": "ghtar",
+          "repo": "AOMediaCodec/libavif"
+        },
+        "cache_type": "archive",
+        "sha256": "e7f11216722ef8b17dcf0186d6be1739be634bbe73312b16a025aa53c08c3d7a"
+      }
+    }
+  }
+}

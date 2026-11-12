@@ -18,8 +18,8 @@ final class InstallerService
     private const PLAN = 'config/cms-install-plan.json';
     private const FORMAT = 3;
 
-    public function __construct(?string $root = null) { $this->root = rtrim($root ?? base_path(), '/'); }
-    private function path(string $relative): string { return $this->root . '/' . $relative; }
+    public function __construct(?string $root = null) { $this->root = rtrim($root ?? \app\cms\Paths::root(), '/'); }
+    private function path(string $relative): string { return $this->root === \app\cms\Paths::root() ? \app\cms\Paths::logical($relative) : $this->root . '/' . $relative; }
     private function fail(string $field, string $message): never { throw new InstallerValidationException([$field=>$message], $message); }
 
     private function legacyResumeService(array $input=[]): ?InstallerLegacyV2
@@ -45,6 +45,7 @@ final class InstallerService
     }
     public function status(bool $verifyDatabase=false): array
     {
+        if (\app\cms\support\EmbeddedResources::binary()) return ['installed'=>true,'reason'=>'binary_deployment'];
         try {
             $files=$this->files();
             if(!$files['directory'])return ['installed'=>true,'reason'=>'installation_directory_absent'];
@@ -55,6 +56,7 @@ final class InstallerService
     }
     private function assertOpen(): void
     {
+        if(\app\cms\support\EmbeddedResources::binary())throw new RuntimeException('二进制安装入口已关闭');
         $files=$this->files();
         if(!$files['directory']||$files['locked'])throw new RuntimeException('安装入口已关闭；重装请恢复标准 install 目录并删除 install/install.lock');
     }
@@ -62,7 +64,7 @@ final class InstallerService
     {
         $checks=['php'=>version_compare(PHP_VERSION,'8.2','>='),'pdo_mysql'=>extension_loaded('pdo_mysql'),'pcntl'=>extension_loaded('pcntl'),'posix'=>extension_loaded('posix'),'mbstring'=>extension_loaded('mbstring'),'gd'=>extension_loaded('gd'),'config_writable'=>is_writable($this->path('config')),'root_writable'=>is_writable($this->root),'public_writable'=>is_writable($this->path('public')),'baseline_present'=>is_file($this->path('install/database/cms-empty.sql'))&&is_file($this->path('install/database/cms-internal.sql'))&&is_file($this->path('install/database/webman-admin.sql'))];
         $checks += $this->databaseConfigChecks();
-        try{$checks['assets_ready']=(new \app\cms\maintenance\AssetMaintenance($this->root))->inspect(true)['ok'];}catch(\Throwable $error){$checks['assets_ready']=false;}
+        try{$checks['assets_ready']=(new \app\cms\maintenance\AssetMaintenance($this->root === \app\cms\Paths::root() ? null : $this->root))->inspect(true)['ok'];}catch(\Throwable $error){$checks['assets_ready']=false;}
         return ['php_version'=>PHP_VERSION,'checks'=>$checks,'ready'=>!in_array(false,$checks,true)];
     }
     public function inspect(array $input): array
@@ -166,7 +168,7 @@ final class InstallerService
         if(!$exists)$pdo->exec('CREATE DATABASE `'.$in['database'].'` CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci');
         $pdo->exec('USE `'.$in['database'].'`');
         $deletions=[];foreach($actual as $name=>$metadata)$deletions[$name]=['state'=>'planned','metadata'=>$metadata];
-        $journal=['version'=>self::FORMAT,'config_storage'=>'php-database-v1','id'=>bin2hex(random_bytes(12)),'identity'=>$identity,'plan_token'=>$plan['token'],'phase'=>'loading','deletions'=>$deletions,'tables'=>[],'total'=>count($catalog['tables']),'source_sha256'=>$catalog['source_sha256'],'template_mode'=>$in['template_mode'],'db_prefix'=>$in['db_prefix'],'site_signature'=>bin2hex(random_bytes(24)),'created_at'=>time()];
+        $journal=['version'=>self::FORMAT,'config_storage'=>'yaml-database-v1','id'=>bin2hex(random_bytes(12)),'identity'=>$identity,'plan_token'=>$plan['token'],'phase'=>'loading','deletions'=>$deletions,'tables'=>[],'total'=>count($catalog['tables']),'source_sha256'=>$catalog['source_sha256'],'template_mode'=>$in['template_mode'],'db_prefix'=>$in['db_prefix'],'site_signature'=>bin2hex(random_bytes(24)),'created_at'=>time()];
         $journal['import_demo']=$in['import_demo'];$journal['data_strategy']=$in['data_strategy'];$journal['theme']=$in['theme'];$journal['theme_signature']=$in['theme_signature'];$journal['demo_version']=$in['data_strategy']==='builtin_demo'?DemoSeeder::VERSION:null;
         if($browserOwner!==null&&$browserOwner!=='')$journal['browser_owner_hash']=hash('sha256',$browserOwner);
         $this->saveJournal($journal);return $journal;
@@ -250,10 +252,10 @@ final class InstallerService
             if(count($admins)!==1||$admins[0]['username']!==$in['admin_username']||(int)$admins[0]['status']!==0||!password_verify($in['admin_password'],$admins[0]['password']))throw new RuntimeException('管理员状态与本次安装不一致，请使用相同账号密码续装');
             $journal['admin_id']=(int)$admins[0]['id'];$this->saveJournal($journal);
         }
-        $result=['installed'=>true,'pending'=>false,'done'=>true,'task_id'=>$journal['id'],'tables'=>$journal['total'],'template_mode'=>$in['template_mode'],'db_prefix'=>$in['db_prefix'],'import_demo'=>$in['import_demo'],'demo'=>$in['import_demo'],'data_strategy'=>$in['data_strategy'],'theme'=>$in['theme'],'login_url'=>'/app/admin','restart_required'=>true];
+        $result=['installed'=>true,'pending'=>false,'done'=>true,'task_id'=>$journal['id'],'tables'=>$journal['total'],'template_mode'=>$in['template_mode'],'db_prefix'=>$in['db_prefix'],'import_demo'=>$in['import_demo'],'demo'=>$in['import_demo'],'data_strategy'=>$in['data_strategy'],'theme'=>$in['theme'],'login_url'=>'/web-admin','restart_required'=>true];
         $ready=false;
         try{
-            if (($journal['config_storage'] ?? null) === 'php-database-v1') {
+            if (in_array($journal['config_storage'] ?? null,['php-database-v1','yaml-database-v1'],true)) {
                 $this->checkDatabaseOverrides($in);
                 DatabaseSettings::write($this->databaseValues($in), $this->root);
                 (new InstallerEnvironment($this->root))->synchronize($this->databaseValues($in));
@@ -278,7 +280,7 @@ final class InstallerService
         $baseline=SqlImporter::tables($this->path('install/database/cms-empty.sql'),'cms_',$in['cms_prefix']);$sourcePrefix=null;$sourceSha=null;
         if($in['import_sql']){
             $file=$in['sql_file'];$real=realpath($file);$install=realpath($this->path('install'));
-            if(!$real||!$install||!str_starts_with($real,$install.'/')||!is_file($real)||is_link($file)||filesize($real)>50*1024*1024)$this->fail('sql_file','上传 SQL 文件无效或超出私有安装目录');
+            if(!$real||!$install||!str_starts_with($real,$install.'/')||!is_file($real)||is_link($file)||filesize($real)>\app\cms\config\DeploymentConfig::get('limits.install_sql_bytes'))$this->fail('sql_file','上传 SQL 文件无效或超出私有安装目录');
             $sourceSha=hash_file('sha256',$real);if($in['sql_sha256']!==''&&!hash_equals($sourceSha,$in['sql_sha256']))$this->fail('sql_file','上传 SQL 文件校验失败，请重新上传');
             try{
                 $sourcePrefix=SqlImporter::detectPrefix($real);$tables=SqlImporter::tables($real,$sourcePrefix,$in['cms_prefix'],$in['convert_innodb'],true);
@@ -519,29 +521,24 @@ final class InstallerService
         if ($journal && ($journal['phase'] ?? '') !== 'complete') {
             $storage=$journal['config_storage'] ?? null;
             if ($storage === null) return;
-            if ($storage !== 'php-database-v1') throw new RuntimeException('安装配置存储版本无效');
+            if (!in_array($storage,['php-database-v1','yaml-database-v1'],true)) throw new RuntimeException('安装配置存储版本无效');
         }
         $this->checkDatabaseOverrides($in);
     }
     private function checkDatabaseOverrides(array $in): void
     {
         $checks=$this->databaseConfigChecks();
-        if (in_array(false, $checks, true)) throw new RuntimeException('数据库配置文件不可读、不可写或受管块无效');
+        if (in_array(false, $checks, true)) throw new RuntimeException('YAML 数据库配置不可读、不可写或格式无效');
         (new InstallerEnvironment($this->root))->inspect($this->databaseValues($in));
     }
     private function databaseConfigChecks(): array
     {
-        $file=$this->path('config/database.php'); $directory=$this->path('config');
-        clearstatcache(true, $file); clearstatcache(true, $directory);
-        $stat=@lstat($file); $dirStat=@lstat($directory);
-        $readable=$stat && !is_link($file) && is_file($file) && is_readable($file) && ($stat['mode'] & 0444) !== 0;
-        $writable=$readable && is_writable($file) && ($stat['mode'] & 0222) !== 0 && $dirStat && !is_link($directory)
-            && is_dir($directory) && is_writable($directory) && ($dirStat['mode'] & 0222) !== 0;
-        if ($writable) { try { DatabaseSettings::assertWritable($this->root); } catch (\Throwable $error) { $writable=false; } }
-        $valid=false;
-        if ($readable) { try { DatabaseSettings::saved($this->root); $valid=true; } catch (\Throwable $error) {} }
-        return ['database_config_readable'=>(bool)$readable, 'database_config_writable'=>(bool)$writable, 'database_config_managed'=>(bool)$valid];
+        $readable=true;$writable=true;$valid=true;
+        try{\app\cms\config\DeploymentConfig::document(\app\cms\config\DeploymentConfig::discoverFile());}catch(\Throwable){$readable=false;$valid=false;}
+        try{DatabaseSettings::assertWritable();}catch(\Throwable){$writable=false;}
+        return ['database_config_readable'=>$readable,'database_config_writable'=>$writable,'database_config_managed'=>$valid];
     }
+
     private function databaseValues(array $in): array
     {
         return ['DB_HOST'=>$in['host'],'DB_PORT'=>(string)$in['port'],'DB_NAME'=>$in['database'],

@@ -67,8 +67,8 @@ if (($apply && !preg_match('/^[a-f0-9]{64}$/D', $options['fingerprint'] ?? ''))
 
 try {
     $root = dirname(__DIR__, 4);
-    require $root . '/vendor/autoload.php';
-    \app\cms\config\Environment::initialize($root);
+    require_once $root . '/vendor/autoload.php';
+    \app\cms\config\Environment::initialize();
     \app\cms\secure\App::loadAllConfig(['route']);
     Webman\ThinkOrm\ThinkOrm::start(null);
     $service = new app\cms\service\SinglePageStructureRepairService();

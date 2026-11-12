@@ -38,7 +38,7 @@
         <!-- 表格行工具栏 -->
         <script type="text/html" id="table-bar">
             {{# if(d.id!==1){ }}
-            <a class="pear-btn pear-btn-xs tool-btn" href="/app/admin/role/update?id={{ d.id }}&amp;lang=<?= htmlspecialchars(rawurlencode((string) request()->get('lang', '')), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>" permission="app.admin.role.update">编辑</a>
+            <a class="pear-btn pear-btn-xs tool-btn" href="/web-admin/role/update?id={{ d.id }}&amp;lang=<?= htmlspecialchars(rawurlencode((string) request()->get('lang', '')), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>" permission="app.admin.role.update">编辑</a>
             <button class="pear-btn pear-btn-xs tool-btn" lay-event="remove" permission="app.admin.role.delete">删除</button>
             {{# } }}
         </script>
@@ -52,11 +52,11 @@
 
             // 相关常量
             const PRIMARY_KEY = "id";
-            const SELECT_API = "/app/admin/role/select";
-            const UPDATE_API = "/app/admin/role/update";
-            const DELETE_API = "/app/admin/role/delete";
-            const INSERT_URL = "/app/admin/role/insert";
-            const UPDATE_URL = "/app/admin/role/update";
+            const SELECT_API = "/web-admin/role/select";
+            const UPDATE_API = "/web-admin/role/update";
+            const DELETE_API = "/web-admin/role/delete";
+            const INSERT_URL = "/web-admin/role/insert";
+            const UPDATE_URL = "/web-admin/role/update";
             
             // 表格渲染
             layui.use(["table", "pearTreetable", "form", "pearCommon", "pearPopup", "util"], function() {
@@ -208,8 +208,8 @@
 				
 				// 获取表格中下拉或树形组件数据
 				let apis = [];
-				apis.push(["rules", "/app/admin/rule/get?type=0,1,2"]);
-				apis.push(["pid", "/app/admin/role/select?format=tree"]);
+				apis.push(["rules", "/web-admin/rule/get?type=0,1,2"]);
+				apis.push(["pid", "/web-admin/role/select?format=tree"]);
 				let apiResults = {};
 				apiResults["rules"] = [];
 				apiResults["pid"] = [];
@@ -221,7 +221,7 @@
 				        dateType: "json",
 				        success: function (res) {
                             if (res.code) {
-                                return layui.pearPopup.failure(res.msg);
+                                return window.CmsUI.failure(res.msg);
                             }
 				            function travel(items) {
 				                for (let k in items) {
@@ -335,7 +335,7 @@
                 let batchRemove = function(obj) {
                     let checkIds = common.checkField(obj, PRIMARY_KEY);
                     if (checkIds === "") {
-                        layui.pearPopup.warning("未选中数据");
+                        window.CmsUI.warning("未选中数据");
                         return false;
                     }
                     doRemove(checkIds.split(","));
@@ -356,11 +356,11 @@
                             success: function(res) {
                                 layer.close(loading);
                                 if (res.code) {
-                                    return layui.pearPopup.failure(res.msg);
+                                    return window.CmsUI.failure(res.msg);
                                 }
-                                return layui.pearPopup.success("操作成功", refreshTable);
+                                return window.CmsUI.success("操作成功", refreshTable);
                             },
-                            error: function() { layui.pearPopup.failure("请求失败，请稍后重试"); },
+                            error: function() { window.CmsUI.failure("请求失败，请稍后重试"); },
                             complete: function() { layer.close(loading); }
                         })
                     });

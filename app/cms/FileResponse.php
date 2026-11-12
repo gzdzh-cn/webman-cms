@@ -18,7 +18,12 @@ final class FileResponse
             if ($request->header('if-none-match') === $etag) return response('', 304, $headers);
             return response($request->method() === 'HEAD' ? '' : $bytes, 200, $headers);
         }
-        $file = realpath($file) ?: $file;
+        $file = \app\cms\support\EmbeddedResources::realpath($file) ?: $file;
+        // A mounted upload may disappear while its stat entry is still cached.
+        // Confirm it can be opened before Workerman serializes a file response.
+        $stream=@fopen($file,'rb');
+        if($stream===false)return response('页面不存在',404);
+        fclose($stream);
         $size = (int)filesize($file);
         $stamp = (int)filemtime($file);
         $managedAsset = AssetManifest::isManagedFile($file) || AssetManifest::entry($request->path());
@@ -27,8 +32,8 @@ final class FileResponse
         $headers = ['X-Content-Type-Options'=>'nosniff', 'ETag' => $etag, 'Last-Modified' => gmdate('D, d M Y H:i:s', $stamp) . ' GMT', 'Accept-Ranges' => 'bytes'];
         // Copied URLs stay stable while a verified compatibility derivative can
         // change. Revalidate these scripts instead of keeping a heuristic cache.
-        $compatRoot = realpath(Paths::commonAssets('compat'));
-        $actual = realpath($file);
+        $compatRoot = \app\cms\support\EmbeddedResources::realpath(Paths::commonAssets('compat'));
+        $actual = \app\cms\support\EmbeddedResources::realpath($file);
         if ($compatRoot && $actual && str_starts_with($actual, $compatRoot . DIRECTORY_SEPARATOR) && pathinfo($actual, PATHINFO_EXTENSION) === 'js') {
             $headers['Cache-Control'] = 'no-cache';
         }
@@ -36,7 +41,7 @@ final class FileResponse
             $entry = AssetManifest::entry($request->path());
             $currentHash = $assetHash;
             $isVersioned = $entry && empty($entry['mutable']) && $request->get('v') === substr($currentHash, 0, 16);
-            $headers['Cache-Control'] = $isVersioned ? 'public, max-age=31536000, immutable' : 'no-cache';
+            $headers['Cache-Control'] = $isVersioned ? 'public, max-age=' . \app\cms\config\DeploymentConfig::get('static.versioned_max_age') . ', immutable' : 'no-cache';
         }
         // Workerman's MIME registry does not include Windows cursor files.
         if (strtolower(pathinfo($file, PATHINFO_EXTENSION)) === 'cur') $headers['Content-Type'] = 'image/x-icon';

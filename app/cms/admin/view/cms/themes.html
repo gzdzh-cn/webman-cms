@@ -7,8 +7,8 @@
 </head>
 <body class="cms-page-adapted cms-template-page" data-cms-module-tabs="multiple">
 <div class="cms-module-navigation cms-template-navigation"><nav class="cms-module-tabs" aria-label="模板管理">
-<a href="/app/admin/filemanager/index?section=themes" aria-current="page" id="themes-link">网站模板</a>
-<a href="/app/admin/filemanager/index?section=files" id="files-link">模板文件</a>
+<a href="/web-admin/filemanager/index?section=themes" aria-current="page" id="themes-link">网站模板</a>
+<a href="/web-admin/filemanager/index?section=files" id="files-link">模板文件</a>
 </nav></div>
 <main class="cms-page-panel" aria-label="网站模板">
 <header class="cms-filterbar" data-cms-filter><label>语言 <select id="language" aria-label="当前语言"></select></label><button id="reload" type="button">刷新</button></header>
@@ -24,7 +24,7 @@
 <script>
 (()=>{
 'use strict';
-const $=id=>document.getElementById(id),base='/app/admin/filemanager/',defaultCover=<?= json_encode(\app\cms\AssetManifest::url('/app/admin/admin/images/theme-cover-default.svg?v=20261106-cards1'), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_SLASHES) ?>;
+const $=id=>document.getElementById(id),base='/web-admin/filemanager/',defaultCover=<?= json_encode(\app\cms\AssetManifest::url('/app/admin/admin/images/theme-cover-default.svg?v=20261106-cards1'), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_SLASHES) ?>;
 let lang=new URLSearchParams(location.search).get('lang')||'',busy=false,detailsTrigger=null;
 const pendingWrites=new WeakMap();
 async function withPendingWrite(enabled,run){if(!enabled)return run();const roots=[document.body,...document.querySelectorAll('dialog[open]')];roots.forEach(root=>{pendingWrites.set(root,(pendingWrites.get(root)||0)+1);root.setAttribute('data-cms-submit-busy','');root.setAttribute('aria-busy','true')});try{return await run()}finally{roots.forEach(root=>{const count=(pendingWrites.get(root)||1)-1;if(count)pendingWrites.set(root,count);else{pendingWrites.delete(root);root.removeAttribute('data-cms-submit-busy');root.removeAttribute('aria-busy')}})}}
@@ -94,7 +94,7 @@ function card(theme,data){
         const link=el('a',label);link.href=theme.preview[device];link.target='_blank';link.rel='noopener';actions.append(link);
     }
     const canonicalize=theme.current&&data.stored_theme!==theme.key;
-    const button=el('button',theme.current?(canonicalize?'保存当前模板':'已启用'):'启用模板',theme.current?'':'cms-primary-action');
+    const button=el('button',theme.current?(canonicalize?'保存当前模板':'已启用'):'启用模板',theme.current&&!canonicalize?'cms-theme-active':'cms-primary-action');
     button.type='button';button.dataset.available=data.permissions.activate&&theme.mode_compatible!==false&&theme.supported!==false&&(!theme.current||canonicalize)?'1':'0';button.disabled=button.dataset.available!=='1';
     if(!data.permissions.activate)button.title='需要独立的模板文件编辑权限';
     else if(theme.mode_compatible===false)button.title=modeMessage(theme,data);
@@ -106,6 +106,7 @@ async function listing(){
     if(busy)return;busy=true;controls(true);message('加载中…');
     try{
         const data=await api('themes',lang?{lang}:{});lang=data.lang;links();
+        document.querySelector('.cms-template-footnote').textContent=data.readonly?'主题已内置于二进制，可预览和切换；新增或修改主题需重新构建。':'新增模板后点击刷新即可显示。模板文件不完整也可启用，访问缺失页面时将显示错误。';
         $('language').replaceChildren(...data.languages.map(item=>{const option=el('option',item.title+' ('+item.mark+')'+(Number(item.status)===1?'':' · 已停用'));option.value=item.mark;option.selected=item.mark===lang;return option;}));
         $('themes').replaceChildren(...data.themes.map(theme=>card(theme,data)));
         message(data.themes.length?(data.permissions.activate?'':'当前账号可查看和预览，启用需要模板编辑权限。'):'未找到网站模板，请检查模板目录');

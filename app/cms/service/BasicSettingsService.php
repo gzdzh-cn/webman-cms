@@ -36,7 +36,7 @@ class BasicSettingsService
                 $field('web_thirdcode_wap','手机端第三方代码','textarea'),
             ]],
             ['id'=>'core','title'=>'核心设置','fields'=>[
-                $field('web_cmsmode','网站模式','radio','1','web',true,['options'=>[['value'=>'1','label'=>'运营模式'],['value'=>'2','label'=>'开发模式'],['value'=>'3','label'=>'Redis 缓存模式']],'help'=>'保存时读取最新 .env 和 config/cms_cache.php 并验证 Redis 连接和读写能力，失败不切换。优先级为 .env 的 CMS_REDIS_*、进程环境、PHP 配置；修改文件参数后可直接保存，无需重启服务。切入或切出时需要重新登录，不会切换 SEO URL 模式。']),
+                $field('web_cmsmode','网站模式','radio','1','web',true,['options'=>[['value'=>'1','label'=>'运营模式'],['value'=>'2','label'=>'开发模式'],['value'=>'3','label'=>'Redis 缓存模式']],'help'=>'保存时读取最新 .env 和 config/manifest/config.yaml 的 redis 参数并验证连接和读写能力，失败不切换。优先级为 .env 的 CMS_REDIS_*、进程环境、YAML 参数；修改文件参数后可直接保存，无需重启服务。切入或切出时需要重新登录，不会切换 SEO URL 模式。']),
                 $field(ErrorDisplaySettings::KEY,'前台错误显示','select','0','seo',true,['options'=>[['value'=>'0','label'=>'关闭，显示友好错误页面'],['value'=>'1','label'=>'开启，显示原生异常详情']],'help'=>'保存后立即生效，无需重启。原生异常会显示文件路径、SQL语句和调用堆栈，仅在排查问题时开启，完成后请关闭。']),
                 $field('web_is_https','HTTPS链接','radio','0','web',true,['options'=>$flag]),
                 $field('web_mobile_domain_open','手机站域名','radio','0','web',true,['options'=>$flag]),

@@ -330,7 +330,7 @@ class StaticGenerationService
         $base = (string)($task['base'] ?? '');
         if ($base !== '' && ($path === $base || str_starts_with($path, $base . '/'))) $path = substr($path, strlen($base));
         if (preg_match('#(?:^|/)index\.php$#i', $path)) return;
-        $root = realpath(public_path()); if (!$root) throw new \RuntimeException('公开目录不存在');
+        $root = \app\cms\support\EmbeddedResources::realpath(\app\cms\Paths::publicRoot()); if (!$root) throw new \RuntimeException('公开目录不存在');
         $target = $root;
         foreach (array_filter(explode('/', trim($path, '/')), static fn($part) => $part !== '') as $part) {
             if ($part === '.' || $part === '..') throw new \RuntimeException('生成URL路径无效');

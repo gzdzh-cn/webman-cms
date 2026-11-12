@@ -1,10 +1,10 @@
 {
   "logo": {
     "title": "Webman Cms",
-    "image": "/app/admin/admin/images/logo.png"
+    "image": "/web-admin/admin/images/logo.png"
   },
   "menu": {
-    "data": "/app/admin/rule/get",
+    "data": "/web-admin/rule/get",
     "method": "GET",
     "accordion": true,
     "collapse": false,
@@ -21,7 +21,7 @@
     "max": "30",
     "index": {
       "id": "0",
-      "href": "/app/admin/index/dashboard",
+      "href": "/web-admin/index/dashboard",
       "title": "工作台"
     }
   },

@@ -23,6 +23,8 @@ final class ResourceFilesystem
         return \app\cms\AssetManifest::readPath($path) ?? self::path($path);
     }
 
+    private static function writePath($path) { $file=self::path($path); if(is_string($file))\app\cms\support\EmbeddedResources::assertWritable($file); return $file; }
+
     /** Only language derivatives with the exact generated name scheme are virtual. */
     private static function derivedPath($path): ?string
     {
@@ -61,7 +63,7 @@ final class ResourceFilesystem
     public static function filemtime($filename) { return \filemtime(self::readPath($filename)); }
     public static function filetype($filename) { return \filetype(self::readPath($filename)); }
     public static function stat($filename) { return \stat(self::readPath($filename)); }
-    public static function realpath($filename) { $path = self::derivedPath($filename); return $path !== null ? (self::derivedExists($path) ? $path : false) : \realpath(self::readPath($filename)); }
+    public static function realpath($filename) { $path = self::derivedPath($filename); return $path !== null ? (self::derivedExists($path) ? $path : false) : \app\cms\support\EmbeddedResources::realpath(self::readPath($filename)); }
     public static function getimagesize($filename, &$image_info = null) { return \getimagesize(self::readPath($filename), $image_info); }
     public static function exif_imagetype($filename) { return \exif_imagetype(self::readPath($filename)); }
     public static function mime_content_type($filename) { return \mime_content_type(self::readPath($filename)); }
@@ -73,12 +75,12 @@ final class ResourceFilesystem
         try { return stream_get_contents($stream, $arguments[3] ?? null, $arguments[2] ?? -1); }
         finally { fclose($stream); }
     }
-    public static function file_put_contents($filename, ...$arguments) { return \file_put_contents(self::path($filename), ...$arguments); }
+    public static function file_put_contents($filename, ...$arguments) { return \file_put_contents(self::writePath($filename), ...$arguments); }
     public static function fopen($filename, ...$arguments)
     {
         $read = in_array($arguments[0] ?? '', ['r', 'rb', 'rt'], true);
         $path = $read ? self::derivedPath($filename) : null;
-        return $path !== null ? self::derivedStream($path) : \fopen($read ? self::readPath($filename) : self::path($filename), ...$arguments);
+        return $path !== null ? self::derivedStream($path) : \fopen($read ? self::readPath($filename) : self::writePath($filename), ...$arguments);
     }
     public static function readfile($filename, ...$arguments)
     {
@@ -86,12 +88,12 @@ final class ResourceFilesystem
         if ($path === null) return \readfile(self::readPath($filename), ...$arguments);
         $bytes = self::derivedBytes($path); echo $bytes; return strlen($bytes);
     }
-    public static function mkdir($directory, ...$arguments) { return \mkdir(self::path($directory), ...$arguments); }
-    public static function unlink($filename, ...$arguments) { return \unlink(self::path($filename), ...$arguments); }
-    public static function rmdir($directory, ...$arguments) { return \rmdir(self::path($directory), ...$arguments); }
-    public static function copy($from, $to, ...$arguments) { return \copy(self::readPath($from), self::path($to), ...$arguments); }
-    public static function rename($from, $to, ...$arguments) { return \rename(self::path($from), self::path($to), ...$arguments); }
-    public static function chmod($filename, ...$arguments) { return \chmod(self::path($filename), ...$arguments); }
+    public static function mkdir($directory, ...$arguments) { return \mkdir(self::writePath($directory), ...$arguments); }
+    public static function unlink($filename, ...$arguments) { return \unlink(self::writePath($filename), ...$arguments); }
+    public static function rmdir($directory, ...$arguments) { return \rmdir(self::writePath($directory), ...$arguments); }
+    public static function copy($from, $to, ...$arguments) { return \copy(self::readPath($from), self::writePath($to), ...$arguments); }
+    public static function rename($from, $to, ...$arguments) { return \rename(self::writePath($from), self::writePath($to), ...$arguments); }
+    public static function chmod($filename, ...$arguments) { return \chmod(self::writePath($filename), ...$arguments); }
     public static function glob($pattern, $flags = 0) { return ThemeCatalog::isTemplatePath($pattern) ? ThemeCatalog::glob($pattern, $flags) : UploadPaths::glob($pattern, $flags); }
     public static function md5_file($filename, ...$arguments) { $path = self::derivedPath($filename); return $path !== null ? md5(self::derivedBytes($path), $arguments[0] ?? false) : \md5_file(self::readPath($filename), ...$arguments); }
     public static function sha1_file($filename, ...$arguments) { $path = self::derivedPath($filename); return $path !== null ? sha1(self::derivedBytes($path), $arguments[0] ?? false) : \sha1_file(self::readPath($filename), ...$arguments); }

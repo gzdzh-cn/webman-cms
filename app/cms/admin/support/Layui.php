@@ -238,7 +238,7 @@ EOF;
 
         $options_string = '';
         if (!isset($props['images_upload_url'])) {
-            $props['images_upload_url'] = '/app/admin/upload/image';
+            $props['images_upload_url'] = '/web-admin/upload/image';
         }
         $props = $this->prepareProps($props);
         $options_string .= "\n" . $this->preparePropsToJsObject($props, 1, true);
@@ -304,7 +304,7 @@ EOF;
         [$label, $field, $value, $props, $verify_string, $required_string, $class] = $this->options($options);
 
         $props['accept'] = $props['accept'] ?? 'file';
-        $props['url'] = $props['url'] ?? '/app/admin/upload/file';
+        $props['url'] = $props['url'] ?? '/web-admin/upload/file';
         $id = $this->createId($field);
 
         $props['field'] = $props['field'] ?? '__file__';
@@ -340,7 +340,7 @@ layui.use(["upload", "layer", "pearPopup", "util"], function() {
         parent.layer.open({
             type: 2,
             title: "选择附件",
-            content: "/app/admin/upload/attachment",
+            content: "/web-admin/upload/attachment",
             area: ["95%", "90%"],
             success: function (layero, index) {
                 parent.layui.$("#layui-layer" + index).data("callback", function (data) {
@@ -352,7 +352,7 @@ layui.use(["upload", "layer", "pearPopup", "util"], function() {
     layui.upload.render({
         elem: "#$id",$options_string
         done: function (res) {
-            if (res.code) return layui.pearPopup.failure(res.msg);
+            if (res.code) return window.CmsUI.failure(res.msg);
             this.item.prev().val(res.data.url).prev().html(layui.util.escape(res.data.url));
         }
     });
@@ -370,7 +370,7 @@ EOF;
     {
         [$label, $field, $value, $props, $verify_string, $required_string, $class] = $this->options($options);
         $props['acceptMime'] = $props['acceptMime'] ?? 'image/gif,image/jpeg,image/jpg,image/png';
-        $props['url'] = $props['url'] ?? '/app/admin/upload/image';
+        $props['url'] = $props['url'] ?? '/web-admin/upload/image';
         $props['multiple'] = $props['multiple'] ?? 0;
 
         $id = $this->createId($field);
@@ -409,7 +409,7 @@ layui.use(["upload", "layer"], function() {
         parent.layer.open({
             type: 2,
             title: "选择附件",
-            content: "/app/admin/upload/attachment?ext=jpg,jpeg,png,gif,bmp",
+            content: "/web-admin/upload/attachment?ext=jpg,jpeg,png,gif,bmp",
             area: ["95%", "90%"],
             success: function (layero, index) {
                 parent.layui.$("#layui-layer" + index).data("callback", function (data) {
@@ -468,7 +468,7 @@ layui.use(["upload", "layer"], function() {
         parent.layer.open({
             type: 2,
             title: "选择附件",
-            content: "/app/admin/upload/attachment?ext=jpg,jpeg,png,gif,bmp",
+            content: "/web-admin/upload/attachment?ext=jpg,jpeg,png,gif,bmp",
             area: ["95%", "90%"],
             success: function (layero, index) {
                 parent.layui.$("#layui-layer" + index).data("callback", function (data) {
@@ -863,7 +863,7 @@ layui.use(["jquery", "xmSelect", "pearPopup"], function() {
                 data: res.data, $options_string
             });
             if (res.code) {
-                layui.pearPopup.failure(res.msg);
+                window.CmsUI.failure(res.msg);
             }
         }
     });
@@ -1030,12 +1030,12 @@ EOF;
 				$.post(UPDATE_API, postData, function (res) {
 					layer.close(load);
 					if (res.code) {
-                        return layui.pearPopup.failure(res.msg, function () {
+                        return window.CmsUI.failure(res.msg, function () {
                             data.elem.checked = !data.elem.checked;
                             form.render();
                         });
                     }
-					return layui.pearPopup.success("操作成功");
+					return window.CmsUI.success("操作成功");
 				})
 			});
 			let checked = d[field] === 1 ? "checked" : "";
@@ -1202,7 +1202,7 @@ layui.each(apis, function (k, item) {
         dateType: "json",
         success: function (res) {
             if (res.code) {
-                return layui.pearPopup.failure(res.msg);
+                return window.CmsUI.failure(res.msg);
             }
             function travel(items) {
                 for (let k in items) {

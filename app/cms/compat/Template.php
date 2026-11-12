@@ -299,6 +299,7 @@ class Template
         $identity = array_intersect_key($this->config, array_flip($keys));
         $context = Runtime::context();
         $identity['dialect_version'] = \app\cms\template\TemplateDialect::VERSION;
+        $identity['build_version'] = \app\cms\support\BuildIdentity::version();
         $identity['compile_version'] = \app\cms\template\TemplateCapabilities::COMPILE_VERSION;
         $identity['routing'] = [$context?->theme, $context?->device, $context?->lang, $context?->site,
             $context?->module, $context?->parameters['site'] ?? '',
@@ -323,10 +324,9 @@ class Template
         }
         $verified = $this->storage->verifiedContent((string)$cacheFile);
         if ($verified === null) return false;
-        preg_match('~/\*(.+?)\*/~', strtok($verified, "\n"), $matches);
-        if (!isset($matches[1])) return false;
-        $includeFile = unserialize($matches[1], ['allowed_classes' => false]);
-        if (!is_array($includeFile)) {
+        $header = strtok($verified, "\n");
+        $includeFile = \app\cms\template\TemplateDependencies::decode($header);
+        if ($includeFile === null || array_diff_key($this->includeFile, $includeFile)) {
             return false;
         }
         // Workers survive external deployments and symlink replacements.
@@ -334,6 +334,7 @@ class Template
         clearstatcache(true);
         // 检查模板文件是否有更新
         foreach ($includeFile as $path => $dependency) {
+            try { if (!is_string($path) || Runtime::resolveTemplate($path, $this->config['view_path'], $this->config['allowed_root'] ?? null) !== $path) return false; } catch (\Throwable) { return false; }
             if (!is_array($dependency) || !is_string($dependency['hash'] ?? null)
                 || !is_array($dependency['aliases'] ?? null) || !is_file($path)
                 || !hash_equals($dependency['hash'], hash_file('sha256', $path))) {
@@ -416,7 +417,7 @@ class Template
         $content = \app\cms\template\TemplateCapabilities::rewritePhp($content);
         \app\cms\template\CompiledTemplatePolicy::validate($content);
         // 添加安全代码及模板引用记录
-        $content = '<?php if (!class_exists(\'app\\cms\\compat\\Runtime\')) exit(); /*' . serialize($this->includeFile) . '*/ ?>' . "\n" . $content;
+        $content = '<?php /*CMS-DEPS-2:' . base64_encode(json_encode($this->includeFile, JSON_THROW_ON_ERROR)) . '*/ ?>' . "\n" . $content;
         // 编译存储
         if ($this->dynamicExpansion) {
             $cacheFile .= '.render-' . bin2hex(random_bytes(16));

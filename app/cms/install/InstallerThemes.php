@@ -11,7 +11,7 @@ final class InstallerThemes
 
     public function choices(): array
     {
-        $base = rtrim($this->root, '/') . '/template';
+        $base = ($this->root === \app\cms\Paths::root() ? \app\cms\Paths::templates() : rtrim($this->root, '/') . '/template');
         if (!is_dir($base) || is_link($base)) return [];
         $choices = [];
         foreach (new \DirectoryIterator($base) as $entry) {

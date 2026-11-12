@@ -10,9 +10,9 @@ final class InstallerUpload
     private string $directory;
     public function __construct(private string $root, private string $owner)
     {
-        if ($owner === '' || !is_dir($root.'/install') || is_link($root.'/install')) throw new \RuntimeException('安装上传入口已关闭');
-        $this->directory = $root.'/install/.imports';
-        foreach ([$root.'/install', $this->directory] as $path) {
+        if ($owner === '' || !is_dir(\app\cms\Paths::install()) || is_link(\app\cms\Paths::install())) throw new \RuntimeException('安装上传入口已关闭');
+        $this->directory = \app\cms\Paths::install('.imports');
+        foreach ([\app\cms\Paths::install(), $this->directory] as $path) {
             if (is_link($path) || (file_exists($path) && !is_dir($path))) throw new \RuntimeException('安装上传目录无效');
         }
         if (!is_dir($this->directory) && !mkdir($this->directory, 0700, true)) throw new \RuntimeException('无法创建私有上传目录');
@@ -21,7 +21,7 @@ final class InstallerUpload
     public function start(mixed $name, mixed $size): array
     {
         if (!is_string($name) || strlen($name)>255 || !preg_match('/\.sql$/iD', $name)
-            || !is_scalar($size) || !ctype_digit((string)$size) || (int)$size<1 || (int)$size>self::LIMIT) {
+            || !is_scalar($size) || !ctype_digit((string)$size) || (int)$size<1 || (int)$size>\app\cms\config\DeploymentConfig::get('limits.install_sql_bytes')) {
             throw new \InvalidArgumentException('请选择不超过 50 MiB 的完整 .sql 文件');
         }
         $id = bin2hex(random_bytes(20));
@@ -30,12 +30,12 @@ final class InstallerUpload
         $h=fopen($path,'x+b'); if(!$h)throw new \RuntimeException('无法记录上传'); chmod($path,0600);
         fwrite($h,json_encode($state,JSON_THROW_ON_ERROR));fclose($h);
         $h=fopen($this->path($id,'.part'),'x+b');if(!$h)throw new \RuntimeException('无法创建上传文件');fclose($h);chmod($this->path($id,'.part'),0600);
-        return ['upload_id'=>$id,'chunk_size'=>self::CHUNK,'max_size'=>self::LIMIT];
+        return ['upload_id'=>$id,'chunk_size'=>\app\cms\config\DeploymentConfig::get('limits.install_chunk_bytes'),'max_size'=>\app\cms\config\DeploymentConfig::get('limits.install_sql_bytes')];
     }
     public function chunk(string $id, mixed $index, string $temporary): array
     {
         if (!is_scalar($index)||!ctype_digit((string)$index)) throw new \InvalidArgumentException('上传分片编号无效');
-        $bytes=file_get_contents($temporary); if($bytes===false||strlen($bytes)<1||strlen($bytes)>self::CHUNK)throw new \InvalidArgumentException('上传分片大小无效');
+        $bytes=file_get_contents($temporary); if($bytes===false||strlen($bytes)<1||strlen($bytes)>\app\cms\config\DeploymentConfig::get('limits.install_chunk_bytes'))throw new \InvalidArgumentException('上传分片大小无效');
         return $this->locked($id,function(array &$state)use($id,$index,$bytes):array{
             $index=(int)$index;$hash=hash('sha256',$bytes);
             if($index<$state['index']){

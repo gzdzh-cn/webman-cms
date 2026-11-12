@@ -27,7 +27,7 @@ function cmsEditorReturn(){
 </script>
 </head>
 
-<body class="cms-editor-page" data-cms-return-url="/app/admin/channelfield/index">
+<body class="cms-editor-page" data-cms-return-url="/web-admin/channelfield/index">
 <header class="cms-editor-heading"><button type="button" data-cms-back aria-label="返回自定义字段列表">←</button><div><h1>编辑自定义字段</h1><p>填写并保存后返回列表；取消不会保存本次修改。</p></div></header>
     <form data-cms-page-editor class="layui-form" lay-filter="field-form">
 
@@ -205,7 +205,7 @@ function cmsEditorReturn(){
     <script src="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/component/layui/layui.js?v=2.13.12'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>"></script>
     <script src="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/component/pear/pear.js'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>"></script>
     <script>
-        const UPDATE_API = "/app/admin/channelfield/update" + location.search;
+        const UPDATE_API = "/web-admin/channelfield/update" + location.search;
         // 从隐藏的 script 标签中获取字段类型数据
         var fieldTypesData = [];
         try {
@@ -321,7 +321,7 @@ function cmsEditorReturn(){
                     requestParams.channeltype = channelId;
                 }
 
-                $.getJSON("/app/admin/channelfield/getArctypeList", requestParams, function (res) {
+                $.getJSON("/web-admin/channelfield/getArctypeList", requestParams, function (res) {
                     if (res.code !== 0 || !Array.isArray(res.data)) {
                         return;
                     }
@@ -1397,13 +1397,13 @@ function cmsEditorReturn(){
                 
                 // 如果没有选中"全部栏目"且没有选中任何其他栏目，提示错误
                 if (!hasAllChecked && checkedOtherCount === 0) {
-                    layui.pearPopup.failure('请至少选择一项可见栏目！');
+                    window.CmsUI.failure('请至少选择一项可见栏目！');
                     return false;
                 }
                 
                 // 如果 typeids-input 为空，也提示错误
                 if ((!typeids || typeids.trim() === '') && !(Number(channelId) === -99 && hasAllChecked)) {
-                    layui.pearPopup.failure('请至少选择一项可见栏目！');
+                    window.CmsUI.failure('请至少选择一项可见栏目！');
                     return false;
                 }
                 
@@ -1413,7 +1413,7 @@ function cmsEditorReturn(){
 
                 // 验证：至少选中一项可见栏目（双重验证，确保数据有效性）
                 if (formData.typeids.length === 0) {
-                    layui.pearPopup.failure('请至少选择一项可见栏目！');
+                    window.CmsUI.failure('请至少选择一项可见栏目！');
                     return false;
                 }
 
@@ -1423,10 +1423,10 @@ function cmsEditorReturn(){
                     var regionId = $('#RegionId').val();
                     var regionNames = $('#region_names').val();
                     if (!regionId || regionId === '-1' || regionId === '' || regionId === '0') {
-                        return layui.pearPopup.failure('请选择区域范围！');
+                        return window.CmsUI.failure('请选择区域范围！');
                     }
                     if (!regionNames || regionNames.trim() === '') {
-                        return layui.pearPopup.failure('请选择区域范围！');
+                        return window.CmsUI.failure('请选择区域范围！');
                     }
                 }
 
@@ -1438,10 +1438,10 @@ function cmsEditorReturn(){
                 if (ifoption == 1 && ['checkboxs', 'radios', 'selects', 'region'].indexOf(dtype) === -1) {
                     var dfvalue = $.trim($('#dfvalue').val());
                     if (!dfvalue) {
-                        return layui.pearPopup.failure('默认值不能为空！');
+                        return window.CmsUI.failure('默认值不能为空！');
                     }
                     if (dfvalue.indexOf('|') !== -1) {
-                        return layui.pearPopup.failure('默认值不能输入 | 符号！');
+                        return window.CmsUI.failure('默认值不能输入 | 符号！');
                     }
                 }
 
@@ -1460,27 +1460,27 @@ function cmsEditorReturn(){
                         }
                     });
                     if (mcheck.length === 0) {
-                        return layui.pearPopup.failure('选项参数至少填一项');
+                        return window.CmsUI.failure('选项参数至少填一项');
                     }
                     formData.mcheck = mcheck;
                 } else if (['radio', 'checkbox', 'select'].indexOf(dtype) !== -1) {
                     // 验证默认值格式
                     var dfvalue = $.trim($('#dfvalue').val());
                     if (dfvalue.indexOf('\\') !== -1) {
-                        return layui.pearPopup.failure('默认值不支持反斜杠 \\ ，可用斜杠 / 代替');
+                        return window.CmsUI.failure('默认值不支持反斜杠 \\ ，可用斜杠 / 代替');
                     }
                     // 检查是否有重复值
                     var dfvalueArr = dfvalue.split(',');
                     for (var i = 0; i < dfvalueArr.length; i++) {
                         for (var j = i + 1; j < dfvalueArr.length; j++) {
                             if ($.trim(dfvalueArr[i]) == $.trim(dfvalueArr[j])) {
-                                return layui.pearPopup.failure('默认值不能含有相同的值！');
+                                return window.CmsUI.failure('默认值不能含有相同的值！');
                             }
                         }
                     }
                     // checkbox 最多64项
                     if (dtype == 'checkbox' && dfvalueArr.length > 64) {
-                        return layui.pearPopup.failure('默认值最多填写64项！');
+                        return window.CmsUI.failure('默认值最多填写64项！');
                     }
                 }
 
@@ -1498,7 +1498,7 @@ function cmsEditorReturn(){
                         if (res.code) {
                             window.CmsUI.error(cmsForm,res.msg,res.fields||res.data?.fields);return false;
                         }
-                        layui.pearPopup.success("操作成功", function () {
+                        window.CmsUI.success("操作成功", function () {
                             window.CmsUI.saved(cmsEditorReturn());
                         });
                     }

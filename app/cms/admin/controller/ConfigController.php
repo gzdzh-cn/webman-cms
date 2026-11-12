@@ -36,7 +36,8 @@ class ConfigController extends \plugin\admin\app\controller\Base
      */
     public function get(): Response
     {
-        return json($this->getByDefault());
+        return json(\app\cms\admin\support\AdminBranding::configuration(\app\cms\admin\support\AdminRoutes::projectUrls($this->getByDefault())))
+            ->withHeader('Cache-Control', 'no-store');
     }
 
     /**

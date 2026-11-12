@@ -13,10 +13,10 @@
  */
 
 return [
-    'debug' => true,
+    'debug' => \app\cms\config\DeploymentConfig::get('app.debug'),
     'controller_suffix' => 'Controller',
     'controller_reuse' => false,
-    'public_path' => base_path(false) . DIRECTORY_SEPARATOR . 'public',
+    'public_path' => \app\cms\Paths::publicRoot(),
     'plugin_market_host' => 'https://www.workerman.net',
     'version' => '0.6.33',
 ];

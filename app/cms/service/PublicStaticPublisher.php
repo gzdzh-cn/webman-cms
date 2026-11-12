@@ -7,10 +7,12 @@ final class PublicStaticPublisher
 {
     private GeneratedFileStore $metadata;
     private string $publicRoot;
+    private bool $mapped;
 
     public function __construct(?string $publicRoot = null, ?string $registry = null)
     {
-        $this->publicRoot = rtrim($publicRoot ?? public_path(), '/');
+        $this->mapped = $publicRoot === null;
+        $this->publicRoot = rtrim($publicRoot ?? \app\cms\Paths::publicRoot(), '/');
         $this->metadata = new GeneratedFileStore($registry ?? 'public-static');
     }
 
@@ -88,7 +90,8 @@ final class PublicStaticPublisher
 
     public function ownsFile(string $file): bool
     {
-        $root = realpath($this->publicRoot);
+        $root = \app\cms\support\EmbeddedResources::realpath($this->publicRoot);
+        if($this->mapped){$html=realpath(\app\cms\Paths::publicHtml());if($html&&str_starts_with($file,$html.'/'))return isset($this->records()['files']['html/'.substr($file,strlen($html)+1)]);}
         // Normalize the lexical path without following symlinks.
         $parts = [];
         foreach (explode('/', $file) as $part) { if ($part === '' || $part === '.') continue; if ($part === '..') array_pop($parts); else $parts[] = $part; }
@@ -156,8 +159,11 @@ final class PublicStaticPublisher
     private function target(string $relative): string
     {
         if ($relative === '' || str_starts_with($relative, '/') || preg_match('/[\x00-\x20\x7f\\\\]/', $relative)) throw new \RuntimeException('静态文件路径无效');
-        $root = realpath($this->publicRoot);
-        if (!$root || is_link($this->publicRoot)) throw new \RuntimeException('公开目录不存在或为链接');
+        $base=$this->publicRoot;
+        if($this->mapped&&str_starts_with($relative,'html/')){$base=\app\cms\Paths::publicHtml();$relative=substr($relative,5);}
+        if (!str_starts_with($base, 'phar://')) \app\cms\config\Entry::assertPath($base);
+        $root = \app\cms\support\EmbeddedResources::realpath($base);
+        if (!$root || is_link($base)) throw new \RuntimeException('公开目录不存在或为链接');
         $path = $root; $parts = explode('/', $relative);
         foreach ($parts as $index => $part) {
             if ($part === '' || $part === '.' || $part === '..' || str_starts_with($part, '.')) throw new \RuntimeException('静态文件路径越界');

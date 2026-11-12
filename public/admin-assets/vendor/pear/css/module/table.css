@@ -106,6 +106,32 @@
 .layui-table-body::-webkit-scrollbar-corner {
 	background: #f6f6f6;
 } */
-/* 自定义样式开始 */
-.status-badge{display:inline-flex;align-items:center;cursor:pointer;font-size:12px;transition:all 0.3s}.status-badge .layui-icon{margin-right:3px;font-size:14px}.status-badge.status-show{color:#1890ff}.status-badge.status-hide{color:#999}.status-badge:hover{opacity:0.7}/* 自定义样式结束 */
 
+
+/* 自定义样式开始 */
+.status-badge {
+	display: inline-flex;
+	align-items: center;
+	cursor: pointer;
+	font-size: 12px;
+	transition: all 0.3s;
+}
+
+.status-badge .layui-icon {
+	margin-right: 3px;
+	font-size: 14px;
+}
+
+.status-badge.status-show {
+	color: #1890ff;
+}
+
+.status-badge.status-hide {
+	color: #999;
+}
+
+.status-badge:hover {
+	opacity: 0.7;
+}
+
+/* 自定义样式结束 */

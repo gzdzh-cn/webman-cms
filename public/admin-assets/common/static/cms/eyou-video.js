@@ -1,1 +1,225 @@
-(function(window,document){"use strict";if(window.EyouMedia)return;var players=Object.create(null),lists=Object.create(null),active=null;if(typeof window.video_sp_1618221427==="undefined")window.video_sp_1618221427="sp1";function node(state){return state&&document.getElementById(state.config.elementId)}function scope(state){var video=node(state);return video&&(video.closest("[data-eyou-media-scope]")||video.parentElement&&video.parentElement.parentElement||video.parentElement)}function find(state,id){var root=scope(state);return root&&root.querySelector('[id="'+id+'"]')}function message(state,text){var title=find(state,"MsgTitle13579"),overlay=find(state,"VideoDiv13579");if(title)title.textContent=text||"视频暂时无法播放";if(overlay)overlay.style.display="block";else if(window.layer&&window.layer.alert)window.layer.alert(text||"视频暂时无法播放");else if(window.alert)window.alert(text||"视频暂时无法播放")}function play(video){try{var promise=video.play();if(promise&&promise.catch)promise.catch(function(){})}catch(error){}}function bind(state){var video=node(state);if(!video||state.bound===video)return video;state.bound=video;if(String(video.tagName).toLowerCase()!=="video")return video;video.controls=true;video.setAttribute("controlslist","nodownload");video.setAttribute("oncontextmenu","return false");video.addEventListener("timeupdate",function(){state.time=Math.floor(video.currentTime||0)});["pause","ended"].forEach(function(event){video.addEventListener(event,function(){submit(state)})});if(state.config.autoplay==="on"&&video.getAttribute("src")){video.autoplay=true;play(video)}return video}function playerFor(config,aid){var key=config&&config.instanceKey;if(key)return players[key]||null;var keys=Object.keys(players);for(var i=keys.length-1;i>=0;i--)if(String(players[keys[i]].config.aid)===String(aid))return players[keys[i]];return null}function configFor(aid,key){if(key&&lists[key])return lists[key];var keys=Object.keys(lists);for(var i=keys.length-1;i>=0;i--)if(String(lists[keys[i]].aid)===String(aid))return lists[keys[i]];return window.vars1612143009||{aid:aid,root_dir:""}}function endpoint(config,action){return(config.root_dir||"")+"/index.php?m=home&c=View&a="+action+"&lang="+encodeURIComponent(config.lang||"cn")+"&goto="+encodeURIComponent(config.device||"pc")}function request(state,config,action,data,done){var sequence=++state.sequence,xhr=new window.XMLHttpRequest;if(state.xhr&&state.xhr.readyState!==4)state.xhr.abort();state.xhr=xhr;xhr.open("POST",endpoint(config,action),true);xhr.setRequestHeader("X-Requested-With","XMLHttpRequest");xhr.setRequestHeader("Content-type","application/x-www-form-urlencoded");xhr.onreadystatechange=function(){if(xhr.readyState!==4||sequence!==state.sequence)return;if(xhr.status!==200){message(state,"视频请求失败，请重试");return}var result;try{result=JSON.parse(xhr.responseText)}catch(error){message(state,"视频响应格式错误");return}if(!result||typeof result!=="object"){message(state,"视频响应格式错误");return}done(result)};xhr.onerror=function(){if(sequence===state.sequence)message(state,"视频请求失败，请重试")};xhr.send(Object.keys(data).map(function(key){return encodeURIComponent(key)+"="+encodeURIComponent(data[key])}).join("&"))}function submit(state){return false}function highlight(origin){if(!origin||!origin.closest)return;var item=origin.closest("li"),list=origin.closest("ul,ol");if(list)Array.prototype.forEach.call(list.querySelectorAll("li.cur"),function(row){row.classList.remove("cur")});if(item)item.classList.add("cur")}function releaseCloud(state){if(state.cloud){try{if(state.cloud.dispose)state.cloud.dispose()}catch(error){}state.cloud=null}if(!node(state)&&state.nativeTemplate&&state.nativeParent){var next=state.nativeNextSibling;state.nativeParent.insertBefore(state.nativeTemplate.cloneNode(true),next&&next.parentNode===state.nativeParent?next:null)}return bind(state)}function applySource(state,config,result,id,origin){var video=bind(state),data=result.data&&typeof result.data==="object"?result.data:{};if(!video){message(state,"请查看模板里videoplay视频播放标签是否完整！");return}if(Number(result.code)!==1){video=releaseCloud(state);video.pause();video.removeAttribute("src");Array.prototype.forEach.call(video.getElementsByTagName("source"),function(source){source.removeAttribute("src")});video.load();message(state,result.msg);return}if(data.txy_video_html||data.txy_video_id){if(!data.txy_video_id||!window.TCPlayer){message(state,"腾讯云播放器未初始化");return}video=releaseCloud(state);state.nativeTemplate=video.cloneNode(true);state.nativeParent=video.parentNode;state.nativeNextSibling=video.nextSibling;video.pause();var appId=document.getElementById("appID");try{state.cloud=window.TCPlayer(video.id,{fileID:data.txy_video_id,appID:data.app_id||appId&&appId.value||""})}catch(error){releaseCloud(state);message(state,"腾讯云播放器初始化失败");return}}else{if(typeof result.url!=="string"||!result.url.trim()){message(state,"视频地址为空");return}video=releaseCloud(state);Array.prototype.forEach.call(video.getElementsByTagName("source"),function(source){source.src=result.url});video.src=result.url||"";video.load();video.autoplay=config.autoplay!=="off";if(config.autoplay!=="off")play(video)}state.fid=Number(id)||0;var hidden=document.getElementById(state.config.hiddenId);if(hidden)hidden.value=state.fid;var overlay=find(state,"VideoDiv13579");if(overlay)overlay.style.display="none";highlight(origin)}function checkAuth(id,aid,type,origin,listKey){var config=configFor(aid,listKey),state=playerFor(config,aid);if(!state)state=config.authState||(config.authState={config:config,sequence:0});active=state;request(state,config,"check_auth",{_ajax:1,fid:id,aid:aid},function(result){if(Number(result.status)!==2){message(state,result.msg||"会员功能未开启");return}window.location.href=endpoint(config,"play")+"&aid="+encodeURIComponent(aid)+"&fid="+encodeURIComponent(id)});return false}function change(id,aid,uhash,type,origin,listKey){if(type==="play"||type==="list")return checkAuth(id,aid,type,origin,listKey);var config=configFor(aid,listKey),state=playerFor(config,aid);if(!state){message(null,"请查看模板里videoplay视频播放标签是否完整！");return false}active=state;submit(state);request(state,config,"pay_video_url",{_ajax:1,id:id,aid:aid,uhash:uhash},function(result){applySource(state,config,result,id,origin)});return false}function initial(config){if(config.started||config.player!=="default"||!config.file_id_0)return;var state=playerFor(config,config.aid);if(!state||!node(state))return;config.started=true;var id=config.file_id_0,uhash=config.uhash_0;var episodes=config.episodes||[];for(var i=0;i<episodes.length;i++){if(Number(episodes[i].file_id)===Number(state.config.fid)&&Number(state.config.fid)>0){id=episodes[i].file_id;uhash=episodes[i].uhash;break}}change(id,config.aid,uhash,"default",null,config.listKey)}window.EyouMedia={registerPlayer:function(config){var key=config.instanceKey;if(!players[key])players[key]={config:config,sequence:0,fid:config.fid,time:0};var state=players[key];bind(state);window.video=node(state);Object.keys(lists).forEach(function(list){initial(lists[list])})},registerList:function(config){lists[config.listKey]=config;initial(config)},change:change,checkAuth:checkAuth,players:players,lists:lists};window.changeVideoUrl341922=change;window.changeVideoUrl341922_sp1=change;window.changeVideoUrl341922_sp2=change;window.changeVideoUrl341922_sp3=change;window.checkAuth_v341922=checkAuth;window.submitPlayRecord=function(){return submit(active)};function disabledPurchase(aid){message(playerFor(null,aid)||active,"会员功能未开启，暂不支持购买视频");return false}window.MediaOrderBuy_v341922=disabledPurchase;window.MediaOrderBuy_v878548=disabledPurchase;window.MediaOrderBuy_1592878548=disabledPurchase;window.PlayVideo=function(id){var video=document.getElementById(id);if(video)play(video);return false};document.addEventListener("DOMContentLoaded",function(){Object.keys(lists).forEach(function(key){initial(lists[key])})})})(window,document);
+/* EyouCMS native-video compatibility. Upstream static scripts remain intact. */
+(function (window, document) {
+    'use strict';
+    if (window.EyouMedia) return;
+    var players = Object.create(null), lists = Object.create(null), active = null;
+    if (typeof window.video_sp_1618221427 === 'undefined') window.video_sp_1618221427 = 'sp1';
+
+    function node(state) { return state && document.getElementById(state.config.elementId); }
+    function scope(state) {
+        var video = node(state);
+        return video && (video.closest('[data-eyou-media-scope]') || (video.parentElement && video.parentElement.parentElement) || video.parentElement);
+    }
+    function find(state, id) {
+        var root = scope(state);
+        return root && root.querySelector('[id="' + id + '"]');
+    }
+    function message(state, text) {
+        var title = find(state, 'MsgTitle13579'), overlay = find(state, 'VideoDiv13579');
+        if (title) title.textContent = text || '视频暂时无法播放';
+        if (overlay) overlay.style.display = 'block';
+        else if (window.layer && window.layer.alert) window.layer.alert(text || '视频暂时无法播放');
+        else if (window.alert) window.alert(text || '视频暂时无法播放');
+    }
+    function play(video) {
+        try {
+            var promise = video.play();
+            // Browser autoplay policy is a normal outcome, not an unhandled rejection.
+            if (promise && promise.catch) promise.catch(function () {});
+        } catch (error) { /* Legacy engines may throw when playback is unavailable. */ }
+    }
+    function bind(state) {
+        var video = node(state);
+        if (!video || state.bound === video) return video;
+        state.bound = video;
+        if (String(video.tagName).toLowerCase() !== 'video') return video;
+        video.controls = true;
+        video.setAttribute('controlslist', 'nodownload');
+        video.setAttribute('oncontextmenu', 'return false');
+        video.addEventListener('timeupdate', function () { state.time = Math.floor(video.currentTime || 0); });
+        ['pause', 'ended'].forEach(function (event) {
+            video.addEventListener(event, function () { submit(state); });
+        });
+        if (state.config.autoplay === 'on' && video.getAttribute('src')) {
+            video.autoplay = true;
+            play(video);
+        }
+        return video;
+    }
+    function playerFor(config, aid) {
+        var key = config && config.instanceKey;
+        if (key) return players[key] || null;
+        var keys = Object.keys(players);
+        for (var i = keys.length - 1; i >= 0; i--) if (String(players[keys[i]].config.aid) === String(aid)) return players[keys[i]];
+        return null;
+    }
+    function configFor(aid, key) {
+        if (key && lists[key]) return lists[key];
+        var keys = Object.keys(lists);
+        for (var i = keys.length - 1; i >= 0; i--) if (String(lists[keys[i]].aid) === String(aid)) return lists[keys[i]];
+        return window.vars1612143009 || { aid: aid, root_dir: '' };
+    }
+    function endpoint(config, action) {
+        return (config.root_dir || '') + '/index.php?m=home&c=View&a=' + action
+            + '&lang=' + encodeURIComponent(config.lang || 'cn') + '&goto=' + encodeURIComponent(config.device || 'pc');
+    }
+    function request(state, config, action, data, done) {
+        var sequence = ++state.sequence, xhr = new window.XMLHttpRequest();
+        if (state.xhr && state.xhr.readyState !== 4) state.xhr.abort();
+        state.xhr = xhr;
+        xhr.open('POST', endpoint(config, action), true);
+        xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+        xhr.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState !== 4 || sequence !== state.sequence) return;
+            if (xhr.status !== 200) { message(state, '视频请求失败，请重试'); return; }
+            var result;
+            try { result = JSON.parse(xhr.responseText); }
+            catch (error) { message(state, '视频响应格式错误'); return; }
+            if (!result || typeof result !== 'object') { message(state, '视频响应格式错误'); return; }
+            done(result);
+        };
+        xhr.onerror = function () { if (sequence === state.sequence) message(state, '视频请求失败，请重试'); };
+        xhr.send(Object.keys(data).map(function (key) { return encodeURIComponent(key) + '=' + encodeURIComponent(data[key]); }).join('&'));
+    }
+    function submit(state) {
+        // Original Media::record_process immediately returns for anonymous users.
+        // Member tracking is disabled in this enterprise implementation.
+        return false;
+    }
+    function highlight(origin) {
+        if (!origin || !origin.closest) return;
+        var item = origin.closest('li'), list = origin.closest('ul,ol');
+        if (list) Array.prototype.forEach.call(list.querySelectorAll('li.cur'), function (row) { row.classList.remove('cur'); });
+        if (item) item.classList.add('cur');
+    }
+    function releaseCloud(state) {
+        if (state.cloud) {
+            try { if (state.cloud.dispose) state.cloud.dispose(); }
+            catch (error) { /* Still restore the native player after SDK teardown. */ }
+            state.cloud = null;
+        }
+        // TCPlayer.dispose() can remove its <video>. Restore the original native
+        // element at its original position before another cloud/local episode.
+        if (!node(state) && state.nativeTemplate && state.nativeParent) {
+            var next = state.nativeNextSibling;
+            state.nativeParent.insertBefore(state.nativeTemplate.cloneNode(true), next && next.parentNode === state.nativeParent ? next : null);
+        }
+        return bind(state);
+    }
+    function applySource(state, config, result, id, origin) {
+        var video = bind(state), data = result.data && typeof result.data === 'object' ? result.data : {};
+        if (!video) { message(state, '请查看模板里videoplay视频播放标签是否完整！'); return; }
+        if (Number(result.code) !== 1) {
+            video = releaseCloud(state);
+            video.pause();
+            video.removeAttribute('src');
+            Array.prototype.forEach.call(video.getElementsByTagName('source'), function (source) { source.removeAttribute('src'); });
+            video.load();
+            message(state, result.msg);
+            return;
+        }
+        if (data.txy_video_html || data.txy_video_id) {
+            // TCPlayer remains an external integration. Never execute returned
+            // script text, and never treat a cloud ID as a local media URL.
+            if (!data.txy_video_id || !window.TCPlayer) {
+                message(state, '腾讯云播放器未初始化');
+                return;
+            }
+            video = releaseCloud(state);
+            state.nativeTemplate = video.cloneNode(true);
+            state.nativeParent = video.parentNode;
+            state.nativeNextSibling = video.nextSibling;
+            video.pause();
+            var appId = document.getElementById('appID');
+            try { state.cloud = window.TCPlayer(video.id, { fileID: data.txy_video_id, appID: data.app_id || (appId && appId.value) || '' }); }
+            catch (error) { releaseCloud(state);message(state, '腾讯云播放器初始化失败');return; }
+        } else {
+            if (typeof result.url !== 'string' || !result.url.trim()) {
+                message(state, '视频地址为空');
+                return;
+            }
+            video = releaseCloud(state);
+            Array.prototype.forEach.call(video.getElementsByTagName('source'), function (source) { source.src = result.url; });
+            // The video src attribute takes precedence over nested <source>.
+            // Updating both also supports templates that contain both forms.
+            video.src = result.url || '';
+            video.load();
+            video.autoplay = config.autoplay !== 'off';
+            if (config.autoplay !== 'off') play(video);
+        }
+        state.fid = Number(id) || 0;
+        var hidden = document.getElementById(state.config.hiddenId);
+        if (hidden) hidden.value = state.fid;
+        var overlay = find(state, 'VideoDiv13579');
+        if (overlay) overlay.style.display = 'none';
+        highlight(origin);
+    }
+    function checkAuth(id, aid, type, origin, listKey) {
+        var config = configFor(aid, listKey), state = playerFor(config, aid);
+        if (!state) state = config.authState || (config.authState = { config: config, sequence: 0 });
+        active = state;
+        request(state, config, 'check_auth', { _ajax: 1, fid: id, aid: aid }, function (result) {
+            if (Number(result.status) !== 2) { message(state, result.msg || '会员功能未开启'); return; }
+            window.location.href = endpoint(config, 'play') + '&aid=' + encodeURIComponent(aid) + '&fid=' + encodeURIComponent(id);
+        });
+        return false;
+    }
+    function change(id, aid, uhash, type, origin, listKey) {
+        if (type === 'play' || type === 'list') return checkAuth(id, aid, type, origin, listKey);
+        var config = configFor(aid, listKey), state = playerFor(config, aid);
+        if (!state) { message(null, '请查看模板里videoplay视频播放标签是否完整！'); return false; }
+        active = state;
+        submit(state);
+        request(state, config, 'pay_video_url', { _ajax: 1, id: id, aid: aid, uhash: uhash }, function (result) {
+            applySource(state, config, result, id, origin);
+        });
+        return false;
+    }
+    function initial(config) {
+        if (config.started || config.player !== 'default' || !config.file_id_0) return;
+        var state = playerFor(config, config.aid);
+        if (!state || !node(state)) return;
+        config.started = true;
+        var id = config.file_id_0, uhash = config.uhash_0;
+        // A requested episode is selected server-side by videoplay. Keep that
+        // selection when the list initializes, including list-before-player.
+        var episodes = config.episodes || [];
+        for (var i = 0; i < episodes.length; i++) {
+            if (Number(episodes[i].file_id) === Number(state.config.fid) && Number(state.config.fid) > 0) {
+                id = episodes[i].file_id;uhash = episodes[i].uhash;break;
+            }
+        }
+        change(id, config.aid, uhash, 'default', null, config.listKey);
+    }
+    window.EyouMedia = {
+        registerPlayer: function (config) {
+            var key = config.instanceKey;
+            if (!players[key]) players[key] = { config: config, sequence: 0, fid: config.fid, time: 0 };
+            var state = players[key];
+            bind(state);
+            window.video = node(state);
+            Object.keys(lists).forEach(function (list) { initial(lists[list]); });
+        },
+        registerList: function (config) { lists[config.listKey] = config;initial(config); },
+        change: change,
+        checkAuth: checkAuth,
+        players: players,
+        lists: lists
+    };
+    window.changeVideoUrl341922 = change;
+    window.changeVideoUrl341922_sp1 = change;
+    window.changeVideoUrl341922_sp2 = change;
+    window.changeVideoUrl341922_sp3 = change;
+    window.checkAuth_v341922 = checkAuth;
+    window.submitPlayRecord = function () { return submit(active); };
+    function disabledPurchase(aid) {
+        message(playerFor(null, aid) || active, '会员功能未开启，暂不支持购买视频');
+        return false;
+    }
+    window.MediaOrderBuy_v341922 = disabledPurchase;
+    window.MediaOrderBuy_v878548 = disabledPurchase;
+    window.MediaOrderBuy_1592878548 = disabledPurchase;
+    window.PlayVideo = function (id) { var video = document.getElementById(id);if (video) play(video);return false; };
+    document.addEventListener('DOMContentLoaded', function () { Object.keys(lists).forEach(function (key) { initial(lists[key]); }); });
+})(window, document);

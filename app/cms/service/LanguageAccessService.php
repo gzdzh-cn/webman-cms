@@ -13,9 +13,9 @@ final class LanguageAccessService
     public function allowedLanguages(?array $admin=null): array
     {
         $all=array_column((new LanguagePolicy($this->repository))->all(),'mark');
-        if ($admin === null && PHP_SAPI==='cli' && !\app\cms\CmsContext::current()->request) return $all;
+        if ($admin === null && in_array(PHP_SAPI,['cli','micro'],true) && !\app\cms\CmsContext::current()->request) return $all;
         $admin??=function_exists('admin')?(admin()?:null):null;
-        if(!$admin) return PHP_SAPI==='cli'&&!\app\cms\CmsContext::current()->request?$all:[];
+        if(!$admin) return in_array(PHP_SAPI,['cli','micro'],true)&&!\app\cms\CmsContext::current()->request?$all:[];
         $roles=Role::whereIn('id',$admin['roles']??[])->get();$allowed=[];
         foreach($roles as $role){if($role->rules==='*')return $all;$allowed=array_merge($allowed,$this->roleLanguages((int)$role->id));}
         return array_values(array_intersect($all,array_unique($allowed)));

@@ -56,7 +56,7 @@ final class ArchivePreviewService
         $scheme = parse_url($url, PHP_URL_SCHEME);
         if ($scheme !== null && $scheme !== false && !in_array(strtolower($scheme), ['http', 'https'], true)) throw new InvalidArgumentException('文档浏览链接协议不受支持');
         if ($scheme === false) throw new InvalidArgumentException('文档浏览链接格式错误');
-        // Relative jump links belong to the public site, never /app/admin/archive/.
+        // Relative jump links belong to the public site, never /web-admin/archive/.
         if ($scheme === null && !str_starts_with($url, '/')) $url = rtrim((string)$context->global['web_cmspath'], '/') . '/' . $url;
         return $url;
     }

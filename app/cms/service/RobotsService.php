@@ -12,7 +12,7 @@ final class RobotsService
     public const MAX_BYTES = 262144;
     public function __construct(private ?CmsRepository $repository = null, private ?string $publicRoot = null)
     {
-        $this->repository ??= new CmsRepository();$this->publicRoot ??= public_path();
+        $this->repository ??= new CmsRepository();$this->publicRoot ??= \app\cms\Paths::publicRoot();
     }
 
     public static function validate(string $content): void
@@ -22,11 +22,11 @@ final class RobotsService
 
     private function path(): string
     {
-        $root=realpath($this->publicRoot);
+        $root=\app\cms\support\EmbeddedResources::realpath($this->publicRoot);
         if(!$root||!is_dir($root)||is_link($this->publicRoot))throw new RuntimeException('公开资源目录不存在或为链接');
         $file=$root.'/robots.txt';clearstatcache(true,$file);
         if(is_link($file))throw new InvalidArgumentException('禁止编辑 robots.txt 符号链接');
-        if(file_exists($file)&&(!is_file($file)||($stat=lstat($file))===false||$stat['nlink']!==1))throw new InvalidArgumentException('robots.txt 必须为普通单链接文件');
+        if(!str_starts_with($file,'phar://')&&file_exists($file)&&(!is_file($file)||($stat=lstat($file))===false||$stat['nlink']!==1))throw new InvalidArgumentException('robots.txt 必须为普通单链接文件');
         return $file;
     }
 
@@ -37,7 +37,7 @@ final class RobotsService
         $content=$exists?file_get_contents($file):'';
         if($content===false)throw new RuntimeException('无法读取 robots.txt');
         self::validate($content);
-        return ['path'=>'/robots.txt','exists'=>$exists,'content'=>$content,'hash'=>hash('sha256',$content),'max_bytes'=>self::MAX_BYTES];
+        return ['path'=>'/robots.txt','exists'=>$exists,'content'=>$content,'hash'=>hash('sha256',$content),'readonly'=>\app\cms\support\EmbeddedResources::has('public'),'max_bytes'=>self::MAX_BYTES];
     }
 
     public function revisions(): array
@@ -69,6 +69,7 @@ final class RobotsService
 
     private function publish(array $input,bool $targetExists,?string $restoredFrom=null): array
     {
+        \app\cms\support\EmbeddedResources::assertWritable($this->publicRoot);
         foreach(['content','hash','exists']as$key)if(!array_key_exists($key,$input)||!is_scalar($input[$key]))throw new InvalidArgumentException('robots.txt 保存参数不完整');
         $content=(string)$input['content'];self::validate($content);
         $hash=(string)$input['hash'];if(!preg_match('/^[a-f0-9]{64}$/D',$hash)||!in_array((string)$input['exists'],['0','1'],true))throw new InvalidArgumentException('请先重新读取 robots.txt');

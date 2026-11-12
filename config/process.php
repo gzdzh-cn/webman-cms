@@ -21,8 +21,8 @@ global $argv;
 return [
     'webman' => [
         'handler' => Http::class,
-        'listen' => \app\cms\config\Environment::value('WEBMAN_LISTEN', 'http://0.0.0.0:8787'),
-        'count' => \app\cms\config\Environment::integer('WEBMAN_WORKERS', 2, 1, 256),
+        'listen' => \app\cms\config\DeploymentConfig::get('server.listen'),
+        'count' => \app\cms\config\DeploymentConfig::get('server.workers'),
         'user' => '',
         'group' => '',
         'reusePort' => false,
@@ -59,7 +59,7 @@ return [
                 'php', 'html', 'htm', 'env'
             ],
             'options' => [
-                'enable_file_monitor' => !in_array('-d', $argv) && DIRECTORY_SEPARATOR === '/',
+                'enable_file_monitor' => !\Phar::running() && \app\cms\config\DeploymentConfig::get('app.debug') && !in_array('-d', $argv) && DIRECTORY_SEPARATOR === '/',
                 'enable_memory_monitor' => DIRECTORY_SEPARATOR === '/',
             ]
         ]

@@ -71,6 +71,10 @@ final class LanguageAssetService
 
     private static function assertSafeFile(string $path, bool $optional = false): void
     {
+        if (str_starts_with($path,'phar://')) {
+            if ($path !== Paths::root(self::BASE) || !\app\cms\support\EmbeddedResources::realpath($path) || !is_file($path)) throw new \RuntimeException('Invalid embedded language asset path');
+            return;
+        }
         if (!str_starts_with($path, '/') || str_contains($path, "\0") || str_contains($path, '\\')) throw new \RuntimeException('Invalid language asset path');
         $current = '';
         foreach (explode('/', ltrim($path, '/')) as $part) {
@@ -82,23 +86,17 @@ final class LanguageAssetService
         if (!$optional && !is_file($path)) throw new \RuntimeException('Language asset is missing');
     }
 
-    private static function assetScope(string $path): string
-    {
-        return $path . ':' . \app\cms\template\TemplateMode::siteSignature() . ':' . \app\cms\template\TemplateMode::current();
-    }
-
     public static function readDerived(string $path): string
     {
         if (!str_starts_with($path, Paths::runtime('cache/assets/'))) throw new \RuntimeException('语言资源路径无效');
         $raw = \app\cms\cache\CacheStorage::read($path);
-        $bytes = $raw === null ? null : \app\cms\security\SignedEnvelope::open('cache.language-asset', self::assetScope($path), $raw);
+        $bytes = $raw !== null && !str_starts_with($raw, "CMSSEC1\n") ? $raw : null;
         if ($bytes === null) throw new \RuntimeException('语言资源完整性校验失败');
         return $bytes;
     }
 
     private static function atomicWrite(string $path, string $content): void
     {
-        $signed = \app\cms\security\SignedEnvelope::seal('cache.language-asset', self::assetScope($path), $content);
-        \app\cms\cache\CacheStorage::write($path, $signed);
+        \app\cms\cache\CacheStorage::write($path, $content);
     }
 }

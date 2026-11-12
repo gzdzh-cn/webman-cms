@@ -1,5 +1,9 @@
 # 历史源码包与资源恢复
 
+2026-11-10 二进制与 YAML 配套资源：当前 format=2、revision=`2026-11-10-binary-yaml-v1`。项目外配套包 `binary-yaml-20261110-v1/resource-assets-binary-yaml-v1.tar.gz`，15,198,151 字节，SHA256 `257f380d3825dad89638736836be94ed6f09bd9f5738b2b713424ab2ccacf3f3`；源码归档 SHA256 `74c7162bde4a0f64f0ee9eabddb70c397052525968e6c169c352575251ef98eb`。锁定重建与干净恢复的 2,132 个实体一致。后台重启等待跟随停止超时，旧 URL 继续逐文件映射。以下资源包仅用于对应历史版本成组回退；实际发布与验收见[本批验收](binary-deployment-acceptance.md)。
+
+当前默认交付由 `cms:build-bin` 构建的二进制；下述新安装步骤只适用于源码包。二进制不携带安装资料且关闭全部安装入口。部署参数从三条 YAML 路径选一；默认上传实体为站点根 `uploads/`，构建默认排除 public、template、全部站点 YAML、uploads、runtime 及 bin。可选内置及配置固定规则见[部署说明](binary-deployment.md)。PHP 只保留框架适配。制作源码新安装包必须排除运行站 YAML、`.env`、配置锁、`.backups`、`.migration-*` 及全部私有状态；从同版 `config.example.yaml` 生成无凭据 YAML 示例，权限 0600。下方历史 PHP 受管块只作为旧版迁移背景；当前去敏工具输出同版无部署值的框架适配。二进制包由 `cms:build-bin` 白名单构建，规则及实际范围见[部署说明](binary-deployment.md)。
+
 2026-11-10 系统资源统一：公开系统资源统一在 `public/admin-assets`，共享资源迁至 `public/admin-assets/common`；`template` 仅存主题，禁止创建 `_shared` 实体或软链接。全部登记旧地址保留逐文件别名，动态语言 JS 继续使用文件／Redis 派生缓存，不写公开目录。format=2 保持，当前 revision 为 `2026-11-10-unified-system-assets-v1`；配套包、隔离验收和发布状态见[统一资源验收](unified-system-assets-acceptance.md)。本段取代下方历史共享资源布局与旧配套包约定。
 
 2026-11-09 企业官网补齐：打包须使用revision=`2026-11-08-enterprise-v1`的源码和资源清单，配套资源包 `resource-assets-enterprise-v1.tar.gz`，校验信息见[资源维护](resource-maintenance.md)。排除config/cms-database-traffic.lock、cms-database-maintenance.json、项目外私有备份/密钥、恢复任务、前镜像、验收夹具及runtime。不能复制开发库的角色范围/正文来源记录作为空站数据；新站使用可信安装基线。
@@ -57,34 +61,21 @@ FORMAT3 安装规则以[安装说明](installation.md)和[本轮验收](install-
 
 ## 当前资源清单与外部包
 
-当前可维护源码为 `app/cms/resources/asset-build-inputs.tar.xz`，已经合并原定制源码包；不再使用旧 `admin-asset-sources.tar.xz`。format=2 恢复清单为 `app/cms/resources/source-package-assets.json.gz`。系统资源恢复到 `public/admin-assets`，其中共享资源恢复到 `public/admin-assets/common`，私有资源恢复到 CMS 目录。恢复过程不得创建 `template/_shared`。
+当前可维护源码为 `app/cms/resources/asset-build-inputs.tar.gz`，PHP原字节构建。format=2恢复清单为 `app/cms/resources/source-package-assets.json.gz`，绑定配套资源包完整SHA与逐文件身份；不再使用旧xz输入、外部压缩器或包管理器。
 
-当前配套资源包（必须与本版 format=2 清单成组使用）：
-
-```text
-/Volumes/disk/site/php/dzhcms/unified-assets-20261110-v1/resource-assets-unified-system-v1.tar.gz
-```
-
-包 SHA256：`91f25402e77aca1de27a9f4edc71597277f73e082ab7fdf8204999c76907a7cf`，大小 **15,198,107 字节**。清单 revision=`2026-11-10-unified-system-assets-v1`，2,210 条记录、2,132 个唯一实体。686 个共享实体仅迁移位置，全部资源字节保持。源码归档 SHA256 为 `2d764f06a4ff7ba4d0f64115b367237238bb5ece24ddbe5b563bfd24f65380a3`，原字节不变；归档保存原始来源身份，目标目录由清单与构建配方决定。完整锁定重建与干净恢复均只生成新目录，见[验收](unified-system-assets-acceptance.md)。
-
-2026-11-08 的多语言包 `multilingual-20261108-124545/resource-assets-multilingual-v1.tar.gz` 属于历史整版回退资料，不与当前清单混用。
-
-历史 `resource-layout-20261107-v1/resource-assets-v2.tar.gz`、原 `public-assets.tar.gz`、旧清单及外部 `state` 仅为历史整版回退资料，不能用当前恢复器恢复到新站。外部 state 中的 8793 是独立保留站点，不属于本项目可删除 runtime。外移保存不等于释放同卷空间。
+资源发布根为 `public/admin-assets`；系统公共资源在 `common`，私有资源仍在CMS私有目录。保留旧URL，恢复绝不创建 `template/_shared`。当前版本及实际验收见 [PHP维护验收](php-maintenance-acceptance.md)。历史包和清单仅用于相应旧版成组回退，不与当前版本混用。受保护的8793独立环境不能作为可删除测试缓存。
 
 ## 恢复公共资源
 
-在项目根使用 PHP ≥ 8.2 与 Python ≥ 3.9，先预演再应用：
+在项目根使用 PHP 8.2+，先预检再应用：
 
 ```sh
-php webman cms:assets restore --archive /Volumes/disk/site/php/dzhcms/unified-assets-20261110-v1/resource-assets-unified-system-v1.tar.gz
-php webman cms:assets restore --archive /Volumes/disk/site/php/dzhcms/unified-assets-20261110-v1/resource-assets-unified-system-v1.tar.gz --apply
+php webman cms:assets restore --archive /absolute/release/resource-assets.tar.gz
+php webman cms:assets restore --archive /absolute/release/resource-assets.tar.gz --apply
 php webman cms:assets verify
 ```
 
-工具检查整包与逐文件 SHA／大小，拒绝旧 format、旧目标目录、越界、重复成员、链接和特殊文件；已有相同文件跳过，不同文件拒绝覆盖。本轮包包含 2130 个实体，隔离完整恢复、重复恢复及锁定工具全量重建已核对 SHA；冲突及损坏包拒绝的原有机制保留，不将历史验收误记为本轮重复执行。没有配套资源包时，不能声称只用 Composer 可恢复完整公共资源。
-
-依赖按 composer.lock 和[部署说明](deployment.md)恢复。恢复资源不授权重导数据库或重置管理员密码；构建及详细验收见[资源维护](resource-maintenance.md)。
-
+恢复先验证整包、成员表、每个文件SHA及输出冲突，再发布缺失文件；没有配套资源包时可从完整的同版源码运行 `cms:assets pack` 制作。详细命令和安全边界见 [资源维护](resource-maintenance.md)。不授权重导数据库、重置账号或恢复整份runtime。
 ## 旧状态接入新架构
 
 旧源码包的runtime保存过任务、manifest、内容对象、归属和可视化文件，必须在新架构使用`cms:state-migrate --source=<旧runtime绝对路径>`预演、停机应用并核验，再清理旧状态。**不要将整份外部runtime复制回新运行站。**

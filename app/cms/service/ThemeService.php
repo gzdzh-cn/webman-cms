@@ -31,12 +31,12 @@ class ThemeService
             $theme['required_templates'] = $check['required_templates'];
             $theme['preview'] = [];
             foreach (['pc', 'mobile'] as $device) {
-                $theme['preview'][$device] = '/app/admin/filemanager/preview?' . http_build_query(['lang' => $scope['lang'], 'theme' => $theme['key'], 'device' => $device]);
+                $theme['preview'][$device] = '/web-admin/filemanager/preview?' . http_build_query(['lang' => $scope['lang'], 'theme' => $theme['key'], 'device' => $device]);
             }
             $themes[] = $theme;
         }
         return ['lang' => $scope['lang'], 'languages' => $scope['languages'], 'current' => $current,
-            'stored_theme' => $record['value'] ?? null, 'template_mode' => \app\cms\template\TemplateMode::current(), 'themes' => $themes];
+            'readonly'=>\app\cms\support\EmbeddedResources::has('template'), 'stored_theme' => $record['value'] ?? null, 'template_mode' => \app\cms\template\TemplateMode::current(), 'themes' => $themes];
     }
 
     public function activate(array $input): array
@@ -184,7 +184,7 @@ class ThemeService
             $path .= '/' . $part;
             if (is_link($path)) return null;
         }
-        $actual = realpath($path);
+        $actual = \app\cms\support\EmbeddedResources::realpath($path);
         return $actual && str_starts_with($actual, $root . DIRECTORY_SEPARATOR) && is_file($actual) ? $actual : null;
     }
 

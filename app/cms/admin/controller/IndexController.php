@@ -43,14 +43,9 @@ class IndexController
         }
         $admin = admin();
         if (!$admin) {
-            $name = 'system_config';
-            $config = Option::where('name', $name)->value('value');
-            $config = json_decode($config, true);
-            $title = $config['logo']['title'] ?? 'webman cms';
-            $logo = $config['logo']['image'] ?? '/app/admin/admin/images/logo.png';
-            return \app\cms\admin\support\AdminView::raw('account/login',['logo'=>$logo,'title'=>$title]);
+            return \app\cms\admin\support\AdminView::raw('account/login');
         }
-        return \app\cms\admin\support\AdminView::raw('index/index');
+        return \app\cms\admin\support\AdminView::raw('index/index', ['title' => \app\cms\admin\support\AdminBranding::name()]);
     }
 
     /**
@@ -82,7 +77,7 @@ class IndexController
     {
         if ($request->method() !== 'GET') return response('Method Not Allowed', 405);
         $allowed = \app\cms\admin\support\Auth::isSuperAdmin();
-        return json(['code'=>0, 'msg'=>'ok', 'data'=>['allowed'=>$allowed, 'csrf'=>$allowed ? \app\cms\admin\support\LanguageAdminSecurity::token($request) : null]])->withHeader('Cache-Control', 'no-store');
+        return json(['code'=>0, 'msg'=>'ok', 'data'=>['allowed'=>$allowed, 'csrf'=>$allowed ? \app\cms\admin\support\LanguageAdminSecurity::token($request) : null, 'wait_ms'=>(\app\cms\service\AdminRestartService::restartTimeout()+65)*1000]])->withHeader('Cache-Control', 'no-store');
     }
 
     public function restartStart(Request $request): Response

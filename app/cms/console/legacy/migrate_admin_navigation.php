@@ -2,7 +2,7 @@
 declare(strict_types=1);
 
 // Defaults to a SELECT-only dry run. --apply requires the exact reviewed fingerprint.
-require dirname(__DIR__, 4) . '/vendor/autoload.php';
+require_once dirname(__DIR__, 4) . '/vendor/autoload.php';
 require dirname(__DIR__, 2) . '/database/NavigationMigration.php';
 
 use app\cms\database\NavigationMigration;

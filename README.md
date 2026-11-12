@@ -8,6 +8,8 @@
 
 ## 启动与安装
 
+构建二进制、源码启动、二进制启动及 Docker ARM64 命令见根目录 [构建与启动说明](BUILD.md)。
+
 运行需要 PHP ≥ 8.2、Composer 锁定依赖和 MySQL。本机显式使用以下 PHP，避免 shell 默认旧版本：
 
 ```sh
@@ -15,7 +17,7 @@ cd /Volumes/disk/site/php/dzhcms/dzhcms002/webman-cms
 /Users/lizheng/Library/FlyEnv/env/php/bin/php start.php start
 ```
 
-开发站为 `http://127.0.0.1:8787/`，后台为 `/app/admin`。新站通过 `/install` 安装，默认空站，由安装者设置管理员账号和密码；已有站使用迁移流程，禁止重新导入基线覆盖。部署、停机迁移和缓存清理见[部署说明](docs/deployment.md)与[数据库说明](docs/database.md)。
+开发站为 `http://127.0.0.1:8787/`，后台为 `/web-admin`。新站通过 `/install` 安装，默认空站，由安装者设置管理员账号和密码；已有站使用迁移流程，禁止重新导入基线覆盖。部署、停机迁移和缓存清理见[部署说明](docs/deployment.md)与[数据库说明](docs/database.md)。
 
 ## 目录约定
 

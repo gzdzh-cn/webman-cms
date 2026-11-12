@@ -22,7 +22,7 @@ function cmsEditorReturn(){
 </script>
 </head>
 
-<body class="cms-editor-page" data-cms-return-url="/app/admin/channeltype/index">
+<body class="cms-editor-page" data-cms-return-url="/web-admin/channeltype/index">
 <header class="cms-editor-heading"><button type="button" data-cms-back aria-label="返回内容模型列表">←</button><div><h1>新增内容模型</h1><p>填写并保存后返回列表；取消不会保存本次修改。</p></div></header>
 
     <form data-cms-page-editor class="layui-form" action="">
@@ -83,7 +83,7 @@ function cmsEditorReturn(){
     <script>
 
         // 相关接口
-        const INSERT_API = "/app/admin/channeltype/insert";
+        const INSERT_API = "/web-admin/channeltype/insert";
 
         //提交事件
         layui.use(["form", "pearPopup"], function () {
@@ -113,7 +113,7 @@ function cmsEditorReturn(){
                         if (res.code) {
                             window.CmsUI.error(cmsForm,res.msg,res.fields||res.data?.fields);return false;
                         }
-                        return layui.pearPopup.success("操作成功", function () {
+                        return window.CmsUI.success("操作成功", function () {
                             window.CmsUI.saved(cmsEditorReturn());
                         });
                     }

@@ -18,7 +18,7 @@ function cmsEditorReturn(){
 }
 </script>
 </head>
-    <body class="cms-editor-page" data-cms-return-url="/app/admin/admin/index">
+    <body class="cms-editor-page" data-cms-return-url="/web-admin/admin/index">
 <header class="cms-editor-heading"><button type="button" data-cms-back aria-label="返回管理员列表">←</button><div><h1>编辑管理员</h1><p>填写并保存后返回列表；取消不会保存本次修改。</p></div></header>
 
         <form data-cms-page-editor class="layui-form">
@@ -103,8 +103,8 @@ function cmsEditorReturn(){
 
             // 相关接口
             const PRIMARY_KEY = "id";
-            const SELECT_API = "/app/admin/admin/select" + location.search;
-            const UPDATE_API = "/app/admin/admin/update";
+            const SELECT_API = "/web-admin/admin/select" + location.search;
+            const UPDATE_API = "/web-admin/admin/update";
 
             // 获取数据库记录
             layui.use(["form", "util", "pearPopup"], function () {
@@ -138,7 +138,7 @@ function cmsEditorReturn(){
                                 window.CmsUI.layer({
                                     type: 2,
                                     title: "选择附件",
-                                    content: "/app/admin/upload/attachment?ext=jpg,jpeg,png,gif,bmp",
+                                    content: "/web-admin/upload/attachment?ext=jpg,jpeg,png,gif,bmp",
                                     kind: "picker", area: ["1040px", "85vh"],
                                     success: function (layero, index) {
                                         layui.$("#layui-layer" + index).data("callback", function (data) {
@@ -150,7 +150,7 @@ function cmsEditorReturn(){
                             });
                             layui.upload.render({
                                 elem: "#avatar",
-                                url: "/app/admin/upload/avatar",
+                                url: "/web-admin/upload/avatar",
                                 acceptMime: "image/gif,image/jpeg,image/jpg,image/png",
                                 field: "__file__",
                                 done: function (res) {
@@ -164,10 +164,10 @@ function cmsEditorReturn(){
                         // 字段 角色 roles
                         layui.use(["jquery", "xmSelect"], function() {
                             layui.$.ajax({
-                                url: "/app/admin/role/select?format=tree",
+                                url: "/web-admin/role/select?format=tree",
                                 dataType: "json",
                                 success: function (res) {
-                                    if (res.code || !Array.isArray(res.data)) {layui.pearPopup.failure(res.msg || '角色读取失败，请重试');return;}
+                                    if (res.code || !Array.isArray(res.data)) {window.CmsUI.failure(res.msg || '角色读取失败，请重试');return;}
                         let value = layui.$("#roles").attr("value");
                                     let initValue = value ? value.split(",") : [];
                                     if (!<?= \app\cms\admin\support\Auth::isSuperAdmin() ? 'true' : 'false' ?>) {
@@ -185,7 +185,7 @@ function cmsEditorReturn(){
                                         toolbar: {show: true, list: ["ALL","CLEAR","REVERSE"]},
                                     })
                                     if (res.code) {
-                                        layui.pearPopup.failure(res.msg);
+                                        window.CmsUI.failure(res.msg);
                                     }
                                 }
                             });
@@ -193,7 +193,7 @@ function cmsEditorReturn(){
 
                         // ajax产生错误
                         if (res.code) {
-                            layui.pearPopup.failure(res.msg);
+                            window.CmsUI.failure(res.msg);
                         }
 
                     }
@@ -218,7 +218,7 @@ function cmsEditorReturn(){
                             if (res.code) {
                                 window.CmsUI.error(cmsForm,res.msg,res.fields||res.data?.fields);return false;
                             }
-                            return layui.pearPopup.success("操作成功", function () {
+                            return window.CmsUI.success("操作成功", function () {
                                 window.CmsUI.saved(cmsEditorReturn());
                             });
                         }

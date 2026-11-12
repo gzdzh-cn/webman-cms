@@ -24,7 +24,7 @@
 </style>
 </head>
     <body class="pear-container cms-classic-filter-page">
-<?php if (in_array('*', array_merge(...array_map(static fn($v)=>explode(',',(string)$v), \plugin\admin\app\model\Role::whereIn('id',admin()['roles']??[])->pluck('rules')->all())),true)): ?><p style="padding:12px 16px"><a href="/app/admin/databasebackup/index">数据库备份与还原 →</a></p><?php endif; ?>
+<?php if (in_array('*', array_merge(...array_map(static fn($v)=>explode(',',(string)$v), \plugin\admin\app\model\Role::whereIn('id',admin()['roles']??[])->pluck('rules')->all())),true)): ?><p style="padding:12px 16px"><a href="/web-admin/databasebackup/index">数据库备份与还原 →</a></p><?php endif; ?>
 
 
     <!-- 顶部查询表单 -->
@@ -86,12 +86,12 @@
         <script>
 
             // 相关接口
-            const SELECT_API = "/app/admin/table/show";
-            const DROP_API = "/app/admin/table/drop";
-            const VIEW_URL = "/app/admin/table/view";
-            const CREATE_URL = "/app/admin/table/create";
-            const MODIFY_URL = "/app/admin/table/modify";
-            const CRUD_URL = "/app/admin/table/crud";
+            const SELECT_API = "/web-admin/table/show";
+            const DROP_API = "/web-admin/table/drop";
+            const VIEW_URL = "/web-admin/table/view";
+            const CREATE_URL = "/web-admin/table/create";
+            const MODIFY_URL = "/web-admin/table/modify";
+            const CRUD_URL = "/web-admin/table/crud";
 
             layui.use(["table", "form", "pearCommon", "pearPopup"], function() {
                 let table = layui.table;
@@ -213,7 +213,7 @@
                 let batchRemove = function(obj) {
                     var tables = common.checkField(obj, "TABLE_NAME");
                     if (tables === "") {
-                        layui.pearPopup.warning("未选中数据");
+                        window.CmsUI.warning("未选中数据");
                         return false;
                     }
                     doRemove(tables.split(","));
@@ -231,9 +231,9 @@
                             success: function (res) {
                                 layer.close(loading);
                                 if (res.code) {
-                                    return layui.pearPopup.failure(res.msg);
+                                    return window.CmsUI.failure(res.msg);
                                 }
-                                return layui.pearPopup.success("操作成功", refreshTable);
+                                return window.CmsUI.success("操作成功", refreshTable);
                             }
                         })
                     });

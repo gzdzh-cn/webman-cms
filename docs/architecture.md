@@ -1,4 +1,8 @@
+现行目录与二进制规则：实体目录固定相对源码入口或二进制所在目录，不支持 paths 及目录环境变量覆盖；上传实体为站点根 `uploads/`；外置 YAML 三路径选一、内置配置固定、资源整根优先及无安装二进制见[构建部署说明](binary-deployment.md)。以下历史验收不扩大本批实际验证范围。
+
 # 目录与运行架构
+
+2026-11-11：取消本地 key 文件依赖，缓存采用 storage-v2、会话采用 session-v2；分页仅保存受控参数描述。运营与 Redis 模式复用有效前台编译结果，开发和后台保持即时编译。私有存储写权限成为信任边界，见[现行安全说明](security-hardening.md)。以下按日期保留的交付记录仅供追溯。
 
 2026-11-10 统一系统资源已备份发布8787并完整停启：686个共享实体迁至public/admin-assets/common，template/_shared实体不存在；2132实体完整性、10656新旧URL隔离HTTP、三缓存模式/五主题及运行站只读复验通过。当前default/eyou/开发模式2、私有配置、业务、原会话代际及Git暂存保持。浏览器夹具同主机Cookie污染已恢复原有效会话，实际进入后台；准确范围和回退见[统一资源验收](unified-system-assets-acceptance.md)。
 
@@ -12,7 +16,7 @@
 
 2026-11-09 Redis 缓存模式新增 `app/cms/cache` 统一存储、数据库缓存/会话代际和固定请求会话分派。web_cmsmode=3时模板、数据、语言派生缓存及会话进入Redis；故障时缓存使用请求内存，会话返回503。runtime仅允许日志、运行控制和必要锁；文件模式继续可用。`cms:cache-clear --all` 收窄为缓存和会话，不再整删runtime。当前运行站保留开发模式，配置及验收见[Redis维护](redis-cache.md)和[验收](redis-cache-acceptance.md)。本段取代下文缓存/派生JS仅放runtime及--all整删的旧说明。
 
-2026-11-09 PHP 正式配置调整：数据库及布局统一从 config/database.php 保存值读取，支持本地 .env 存在键优先于显式进程环境；无 .env 可安装、运行与重启。新安装只写固定受管块，旧任务按版本兼容；签名密钥仍在项目外。具体隔离验收、发布状态与边界见 php-configuration-acceptance.md。
+部署配置按 `config.yaml`、`config/config.yaml`、`config/manifest/config.yaml` 顺序选一，不合并；框架 PHP 配置只适配统一服务。外置配置优先级为 `.env` 存在键 > 显式进程环境 > 所选 YAML > 默认值；存在内置 YAML 时仅用内置文件与默认值，忽略全部外部部署覆盖。默认上传实体为站点根 `uploads/`，URL 保持兼容。包内代码与外置状态通过 `Paths` 分离，公开 URL 沿用原地址，物理目录可逐项映射。源码与 Linux 二进制共用启动器；详见[部署说明](binary-deployment.md)和[配置字段表](deployment-config-reference.md)。此前 PHP 受管配置为迁移输入，不再保存新站参数。
 
 2026-11-09 企业官网安全加固已交付8787：插件、可视化和在线PHP生成关闭；模板AST/静态SQL策略、统一上传和外部密钥HMAC存储启用，后台旧缓存复用关闭，执行已认证内存快照。旧会话需重新登录。8796独立库验收、runtime重建及运行站只读复验范围、原3144搜索缺页和生产权限要求见[安全验收](security-hardening-acceptance.md)。原主题、附件、SQL及Git暂存保留，8793不动。
 
@@ -140,7 +144,7 @@ Paths 统一项目路径；AssetResolver、UploadPaths 等继续校验词法路�
 
 cms:install --input=… --preflight先输出计划，正式安装须带plan_token；--seal --check只读预演。cms:database-init仅保留空站基线只读预演，apply写入停用，避免绕过模式和冲突流程。创建新安装包仅在独立副本恢复标准install并清理副本凭据、锁和进度，不能修改源站归档，见[安装说明](installation.md)与[源码包](source-package.md)。
 
-新工具统一使用 `php webman cms:*`；恢复资产及独立部署的 Python 工具在 `app/cms/maintenance`。外部快照和验收产物不回填 runtime。详细流程、停机和回退见[部署](deployment.md)、[维护归档](maintenance-archive.md)。
+新工具统一使用 `php webman cms:*`；资源校验、构建、打包、恢复和部署预检全部由PHP实现，代码在 `app/cms/maintenance`。外部快照和验收产物不回填 runtime。详细流程、停机和回退见[部署](deployment.md)、[维护归档](maintenance-archive.md)。
 
 当前隔离检查覆盖 58 个原入口契约、PC/mobile 86 次响应、108 个静态资源 SHA 和 14 个私有／后台保护入口；随机验证码另核对有效图片响应。8787已完成停机切换、状态入库及runtime整删重建，最终HTTP和当前管理员登录后的主要页面验收已通过；上述证据不替代完整业务和EyouCMS严格兼容验收。
 

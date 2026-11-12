@@ -39,7 +39,7 @@ class WebsiteconfigController extends \plugin\admin\app\controller\CmsDataContro
     }
     protected function settingsLinks(): array
     {
-        $links=[];foreach([[\plugin\admin\app\controller\FilemanagerController::class,'模板管理','/app/admin/filemanager/index'],[\plugin\admin\app\controller\SmsconfigController::class,'短信配置','/app/admin/smsconfig/index'],[\plugin\admin\app\controller\EmailtemplateController::class,'邮件模板','/app/admin/emailtemplate/index'],[\plugin\admin\app\controller\SmstemplateController::class,'短信模板','/app/admin/smstemplate/index']] as[$class,$title,$href])if(Auth::canAccess($class,'index'))$links[]=['title'=>$title,'href'=>$href];return $links;
+        $links=[];foreach([[\plugin\admin\app\controller\FilemanagerController::class,'模板管理','/web-admin/filemanager/index'],[\plugin\admin\app\controller\SmsconfigController::class,'短信配置','/web-admin/smsconfig/index'],[\plugin\admin\app\controller\EmailtemplateController::class,'邮件模板','/web-admin/emailtemplate/index'],[\plugin\admin\app\controller\SmstemplateController::class,'短信模板','/web-admin/smstemplate/index']] as[$class,$title,$href])if(Auth::canAccess($class,'index'))$links[]=['title'=>$title,'href'=>$href];return $links;
     }
     protected function canUploadSettings():bool { return Auth::canAccess(\plugin\admin\app\controller\UploadController::class,'file'); }
     private function settingsPresentation(array $data):array { $data['permissions']=['save'=>$this->canConfigure(),'upload'=>$this->canUploadSettings()];$data['links']=$this->settingsLinks();return $data; }

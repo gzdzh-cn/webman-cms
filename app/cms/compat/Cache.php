@@ -20,7 +20,6 @@ final class Cache
         return !is_resource($value);
     }
     private static function directory(): string { return runtime_path('cms/cache'); }
-    private static function securityScope(): string { return \app\cms\template\TemplateMode::current().':'.\app\cms\template\TemplateDialect::VERSION.':'.\app\cms\template\TemplateMode::siteSignature(); }
     private static function generation(): string { return \app\cms\cache\CachePolicy::cacheGeneration(); }
     private static function path(string $key): string {
         // The upstream cache was designed around a single HTTP application
@@ -37,15 +36,13 @@ final class Cache
         return self::directory().'/'.self::generation().'-'.hash('sha256',$key).'.cache';
     }
     public static function get($key,$default=false) {
-        \app\cms\security\SignedEnvelope::requireKey();
         $path=self::path((string)$key);
         $raw=\app\cms\cache\CacheStorage::read($path);
         if($raw===null)return $default;
-        $verified=\app\cms\security\SignedEnvelope::open('cache.data',self::securityScope().':'.$path,$raw);
-        if($verified===null)return $default;
-        try {$data=@unserialize($verified,['allowed_classes'=>self::OBJECT_CLASSES]);}
+        if(str_starts_with($raw,"CMSSEC1\n"))return $default;
+        try {$data=@unserialize($raw,['allowed_classes'=>self::OBJECT_CLASSES]);}
         catch(\Throwable $error){return $default;}
-        if(!is_array($data)||!array_key_exists('expires',$data)||!array_key_exists('value',$data)||($data['expires']>0&&$data['expires']<time())) { return $default; }
+        if(!is_array($data)||!is_int($data['expires']??null)||$data['expires']<0||!array_key_exists('value',$data)||($data['expires']>0&&$data['expires']<time())) { return $default; }
         return self::supportedValue($data['value'])?$data['value']:$default;
     }
     public static function set($key,$value,$expire=null): bool {
@@ -53,8 +50,8 @@ final class Cache
         $expire=is_numeric($expire)?(int)$expire:3600;
         $path=self::path((string)$key);
         $expires=$expire>0?time()+$expire:0;
-        $signed=\app\cms\security\SignedEnvelope::seal('cache.data',self::securityScope().':'.$path,serialize(['expires'=>$expires,'value'=>$value]),$expires);
-        \app\cms\cache\CacheStorage::write($path,$signed,$expire > 0 ? $expire : 0);
+        $bytes=serialize(['expires'=>$expires,'value'=>$value]);
+        \app\cms\cache\CacheStorage::write($path,$bytes,$expire > 0 ? $expire : 0);
         return true;
     }
     public static function has($key): bool { $missing=new \stdClass();return self::get($key,$missing)!==$missing; }

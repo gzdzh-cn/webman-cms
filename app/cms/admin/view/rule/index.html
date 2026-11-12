@@ -47,11 +47,11 @@
 
             // 相关常量
             const PRIMARY_KEY = "id";
-            const SELECT_API = "/app/admin/rule/select?limit=5000";
-            const DELETE_API = "/app/admin/rule/delete";
-            const UPDATE_API = "/app/admin/rule/update";
-            const INSERT_URL = "/app/admin/rule/insert";
-            const UPDATE_URL = "/app/admin/rule/update";
+            const SELECT_API = "/web-admin/rule/select?limit=5000";
+            const DELETE_API = "/web-admin/rule/delete";
+            const UPDATE_API = "/web-admin/rule/update";
+            const INSERT_URL = "/web-admin/rule/insert";
+            const UPDATE_URL = "/web-admin/rule/update";
 
             // 表格渲染
             layui.use(["table", "pearTreetable", "form", "pearCommon", "pearPopup", "util"], function() {
@@ -244,7 +244,7 @@
                 let apis = [];
                 let apiResults = {};
                 apiResults["pid"] = [];
-                apis.push(["pid", "/app/admin/rule/select?format=tree&type=0,1"]);
+                apis.push(["pid", "/web-admin/rule/select?format=tree&type=0,1"]);
                 apiResults["type"] = ["目录","菜单","权限"];
                 let count = apis.length;
                 layui.each(apis, function (k, item) {
@@ -254,7 +254,7 @@
                         dateType: "json",
                         success: function (res) {
                             if (res.code) {
-                                return layui.pearPopup.failure(res.msg);
+                                return window.CmsUI.failure(res.msg);
                             }
                             function travel(items) {
                                 for (let k in items) {
@@ -343,7 +343,7 @@
                 let batchRemove = function(obj) {
                     let checkIds = common.checkField(obj, PRIMARY_KEY);
                     if (checkIds === "") {
-                        layui.pearPopup.warning("未选中数据");
+                        window.CmsUI.warning("未选中数据");
                         return false;
                     }
                     doRemove(checkIds.split(","));
@@ -364,9 +364,9 @@
                             success: function(res) {
                                 layer.close(loading);
                                 if (res.code) {
-                                    return layui.pearPopup.failure(res.msg);
+                                    return window.CmsUI.failure(res.msg);
                                 }
-                                return layui.pearPopup.success("操作成功", function () {
+                                return window.CmsUI.success("操作成功", function () {
                                     return obj ? obj.del() : refreshTable();
                                 });
                             }
@@ -466,7 +466,7 @@
                         data: data,
                         success: function (res) {
                             if (res.code) {
-                                layui.pearPopup.failure(res.msg);
+                                window.CmsUI.failure(res.msg);
                                 return;
                             }
                             // 更新UI - 只改变类名和属性
@@ -481,10 +481,10 @@
                                 $icon.removeClass('layui-icon-ok-circle').addClass('layui-icon-close-fill');
                                 $icon[0].nextSibling.nodeValue = '否';
                             }
-                            layer.msg('更新成功', { icon: 1, time: 1000 });
+                            window.CmsUI.success('更新成功');
                         },
                         error: function () {
-                            layui.pearPopup.failure("请求失败");
+                            window.CmsUI.failure("请求失败");
                         }
                     });
                 });

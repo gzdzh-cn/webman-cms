@@ -9,6 +9,36 @@ use RuntimeException;
 /** Imports only new tables. Original SQL is never edited or executed wholesale. */
 final class SqlImporter
 {
+    /** Private backup DDL is a single bounded InnoDB CREATE, never a SQL script. */
+    public static function backupCreate(string $sql, string $table): string
+    {
+        self::identifier($table);
+        if (strlen($sql)>1048576 || str_contains($sql,"\0") || !str_starts_with($sql,'CREATE TABLE `'.$table.'` (')) throw new RuntimeException('备份建表身份无效');
+        $statements=self::statements($sql);
+        if(count($statements)!==1 || $statements[0]!==trim($sql))throw new RuntimeException('备份结构不能包含脚本、注释或多个语句');
+        $masked=self::maskQuoted($sql);
+        if(preg_match('/\b(?:GENERATED|CHECK|TRIGGER|PROCEDURE|FUNCTION|INTO|OUTFILE|DUMPFILE|LOAD|AS\s+SELECT)\b|\bDEFAULT\s*\(/i',$masked))throw new RuntimeException('备份包含不支持的结构表达式');
+        $validated=self::createOptions($sql,false,true);
+        if(!preg_match('/\)\s+ENGINE=InnoDB\b/i',$masked))throw new RuntimeException('备份仅支持 InnoDB');
+        return $validated;
+    }
+    public static function backupSchemaHash(string $sql, bool $normalizeCharacterSet): string
+    {
+        $normalized=preg_replace('/\bAUTO_INCREMENT=\d+\s*/i','',$sql);
+        if($normalizeCharacterSet) {
+            $lines=explode("\n",$normalized);
+            foreach($lines as&$line) {
+                // Match offsets on masked literals, preserving enum/set values,
+                // quoted defaults and comments byte-for-byte.
+                $masked=self::maskQuoted($line);
+                if(preg_match('/^  `[^`]+` (?:char|varchar|tinytext|text|mediumtext|longtext|enum|set)(?:\([^)]*\))?( CHARACTER SET ([A-Za-z0-9_]+)) COLLATE ([A-Za-z0-9_]+)(?= )/i',$masked,$m,PREG_OFFSET_CAPTURE)
+                    &&str_starts_with(strtolower($m[3][0]),strtolower($m[2][0]).'_'))$line=substr_replace($line,'',$m[1][1],strlen($m[1][0]));
+            }
+            unset($line);$normalized=implode("\n",$lines);
+        }
+        $normalized=preg_replace('/^CREATE TABLE `[^`]+`/','CREATE TABLE `__TABLE__`',$normalized);
+        return hash('sha256',$normalized);
+    }
     public static function statements(string $sql): array
     {
         $statements = []; $buffer = ''; $quote = null; $length = strlen($sql);

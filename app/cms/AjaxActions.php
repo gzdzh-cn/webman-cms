@@ -82,8 +82,8 @@ final class AjaxActions
         $data = ['code' => 1, 'msg' => '', 'lastpage' => 0];
         $record = Db::name('arcmulti')->where('tagid', $hash)->find();
         if ($record && $record['querysql']) {
-            $savedSql = \app\cms\template\PaginationRecord::sql($hash, $record);
-            if ($savedSql === null) return self::result(0, '分页数据已失效，请刷新页面');
+            $descriptor = \app\cms\template\PaginationRecord::decode($hash, $record);
+            if ($descriptor === null) return self::result(0, '分页数据已失效，请刷新页面');
             $attributes = unserialize(stripslashes($record['attstr']), ['allowed_classes' => false]);
             if (!is_array($attributes)) return self::result(0, '分页属性无效');
             $mode = TemplateMode::current($context);
@@ -95,12 +95,11 @@ final class AjaxActions
             if ($size < 1) return self::result(0, '分页条数无效');
             $offset = (int)($attributes['row'] ?? 0) + (max(2, $page) - 2) * $size;
             $end = $offset + $size;
-            $sql = preg_replace('#LIMIT(\s+)(\d+)(,\d+)?#i', '', $savedSql);
-            $sql = preg_replace('#SELECT(\s+)(.*)(\s+)FROM#i', 'SELECT COUNT(*) AS totalNum FROM', $sql);
-            $count = (int)(Db::query($sql)[0]['totalNum'] ?? 0);
+            $count = \app\cms\template\PaginationRecord::count($descriptor);
             $file = $context->templateRoot() . 'system/arclist_' . $tag . '.htm';
             if (!is_file($file) || trim((string)file_get_contents($file)) === '') return self::result(0, '标签模板不存在', ['code' => -1, 'msg' => '模板追加文件 arclist_' . $tag . '.htm 不存在或没有HTML代码！', 'lastpage' => 0]);
-            $source = '{' . $mode . ':arclist'; $variables = [];
+            $kind = $descriptor['kind'];
+            $source = '{' . $mode . ':' . $kind; $variables = [];
             foreach ($attributes as $key => $value) {
                 if (in_array($key, ['tagid', 'offset', 'row', '__cms_template_mode', '__cms_dialect_version'], true) || !preg_match('/^\w+$/', (string)$key) || !is_scalar($value)) continue;
                 if ($key === 'keyword' && str_starts_with((string)$value, '$eyou')) {
@@ -117,7 +116,7 @@ final class AjaxActions
                 if (str_contains($value, $quote)) return self::result(0, '分页属性引号无法安全重建，请调整模板属性');
                 $source .= ' ' . $key . '=' . $quote . $value . $quote;
             }
-            $source .= ' tagid="' . $tag . '" limit="' . $offset . ',' . $end . '"}{' . $mode . ':include file="system/arclist_' . $tag . '.htm" /}{/' . $mode . ':arclist}';
+            $source .= ' tagid="' . $tag . '" limit="' . $offset . ',' . $end . '"}{' . $mode . ':include file="system/arclist_' . $tag . '.htm" /}{/' . $mode . ':' . $kind . '}';
             $data['msg'] = (new TemplateRenderer($context))->renderString($source, $variables);
             $data['lastpage'] = $count > 0 && $count <= $end ? 1 : 0;
         }

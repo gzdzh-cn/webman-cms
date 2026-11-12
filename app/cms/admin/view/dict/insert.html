@@ -94,7 +94,7 @@
         <script src="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/admin/js/permission.js'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>"></script>
 <script>
 
-    const INSERT_API = "/app/admin/dict/insert";
+    const INSERT_API = "/web-admin/dict/insert";
 
     // 字段设置
     layui.use(["table", "pearCommon", "pearPopup"], function () {
@@ -159,7 +159,7 @@
 
         let batchRemove = function(obj) {
             var checkIds = common.checkField(obj,"_field_id");
-            if (checkIds === "") return layui.pearPopup.warning("未选中数据");
+            if (checkIds === "") return window.CmsUI.warning("未选中数据");
             let data = table.getData("column-table");
             let newData = [];
             let deleteIds = checkIds.split(",");
@@ -188,7 +188,7 @@
                     if (res.code) {
                         window.CmsUI.error(cmsForm,res.msg,res.fields||res.data?.fields);return false;
                     }
-                    return layui.pearPopup.success("操作成功", function () {
+                    return window.CmsUI.success("操作成功", function () {
                         window.CmsModuleNavigation?.markClean(cmsForm);delete cmsForm.dataset.cmsDirty;parent.refreshTable();
                         window.CmsUI.clean();
                                 parent.layer.close(parent.layer.getFrameIndex(window.name));

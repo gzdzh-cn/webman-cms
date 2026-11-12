@@ -11,7 +11,7 @@ use RuntimeException;
 use support\Log;
 use support\Request;
 use Workerman\Connection\TcpConnection;
-use Workerman\Worker;
+use app\cms\support\Worker;
 
 /** Application startup and Composer configuration, without business plugin discovery. */
 class App extends \support\App
@@ -22,13 +22,9 @@ class App extends \support\App
         ini_set('display_errors', 'on');
         error_reporting(E_ALL);
 
-        if (class_exists(Dotenv::class) && file_exists(run_path('.env'))) {
-            if (method_exists(Dotenv::class, 'createUnsafeImmutable')) {
-                Dotenv::createUnsafeImmutable(run_path())->load();
-            } else {
-                Dotenv::createMutable(run_path())->load();
-            }
-        }
+        \app\cms\config\DeploymentConfig::initialize();
+        ini_set('memory_limit', \app\cms\config\DeploymentConfig::get('app.memory_limit'));
+        ini_set('display_errors', \app\cms\config\DeploymentConfig::get('app.debug') ? '1' : '0');
 
         if (!$appConfigFile = config_path('app.php')) {
             throw new RuntimeException('Config file not found: app.php');
@@ -52,7 +48,7 @@ class App extends \support\App
 
         $runtimeLogsPath = runtime_path() . DIRECTORY_SEPARATOR . 'logs';
         if (!file_exists($runtimeLogsPath) || !is_dir($runtimeLogsPath)) {
-            if (!mkdir($runtimeLogsPath, 0777, true)) {
+            if (!@mkdir($runtimeLogsPath, 0750, true) && !is_dir($runtimeLogsPath)) {
                 throw new RuntimeException("Failed to create runtime logs directory. Please check the permission.");
             }
         }
@@ -101,7 +97,7 @@ class App extends \support\App
 
             $worker->onWorkerStart = function ($worker) {
                 require_once base_path() . '/support/bootstrap.php';
-                $app = new \Webman\App(config('app.request_class', Request::class), Log::channel('default'), app_path(), public_path());
+                $app = new \Webman\App(config('app.request_class', Request::class), Log::channel('default'), app_path(), \app\cms\Paths::publicRoot());
                 $worker->onMessage = [$app, 'onMessage'];
                 call_user_func([$app, 'onWorkerStart'], $worker);
             };

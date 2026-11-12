@@ -251,7 +251,7 @@ class UploadController extends \plugin\admin\app\controller\Crud
                 'code' => 0,
                 'msg' => '上传成功',
                 'data' => [
-                    'url' => "/app/admin/$relative_path/$name.md.$ext"
+                    'url' => "/web-admin/$relative_path/$name.md.$ext"
                 ]
             ]);
         }
@@ -270,15 +270,7 @@ class UploadController extends \plugin\admin\app\controller\Crud
         $primary_key = $this->model->getKeyName();
         $files = $this->model->whereIn($primary_key, $ids)->get()->toArray();
         $file_list = array_map(function ($item) {
-            $path = $item['url'];
-            if (preg_match('#^/app/admin/(?:public/)?uploads?/#', $path)) {
-                return $this->localUploadFile($path);
-            }
-            if (preg_match("#^/app/admin#", $path)) {
-                $admin_public_path = config('cms_admin.app.public_path') ?: public_path();
-                return $admin_public_path . str_replace("/app/admin", "", $item['url']);
-            }
-            return $this->localUploadFile($path);
+            return $this->localUploadFile($item['url']);
         }, $files);
         $file_list = array_filter($file_list, function ($item) {
             return !empty($item);
@@ -297,10 +289,10 @@ class UploadController extends \plugin\admin\app\controller\Crud
     {
         $prefix = rtrim((string)\app\cms\config\SiteSettings::get('base_path'), '/');
         if ($prefix !== '' && str_starts_with($path, $prefix . '/')) $path = substr($path, strlen($prefix));
-        $path = preg_replace('#^/app/admin/(?=(?:public/)?uploads?/)#', '/', $path);
+        $path = preg_replace('#^/(?:web-admin|app/admin)/(?=(?:public/)?uploads?/)#', '/', $path);
         if (!preg_match('#^/(?:public/)?uploads?/#', $path)) return null;
         try {
-            $root = realpath(public_path('uploads'));
+            $root = realpath(\app\cms\Paths::publicRoot('uploads'));
             $resolved = realpath(UploadPaths::physical($path));
         } catch (\InvalidArgumentException $error) {
             return null;

@@ -40,7 +40,7 @@ final class AdminDashboardInfo
                 $this->row('url_mode', 'URL模式', $site['url_mode']),
                 $this->row('webman', 'Webman版本', $webman),
                 $this->row('workerman', 'Workerman版本', $workerman),
-                $this->row('admin', '后台组件版本', \app\cms\admin\support\BackendVersion::version(), \app\cms\admin\support\BackendVersion::description()),
+                $this->row('admin', 'webman-cms 版本', \app\cms\admin\support\BackendVersion::version(), \app\cms\admin\support\BackendVersion::description()),
             ],
             'server' => [
                 $this->row('os', '操作系统', PHP_OS_FAMILY . ' / ' . php_uname('r') . ' / ' . php_uname('m')),

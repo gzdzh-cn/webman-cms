@@ -60,20 +60,18 @@ final class LanguageDictionary
     /** The digest includes actual values, so another worker cannot reuse a stale translation. */
     public function cached(string $language, bool $force = false): array
     {
-        \app\cms\security\SignedEnvelope::requireKey();
         $resolved = $this->resolve($language);
         $key = hash('sha256', serialize([\app\cms\template\TemplateMode::siteSignature(), \app\cms\template\TemplateMode::current(), $language, $resolved['revision']]));
         $path = \app\cms\Paths::runtime('cms/languages/'.$key.'.json');
         if (!$force) {
             try {
                 $raw = \app\cms\cache\CacheStorage::read($path);
-                $verified = $raw === null ? null : \app\cms\security\SignedEnvelope::open('cache.language', $key, $raw);
-                $cached = $verified === null ? null : json_decode($verified, true, 512, JSON_THROW_ON_ERROR);
+                $cached = $raw === null ? null : json_decode($raw, true, 512, JSON_THROW_ON_ERROR);
                 if ($cached === $resolved) return $cached;
             } catch (\Throwable) { /* A broken derived cache is recreated from authoritative values. */ }
         }
-        $signed = \app\cms\security\SignedEnvelope::seal('cache.language', $key, json_encode($resolved,JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR));
-        \app\cms\cache\CacheStorage::write($path, $signed);
+        $bytes = json_encode($resolved,JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR);
+        \app\cms\cache\CacheStorage::write($path, $bytes);
         return $resolved;
     }
 }

@@ -23,14 +23,14 @@ final class ThemeCatalog
     {
         $theme = self::canonical($theme);
         if ($device !== null && !in_array($device, ['pc', 'mobile'], true)) throw new \InvalidArgumentException('模板终端无效');
-        $base = realpath(base_path('template'));
-        if (!$base || is_link(base_path('template'))) throw new \InvalidArgumentException('模板根目录无效');
+        $base = \app\cms\support\EmbeddedResources::realpath(\app\cms\Paths::templates(''));
+        if (!$base || is_link(\app\cms\Paths::templates(''))) throw new \InvalidArgumentException('模板根目录无效');
         $path = $base;
         foreach (explode('/', $theme . ($device === null ? '' : '/' . $device)) as $part) {
             $path .= '/' . $part;
             if (is_link($path)) throw new \InvalidArgumentException('模板目录不能是符号链接');
         }
-        $actual = realpath($path);
+        $actual = \app\cms\support\EmbeddedResources::realpath($path);
         if (!$actual || !is_dir($actual) || !str_starts_with($actual, $base . DIRECTORY_SEPARATOR)) throw new \InvalidArgumentException('模板目录不存在');
         return $actual;
     }
@@ -38,7 +38,7 @@ final class ThemeCatalog
     public static function all(): array
     {
         $items = [];
-        foreach (glob(base_path('template/*'), GLOB_ONLYDIR) ?: [] as $path) {
+        foreach (\app\cms\support\EmbeddedResources::glob(\app\cms\Paths::templates('*'), GLOB_ONLYDIR) ?: [] as $path) {
             $key = basename($path);
             if (in_array(strtolower($key), ['pc', 'mobile', 'plugins', 'official', '_shared'], true) || is_link($path)) continue;
             try { $root = self::root($key); } catch (\InvalidArgumentException $error) { continue; }
@@ -47,7 +47,7 @@ final class ThemeCatalog
             if (is_file($manifest) && !is_link($manifest) && filesize($manifest) < 65536) { $decoded = json_decode((string)file_get_contents($manifest), true); if (is_array($decoded)) $meta = $decoded; }
             $devices = [];
             foreach (['pc', 'mobile'] as $device) {
-                try { $deviceRoot = self::root($key, $device); $index = realpath($deviceRoot . '/index.htm'); $devices[$device] = $index && str_starts_with($index, $deviceRoot . DIRECTORY_SEPARATOR) && is_file($index); }
+                try { $deviceRoot = self::root($key, $device); $index = \app\cms\support\EmbeddedResources::realpath($deviceRoot . '/index.htm'); $devices[$device] = $index && str_starts_with($index, $deviceRoot . DIRECTORY_SEPARATOR) && is_file($index); }
                 catch (\InvalidArgumentException $error) { $devices[$device] = false; }
             }
             if (!$devices['pc'] && !$devices['mobile']) continue;
@@ -83,7 +83,7 @@ final class ThemeCatalog
                 $path .= '/' . $part;
                 if (is_link($path)) continue 2;
             }
-            $actual = realpath($path);
+            $actual = \app\cms\support\EmbeddedResources::realpath($path);
             if (!$actual || !str_starts_with($actual, $root . DIRECTORY_SEPARATOR) || !is_file($actual) || !is_readable($actual)) continue;
             $bytes = filesize($actual);
             if ($bytes === false || $bytes > 16 * 1024 * 1024) continue;
@@ -110,7 +110,7 @@ final class ThemeCatalog
     {
         $map = self::mapping($pattern);
         if ($map === null) return \glob($pattern, $flags);
-        $matches = \glob($map['physical'], $flags);
+        $matches = \app\cms\support\EmbeddedResources::glob($map['physical'], $flags);
         if ($matches === false) return false;
         $result = [];
         foreach ($matches as $match) {
@@ -122,13 +122,12 @@ final class ThemeCatalog
 
     private static function mapping($path): ?array
     {
-        if (!is_string($path) || $path === '' || str_contains($path, '://')) return null;
-        foreach ([rtrim(base_path(), '/') . '/', './', '', '/'] as $prefix) {
-            $virtual = $prefix . 'template';
+        if (!is_string($path) || $path === '' || (str_contains($path, '://') && !str_starts_with($path, Paths::templates().'/'))) return null;
+        foreach (array_unique([Paths::templates(),Paths::root('template'),base_path('template'),'./template','template','/template']) as $virtual) {
             if ($path !== $virtual && !str_starts_with($path, $virtual . '/')) continue;
             $relative = substr($path, strlen($virtual));
             if (str_contains($relative, "\0") || str_contains($relative, '\\') || in_array('..', explode('/', $relative), true)) throw new \InvalidArgumentException('模板资源路径无效');
-            $physicalRoot = base_path('template');
+            $physicalRoot = \app\cms\Paths::templates('');
             foreach (['official' => 'default', 'pc' => 'default/pc', 'mobile' => 'default/mobile'] as $old => $new) {
                 if ($relative === '/' . $old || str_starts_with($relative, '/' . $old . '/')) {
                     $virtual .= '/' . $old;
@@ -138,11 +137,11 @@ final class ThemeCatalog
                 }
             }
             $physical = $physicalRoot . $relative;
-            $root = realpath(base_path('template'));
+            $root = \app\cms\support\EmbeddedResources::realpath(\app\cms\Paths::templates(''));
             if ($root) {
                 $ancestor = $physical;
                 while (!file_exists($ancestor) && !is_link($ancestor) && dirname($ancestor) !== $ancestor) $ancestor = dirname($ancestor);
-                $actual = realpath($ancestor);
+                $actual = \app\cms\support\EmbeddedResources::realpath($ancestor);
                 if (!$actual || ($actual !== $root && !str_starts_with($actual, $root . DIRECTORY_SEPARATOR))) throw new \InvalidArgumentException('模板资源路径超出目录范围');
             }
             return ['physical' => $physical, 'physical_root' => $physicalRoot, 'virtual_root' => $virtual];

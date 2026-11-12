@@ -11,7 +11,7 @@ final class Connection
         $user=(string)$v['DB_USER']; $password=(string)$v['DB_PASSWORD'];
         if (!preg_match('/^[A-Za-z0-9_.:-]{1,253}$/D',$host) || $port === false || $port < 1 || $port > 65535
             || ($database && !preg_match('/^[A-Za-z0-9_]{1,64}$/D',$name)) || $user === '') throw new \InvalidArgumentException('Invalid database configuration');
-        return new PDO('mysql:host='.$host.';port='.$port.($database?';dbname='.$name:'').';charset=utf8mb4',$user,$password,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_EMULATE_PREPARES=>false]);
+        return new PDO('mysql:host='.$host.';port='.$port.($database?';dbname='.$name:'').';charset=utf8mb4',$user,$password,[PDO::ATTR_ERRMODE=>PDO::ERRMODE_EXCEPTION,PDO::ATTR_EMULATE_PREPARES=>false,PDO::ATTR_TIMEOUT=>5]);
     }
     public static function prefixes(): array
     {

@@ -15,7 +15,7 @@ return [
         $module('ad', '广告管理', [$page('Ad', '广告列表'), $page('Adposition', '广告位置')], 'layui-icon-carousel') + ['shortcut' => true],
         $module('links', '友情链接', [$page('Links', '链接列表'), $page('Linksgroup', '链接分组')], 'layui-icon-link'),
         $module('navigation', '网站导航', [$page('Navigation', '导航链接'), $page('Navigationposition', '导航位置')]),
-        $module('seo', 'SEO设置', [$page('Seo', 'URL设置'), $page('Staticgenerate', '静态生成') + ['auxiliary' => true, 'return_key' => $page('Seo', '')['key']], $page('Sitemap', 'Sitemap'), $page('Searchword', '搜索词')], 'layui-icon-set') + ['shortcut' => true],
+        $module('seo', 'SEO设置', [$page('Seo', 'URL设置'), $page('Staticgenerate', '静态生成') + ['auxiliary' => true, 'return_key' => $page('Seo', '')['key']], $page('Sitemap', 'Sitemap'), $page('Robots', 'robots.txt 管理') + ['permission_key' => $page('Seo', '')['key'], 'id' => 'cms-page-robots', 'href' => '/web-admin/robots/index'], $page('Searchword', '搜索词')], 'layui-icon-set') + ['shortcut' => true],
     ]],
     ['id' => 'forms', 'key' => 'cms-forms', 'title' => '表单互动', 'icon' => 'layui-icon-form', 'modules' => [
         $module('guestbook', '留言管理', [$page('Guestbook', '留言管理')], 'layui-icon-dialogue') + ['shortcut' => true],

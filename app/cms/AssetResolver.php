@@ -14,9 +14,9 @@ final class AssetResolver
     public static function isGeneratedHtml(string $file): bool
     {
         if (!in_array(strtolower(pathinfo($file, PATHINFO_EXTENSION)), ['html','htm'], true)) return false;
-        $root = rtrim(public_path('html'), DIRECTORY_SEPARATOR);
+        $root = rtrim(\app\cms\Paths::publicRoot('html'), DIRECTORY_SEPARATOR);
         if (str_starts_with($file, $root . DIRECTORY_SEPARATOR)) return true;
-        $actual = realpath($file); $actualRoot = realpath($root);
+        $actual = \app\cms\support\EmbeddedResources::realpath($file); $actualRoot = \app\cms\support\EmbeddedResources::realpath($root);
         return $actual && $actualRoot && str_starts_with($actual, $actualRoot . DIRECTORY_SEPARATOR);
     }
 
@@ -28,8 +28,9 @@ final class AssetResolver
         if (self::hasPrivateSegment($relative) || self::isGeneratedHtml($file)) return false;
         if (in_array(strtolower(pathinfo($file, PATHINFO_EXTENSION)), ['html', 'htm'], true)
             && (new \app\cms\service\PublicStaticPublisher())->ownsFile($file)) return false;
-        $actual = realpath($file);
-        $root = realpath($root);
+        try { if(str_contains($file,'://')) { if(!\app\cms\support\EmbeddedResources::realpath($file))return false; } else \app\cms\config\Entry::assertPath($file); } catch(\Throwable) { return false; }
+        $actual = \app\cms\support\EmbeddedResources::realpath($file);
+        $root = \app\cms\support\EmbeddedResources::realpath($root);
         if (!$actual || !$root || !is_file($actual) || !str_starts_with($actual, $root . DIRECTORY_SEPARATOR)) return false;
         if (in_array(strtolower(pathinfo($actual, PATHINFO_EXTENSION)), ['html', 'htm'], true)
             && (new \app\cms\service\PublicStaticPublisher())->ownsFile($actual)) return false;
@@ -42,14 +43,14 @@ final class AssetResolver
     public static function isTemplateSource(string $file): bool
     {
         if (!in_array(strtolower(pathinfo($file, PATHINFO_EXTENSION)), ['htm', 'html'], true)) return false;
-        $file = realpath($file);
+        $file = \app\cms\support\EmbeddedResources::realpath($file);
         if (!$file) return false;
         if (AssetManifest::isPublicTarget($file, true)) return false;
         foreach (['html/ai-content-index.htm', 'html/empty_view.htm', 'html/sitemap.htm', 'static/common/dispatch_jump.htm'] as $private) {
-            if ($file === realpath(public_path($private))) return true;
+            if ($file === \app\cms\support\EmbeddedResources::realpath(\app\cms\Paths::publicRoot($private))) return true;
         }
-        foreach ([base_path('template'), base_path('app/view/cms'), public_path('html/template'), public_path('static/template')] as $directory) {
-            $root = realpath($directory);
+        foreach ([\app\cms\Paths::templates(''), base_path('app/view/cms'), \app\cms\Paths::publicRoot('html/template'), \app\cms\Paths::publicRoot('static/template')] as $directory) {
+            $root = \app\cms\support\EmbeddedResources::realpath($directory);
             if ($root && str_starts_with($file, $root . DIRECTORY_SEPARATOR)) return true;
         }
         return false;
@@ -72,26 +73,26 @@ final class AssetResolver
         if (!$publicPage && !in_array($extension, self::EXTENSIONS, true)) return null;
         $path = ltrim($path, '/');
         // Existing administrator avatars keep their stored plugin URL.
-        $path = preg_replace('#^app/admin/uploads?/avatar/#', 'uploads/avatar/', $path);
+        $path = preg_replace('#^(?:app/admin|web-admin)/uploads?/avatar/#', 'uploads/avatar/', $path);
         $path = preg_replace('#^(?:public/)?upload/#', 'uploads/', $path);
         $prefix = explode('/', $path)[0];
         try {
             $candidates = match ($prefix) {
-                'template' => [ThemeCatalog::physical(base_path($path))],
-                'uploads' => [public_path($path)],
-                'public' => [public_path(substr($path, 7))],
-                default => [public_path($path)],
+                'template' => [ThemeCatalog::physical(\app\cms\Paths::logical($path))],
+                'uploads' => [Paths::uploads(substr($path,8))],
+                'public' => [\app\cms\Paths::publicRoot(substr($path, 7))],
+                default => [\app\cms\Paths::publicRoot($path)],
             };
         // Some official packages use fonts/ in CSS while shipping the same EOT
         // in font/. Resolve that historical path without editing templates.
-            if ($prefix === 'template' && $extension === 'eot' && str_contains($path, '/skin/fonts/')) $candidates[] = ThemeCatalog::physical(base_path(str_replace('/skin/fonts/', '/skin/font/', $path)));
+            if ($prefix === 'template' && $extension === 'eot' && str_contains($path, '/skin/fonts/')) $candidates[] = ThemeCatalog::physical(\app\cms\Paths::logical(str_replace('/skin/fonts/', '/skin/font/', $path)));
         } catch (\InvalidArgumentException $error) {
             return null;
         }
-        $roots = array_filter([realpath(base_path('template')), realpath(public_path())]);
-        if ($publicPage) $roots = array_filter([realpath(public_path())]);
+        $roots = array_filter([\app\cms\support\EmbeddedResources::realpath(\app\cms\Paths::templates('')), \app\cms\support\EmbeddedResources::realpath(\app\cms\Paths::publicRoot()), \app\cms\support\EmbeddedResources::realpath(Paths::uploads()), \app\cms\support\EmbeddedResources::realpath(Paths::assets())]);
+        if ($publicPage) $roots = array_filter([\app\cms\support\EmbeddedResources::realpath(\app\cms\Paths::publicRoot()), \app\cms\support\EmbeddedResources::realpath(Paths::uploads()), \app\cms\support\EmbeddedResources::realpath(Paths::assets())]);
         foreach ($candidates as $candidate) {
-            $file = realpath($candidate);
+            $file = \app\cms\support\EmbeddedResources::realpath($candidate);
             if (!$file || !is_file($file)) continue;
             foreach ($roots as $root) {
                 if (self::isPublicFile($candidate, $root, $publicPage)) return AssetCompatibility::resolve($file);

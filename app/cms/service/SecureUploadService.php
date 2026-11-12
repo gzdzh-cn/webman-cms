@@ -22,12 +22,13 @@ final class SecureUploadService
     /** Callback receives a private validated file; it is always removed after use. */
     public static function staged($file, string $extension, int $limit, callable $callback): mixed
     {
+        $limit=min($limit,\app\cms\config\DeploymentConfig::get('limits.upload_bytes'));
         $extension = strtolower($extension);
         $name = (string)$file->getUploadName();
         if (!$file->isValid() || $limit < 1 || $file->getSize() <= 0 || $file->getSize() > $limit) throw new InvalidArgumentException('上传文件无效或超过大小限制');
         if ($name !== 'blob' && (str_contains($name, '/') || str_contains($name, '\\') || preg_match('/[\x00-\x1f\x7f]/', $name) || substr_count($name, '.') !== 1 || strtolower(pathinfo($name, PATHINFO_EXTENSION)) !== $extension)) throw new InvalidArgumentException('上传文件名无效，不能包含多重扩展名');
         if (!isset(self::IMAGES[$extension]) && !isset(self::TYPES[$extension])) throw new InvalidArgumentException('该文件格式暂不支持安全上传');
-        $tempRoot = realpath(sys_get_temp_dir()); $public = realpath(public_path());
+        $tempRoot = realpath(sys_get_temp_dir()); $public = \app\cms\support\EmbeddedResources::realpath(\app\cms\Paths::publicRoot());
         if (!$tempRoot || !$public || $tempRoot === $public || str_starts_with($tempRoot, $public . DIRECTORY_SEPARATOR)) throw new RuntimeException('上传暂存目录不安全');
         $directory = $tempRoot . '/cms-upload-' . bin2hex(random_bytes(16));
         if (!mkdir($directory, 0700)) throw new RuntimeException('无法创建上传暂存目录');
@@ -41,7 +42,7 @@ final class SecureUploadService
                 $info = @getimagesize($path); $expected = self::IMAGES[$extension];
                 if (!$info || (($info['mime'] ?? '') !== $expected && !($extension === 'ico' && ($info['mime'] ?? '') === 'image/x-icon') && !($extension === 'bmp' && ($info['mime'] ?? '') === 'image/x-ms-bmp'))) throw new InvalidArgumentException('图片内容与扩展名不匹配');
                 if ($extension !== 'ico') {
-                    if (!function_exists('imagecreatefromstring') || $info[0] < 1 || $info[1] < 1 || $info[0] * $info[1] > 40000000) throw new InvalidArgumentException('无法安全解码图片');
+                    if (!function_exists('imagecreatefromstring') || $info[0] < 1 || $info[1] < 1 || $info[0] * $info[1] > \app\cms\config\DeploymentConfig::get('limits.image_pixels')) throw new InvalidArgumentException('无法安全解码图片');
                     $bytes = file_get_contents($path); $image = $bytes === false ? false : @imagecreatefromstring($bytes);
                     if (!$image) throw new InvalidArgumentException('图片内容无效');
                     imagedestroy($image); unset($bytes);

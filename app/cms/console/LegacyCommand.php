@@ -15,9 +15,10 @@ abstract class LegacyCommand extends Command
     }
     protected function execute(InputInterface $input,OutputInterface $output):int
     {
-        $args=[PHP_BINARY,__DIR__.'/legacy/'.self::COMMANDS[$this->getName()]];
+        $names=['cms:migrate-navigation'=>'navigation','cms:migrate-engines'=>'engines','cms:repair-single-pages'=>'single-pages'];
+        $args=\app\cms\support\ProcessLauncher::command(['cms:legacy-executor',$names[$this->getName()]]);
         foreach($input->getOptions()as$key=>$value){if(in_array($key,['help','quiet','verbose','version','ansi','no-ansi','no-interaction'],true)||$value===null||$value===false)continue;$args[]='--'.$key.($value===true?'':'='.$value);}
-        $process=proc_open($args,[0=>STDIN,1=>STDOUT,2=>STDERR],$pipes,base_path());
+        $process=proc_open($args,[0=>STDIN,1=>STDOUT,2=>STDERR],$pipes,\app\cms\config\Entry::directory());
         if(!is_resource($process))throw new \RuntimeException('Unable to start maintenance command');return proc_close($process);
     }
 }

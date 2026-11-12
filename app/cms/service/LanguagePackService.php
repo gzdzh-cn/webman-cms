@@ -149,7 +149,7 @@ class LanguagePackService
         }
         ksort($entries);return $entries;
     }
-    private function actor(): int { if(PHP_SAPI==='cli'&&!\app\cms\CmsContext::current()->request)return 0; return function_exists('admin_id') ? (int)admin_id() : 0; }
+    private function actor(): int { if(in_array(PHP_SAPI,['cli','micro'],true)&&!\app\cms\CmsContext::current()->request)return 0; return function_exists('admin_id') ? (int)admin_id() : 0; }
     private function fingerprint(string $lang): string { return hash('sha256',serialize([$this->dictionary($lang)['revision'],\app\cms\template\TemplateMode::current(),\app\cms\template\TemplateMode::siteSignature()])); }
     public function preview(string $raw,string $lang): array
     {

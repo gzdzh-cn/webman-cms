@@ -90,7 +90,7 @@
         <script>
 
             // 接口
-            const INSERT_URL = "/app/admin/rule/insert";
+            const INSERT_URL = "/web-admin/rule/insert";
 
             // 图标选择
             layui.use(["pearIconPicker"], function() {
@@ -104,7 +104,7 @@
             // 上级菜单
             layui.use(["jquery", "xmSelect", "pearPopup"], function() {
                 layui.$.ajax({
-                    url: "/app/admin/rule/select?format=tree&type=0,1",
+                    url: "/web-admin/rule/select?format=tree&type=0,1",
                     dataType: "json",
                     success: function (res) {
                         let value = layui.$("#pid").attr("value");
@@ -123,7 +123,7 @@
                             tree: {show: true,"strict":false,"clickCheck":true,"clickExpand":false},
                         });
                         if (res.code) {
-                            return layui.pearPopup.failure(res.msg);
+                            return window.CmsUI.failure(res.msg);
                         }
                     }
                 });
@@ -155,9 +155,9 @@
                         data: data.field,
                         success: function (res) {
                             if (res.code) {
-                                return layui.pearPopup.failure(res.msg);
+                                return window.CmsUI.failure(res.msg);
                             }
-                            return layui.pearPopup.success("操作成功", function () {
+                            return window.CmsUI.success("操作成功", function () {
                                 parent.refreshTable();
                                 window.CmsUI.clean();
                                 parent.layer.close(parent.layer.getFrameIndex(window.name));

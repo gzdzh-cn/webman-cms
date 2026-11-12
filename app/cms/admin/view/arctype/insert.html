@@ -80,7 +80,7 @@ function cmsEditorReturn(){
 </script>
 </head>
 
-<body class="cms-editor-page" data-cms-return-url="/app/admin/arctype/index">
+<body class="cms-editor-page" data-cms-return-url="/web-admin/arctype/index">
 <header class="cms-editor-heading"><button type="button" data-cms-back aria-label="返回栏目列表">←</button><div><h1>新增栏目</h1><p>填写并保存后返回列表；取消不会保存本次修改。</p></div></header>
 
     <form data-cms-page-editor class="layui-form" action="">
@@ -135,7 +135,7 @@ function cmsEditorReturn(){
                                         </div>
                                     </div>
                                     <div class="layui-card" id="category-custom-fields-card" style="margin:16px 0 0" hidden>
-                                        <div class="layui-card-header">栏目自定义字段 · <a href="/app/admin/channelfield/index?channel_id=-99" target="_blank" permission="app.admin.channelfield.index">字段管理</a></div>
+                                        <div class="layui-card-header">栏目自定义字段 · <a href="/web-admin/channelfield/index?channel_id=-99" target="_blank" permission="app.admin.channelfield.index">字段管理</a></div>
                                         <div class="layui-card-body" id="category-custom-fields"></div>
                                     </div>
                                 </div>
@@ -283,8 +283,8 @@ function cmsEditorReturn(){
     <script>
 
         // 相关接口
-        const INSERT_API = "/app/admin/arctype/insert";
-        const ARCTYPE_SELECT_API = "/app/admin/arctype/select";
+        const INSERT_API = "/web-admin/arctype/insert";
+        const ARCTYPE_SELECT_API = "/web-admin/arctype/select";
 
         // 提交事件
         layui.use(["form", "layer", "pearPopup", "tabs", "jquery", "upload"], function () {
@@ -328,7 +328,7 @@ function cmsEditorReturn(){
              * @param {Function} callback 加载完成后的回调函数
              */
             function loadChannelOptions(defaultChannelId, callback) {
-                $.getJSON('/app/admin/channeltype/select', { format: 'select' }, function (res) {
+                $.getJSON('/web-admin/channeltype/select', { format: 'select' }, function (res) {
                     if (res.code === 0 && Array.isArray(res.data)) {
                         var $select = $('#current-channel-select');
                         if ($select.length > 0) {
@@ -424,7 +424,7 @@ function cmsEditorReturn(){
             function initUpload() {
                 upload.render({
                     elem: '#upload-image',
-                    url: '/app/admin/upload/image',
+                    url: '/web-admin/upload/image',
                     accept: 'image',
                     done: function (res) {
                         layer.msg('上传成功');
@@ -489,7 +489,7 @@ function cmsEditorReturn(){
                     lang: currentArctypeLang()
                 };
                 var version = templateRequests[type] = (templateRequests[type] || 0) + 1;
-                $.getJSON('/app/admin/arctype/getTemplates', params, function (res) {
+                $.getJSON('/web-admin/arctype/getTemplates', params, function (res) {
                     if (version !== templateRequests[type]) return;
                     if (res.code === 0 && Array.isArray(res.data)) {
                         if (typeof callback === 'function') {
@@ -866,7 +866,7 @@ function cmsEditorReturn(){
                 }
 
                 if (validationError) {
-                    layer.msg(errorMsg, { icon: 2, time: 2000 });
+                    window.CmsUI.error(document.querySelector('form[data-cms-page-editor]'),errorMsg);
                     return false;
                 }
 
@@ -895,7 +895,7 @@ function cmsEditorReturn(){
                 }
 
                 try { Object.assign(formData, CategoryFields.collect()); }
-                catch (error) { layui.pearPopup.failure(error.message); return false; }
+                catch (error) { window.CmsUI.failure(error.message); return false; }
                 var cmsForm=data.form||document.querySelector('form[data-cms-page-editor]');
                 if(cmsForm.dataset.cmsSubmitting==='1')return false;
                 cmsForm.dataset.cmsSubmitting='1';window.CmsUI.setBusy(cmsForm,true);
@@ -913,7 +913,7 @@ function cmsEditorReturn(){
                             window.CmsUI.error(cmsForm,res.msg,res.fields||res.data?.fields);
                             return false;
                         }
-                        return layui.pearPopup.success("操作成功", function () {
+                        return window.CmsUI.success("操作成功", function () {
                             window.CmsUI.saved(cmsEditorReturn());
                         });
                     },
