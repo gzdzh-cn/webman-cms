@@ -66,3 +66,9 @@
 !/uploads/**/*.tar.gz
 !/uploads/**/*.tar.bz2
 !/uploads/**/*.tar.xz
+
+# Local documentation and additional themes.
+/docs/
+/template/*
+!/template/eyoucms-default/
+!/template/webman-default/
