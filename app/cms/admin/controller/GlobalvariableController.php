@@ -25,7 +25,7 @@ class GlobalvariableController extends \plugin\admin\app\controller\CmsDataContr
     public function groups(Request $request):Response
     {
         if($request->method()!=='GET')return response('Method Not Allowed',405);if(!$this->canReadVariables())return $this->json(2,'无自定义变量读取权限')->withStatus(403);
-        try{$data=$this->groupsService()->read($request->get());$data['permissions']=['save'=>$this->canWriteVariables('save'),'delete'=>$this->canWriteVariables('delete'),'upload'=>$this->canUploadVariables()];return $this->json(0,'ok',$data)->withHeaders(['Cache-Control'=>'no-store']);}catch(\InvalidArgumentException $error){return $this->json(1,$error->getMessage());}
+        try{$data=$this->groupsService()->read($request->get());$data['supports_sorting']=(new \app\cms\service\CustomVariableService())->supportsSorting();$data['recycle_enabled']=(new \app\cms\service\RecyclePolicyService())->enabled();$data['permissions']=['save'=>$this->canWriteVariables('save'),'delete'=>$this->canWriteVariables('delete'),'upload'=>$this->canUploadVariables()];return $this->json(0,'ok',$data)->withHeaders(['Cache-Control'=>'no-store']);}catch(\InvalidArgumentException $error){return $this->json(1,$error->getMessage());}
     }
     public function save(Request $request):Response
     {
@@ -35,7 +35,7 @@ class GlobalvariableController extends \plugin\admin\app\controller\CmsDataContr
     public function delete(Request $request):Response
     {
         if($response=$this->authorize($request,'delete'))return $response;
-        try{$this->variableService()->delete('config_attribute',(array)$request->post('ids',[]));return $this->json(0,'回收成功');}catch(\InvalidArgumentException $error){return $this->json(1,$error->getMessage());}
+        try{$this->variableService()->delete('config_attribute',(array)$request->post('ids',[]),\app\cms\service\RecyclePolicyService::expected($request->post('recycle_enabled')));return $this->json(0,'删除成功');}catch(\InvalidArgumentException $error){return $this->json(1,$error->getMessage());}
     }
     public function groupSave(Request $request):Response
     {

@@ -20,6 +20,8 @@ async function rawSaveRequest(action,data={},post=false){const done=post?pending
         $('previous').disabled=busy||page<=1;$('next').disabled=busy||page*20>=total;
         edit.querySelectorAll('input,select,textarea,button').forEach(item=>item.disabled=busy||(!permissions().save&&item.type!=='button'));
         $('edit-save').hidden=!permissions().save;
+        field('sort_order').disabled=busy||!permissions().save||!metadata?.supports_sorting;
+        field('sort_order').closest('label').hidden=!metadata?.supports_sorting;
         groupForm.querySelectorAll('input,button').forEach(item=>item.disabled=busy||!canGroupWrite());
         $('delete-execute').disabled=busy||deleting;
         document.querySelectorAll('[data-close]').forEach(button=>button.disabled=busy||deleting);
@@ -34,8 +36,8 @@ async function rawSaveRequest(action,data={},post=false){const done=post?pending
             if(Number(record.attr_input_type)===3&&safeImage(text.textContent))value.append(image(text.textContent,record.attr_name));else value.append(text);
             const variable=node('td');variable.append(node('code',record.attr_var_name));
             const actions=node('td'),editButton=node('button',permissions().save?'编辑':'查看');editButton.type='button';editButton.addEventListener('click',()=>openEditor(record));const label=node('button','复制标签');label.type='button';label.addEventListener('click',()=>copy(record));actions.append(editButton,label);
-            if(permissions().delete){const remove=node('button','删除');remove.className='danger';remove.type='button';remove.addEventListener('click',()=>confirmDelete('回收变量：'+record.attr_name+' ('+record.attr_var_name+')\n同名变量的各语言记录一起进入回收站，保留原值。',async()=>{const body=new FormData();body.append('ids[]',record.attr_id);await api('delete',body,true);await load(false);}));actions.append(remove);}
-            row.append(node('td',record.attr_name),variable,node('td',types[record.attr_input_type]||'类型 '+record.attr_input_type),value,node('td',metadata.groups.find(item=>String(item.id)===String(record.type_id))?.type_name||'未分组'),node('td',record.sort_order),actions);$('rows').append(row);
+            if(permissions().delete){const remove=node('button','删除');remove.className='danger';remove.type='button';remove.addEventListener('click',()=>confirmDelete((metadata.recycle_enabled?'回收变量：':'彻底删除变量：')+record.attr_name+' ('+record.attr_var_name+')\n'+(metadata.recycle_enabled?'同名变量的各语言记录一起进入回收站，保留原值。':'回收站已关闭，同名变量的各语言记录将永久删除，无法恢复。'),async()=>{const body=new FormData();body.append('ids[]',record.attr_id);body.set('recycle_enabled',metadata.recycle_enabled?'1':'0');await api('delete',body,true);await load(false);}));actions.append(remove);}
+            row.append(node('td',record.attr_name),variable,node('td',types[record.attr_input_type]||'类型 '+record.attr_input_type),value,node('td',metadata.groups.find(item=>String(item.id)===String(record.type_id))?.type_name||'未分组'),node('td',metadata.supports_sorting?record.sort_order:'—'),actions);$('rows').append(row);
         });$('page').textContent='第 '+page+' 页 · 共 '+total+' 条';controls();
     }
     async function load(refreshGroups=true){

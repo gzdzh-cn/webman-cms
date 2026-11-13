@@ -97,7 +97,7 @@ class TagArcview extends Base
 
         $result['users_price'] = floatval($result['users_price']); // 价格
         $result['real_sales'] = $result['sales_num']; // 真实总销量
-        $result['sales_num'] = $result['sales_all']; // 总虚拟销量
+        $result['sales_num'] = $result['sales_all'] ?? $result['sales_num']; // 新版总销量；旧数据沿用 sales_num
 
         // 多城市站点
         $cityIdArr = $cityList = [];

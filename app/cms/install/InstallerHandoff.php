@@ -52,7 +52,7 @@ final class InstallerHandoff
                 'old_master'=>$master, 'restart_status'=>$master ? 'scheduled' : 'not_running',
                 'attempt'=>1, 'scheduled_at'=>time(), 'archive_pending'=>$archivePending, 'grant_status'=>'available',
                 'probe_secret'=>bin2hex(random_bytes(32)),
-                'listen'=>($version === 2 ? $this->runtimeListen() : (getenv('WEBMAN_LISTEN') ?: 'http://0.0.0.0:8787')),
+                'listen'=>($version === 2 ? $this->runtimeListen() : \app\cms\config\DeploymentConfig::listener(getenv('WEBMAN_LISTEN') ?: 8787)),
                 'overrides'=>array_filter(['WEBMAN_LISTEN'=>getenv('WEBMAN_LISTEN'), 'WEBMAN_WORKERS'=>getenv('WEBMAN_WORKERS')], static fn($value)=>$value !== false),
             ];
             $launch = $master > 0;
@@ -415,6 +415,7 @@ final class InstallerHandoff
     }
     private function probeUrl(string $listen): string
     {
+        $listen=\app\cms\config\DeploymentConfig::listener($listen);
         $url=parse_url($listen);
         if (!$url || ($url['scheme']??'')!=='http' || empty($url['port'])) throw new RuntimeException('自动检查暂不支持当前监听方式，请重新检查服务');
         $host=$url['host']; if (in_array($host,['0.0.0.0','localhost'],true))$host='127.0.0.1'; if(in_array($host,['::','[::]'],true))$host='[::1]';

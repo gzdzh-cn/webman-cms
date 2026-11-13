@@ -10,6 +10,8 @@ final class CustomVariableService
 {
     public function __construct(private ?CmsRepository $repository = null) { $this->repository ??= new CmsRepository(); }
 
+    public function supportsSorting(): bool { return isset($this->repository->columns('config_attribute')['sort_order']); }
+
     private function editingLanguage(): string
     {
         $policy = new LanguagePolicy($this->repository);
@@ -29,7 +31,7 @@ final class CustomVariableService
         $search = trim((string)($input['q'] ?? ''));
         if ($search !== '') $query->whereLike('a.attr_name|a.attr_var_name', '%' . addcslashes($search, '%_') . '%');
         $count = (clone $query)->count();
-        $rows = $query->field($recycled ? 'a.*,c.id,c.value' : 'a.*,c.id config_id,c.value')->order($recycled ? 'a.update_time desc,a.attr_id desc' : 'a.sort_order asc,a.attr_id desc')
+        $rows = $query->field($recycled ? 'a.*,c.id,c.value' : 'a.*,c.id config_id,c.value')->order($recycled ? 'a.update_time desc,a.attr_id desc' : ($this->supportsSorting() ? 'a.sort_order asc,a.attr_id desc' : 'a.attr_id desc'))
             ->page(max(1, (int)($input['page'] ?? 1)), min(100, max(1, (int)($input['limit'] ?? 20))))->select()->toArray();
         foreach ($rows as &$row) { $row['attr_value'] = (string)($row['value'] ?? ''); $row['tag'] = \app\cms\template\TemplateMode::tag('global', ['name' => $row['attr_var_name']]); }
         unset($row);
@@ -48,7 +50,9 @@ final class CustomVariableService
         $group=$data['type_id']??$old['type_id']??0;if(!is_scalar($group)||!ctype_digit((string)$group))throw new InvalidArgumentException('变量分组无效');$data['type_id']=(int)$group;
         if($data['type_id']&&!$this->repository->table('config_type')->where('id',$data['type_id'])->lock(true)->find())throw new InvalidArgumentException('变量分组不存在');
         if(isset($data['sort_order'])&&(!is_scalar($data['sort_order'])||!preg_match('/^\d{1,8}$/D',(string)$data['sort_order'])))throw new InvalidArgumentException('变量排序格式错误');
-        $data['sort_order']=(int)($data['sort_order']??$old['sort_order']??100);$data['inc_type']=$data['inc_type']??$old['inc_type']??'web';
+        if ($this->supportsSorting()) $data['sort_order']=(int)($data['sort_order']??$old['sort_order']??100);
+        else unset($data['sort_order']);
+        $data['inc_type']=$data['inc_type']??$old['inc_type']??'web';
         if(!is_string($data['inc_type'])||!preg_match('/^[a-z][a-z0-9_]{0,29}$/D',$data['inc_type']))throw new InvalidArgumentException('变量配置组格式错误');
         if(array_key_exists('attr_value',$input)||array_key_exists('value',$input))$this->value($data['attr_input_type'],array_key_exists('attr_value',$input)?$input['attr_value']:$input['value']);
         return $data;

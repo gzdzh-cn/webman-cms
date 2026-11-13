@@ -137,12 +137,12 @@ class EnterpriseDataService
         });
     }
 
-    public function delete(string $module, array $ids): void
+    public function delete(string $module, array $ids, ?bool $expectedRecycle = null): void
     {
         $schema = $this->schema($module);
         if ($module === 'tagindex') { $this->tagEngines(); }
-        if ($module === 'config_attribute') { (new CustomVariableService($this->repository))->recycle($ids); return; }
-        if ($module === 'guestbook_attribute') { (new FormFieldService($this->repository))->recycle($ids); return; }
+        if ($module === 'config_attribute') { (new RecyclePolicyService($this->repository))->delete('config_attribute', $ids, $expectedRecycle); return; }
+        if ($module === 'guestbook_attribute') { (new RecyclePolicyService($this->repository))->delete('guestbook_attribute', $ids, $expectedRecycle); return; }
         if (in_array($module, ['admin_log', 'sms_log', 'language'], true)) { throw new InvalidArgumentException('此模块不允许直接删除'); }
         $ids = array_filter(array_unique(array_map('intval', $ids)));
         if (!$ids) { throw new InvalidArgumentException('请选择记录'); }

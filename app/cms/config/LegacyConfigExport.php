@@ -41,10 +41,10 @@ final class LegacyConfigExport
     {
         $root=Entry::absolute($root);Entry::assertPath($root);$flat=['version'=>1];
         foreach(LegacyDatabaseConfig::saved($root)as$key=>$value){$field=\app\cms\database\DatabaseSettings::FIELDS[$key];$flat['database.'.$field]=$key==='DB_PORT'?(int)$value:$value;}
-        foreach(['cms_cache.php'=>'redis','cms_site.php'=>'site','cms_sms.php'=>'sms','cms_language_pack.php'=>'language']as$file=>$group){
+        foreach(['cms_cache.php'=>'redis','cms_sms.php'=>'sms','cms_language_pack.php'=>'language']as$file=>$group){
             $path=$root.'/config/'.$file;if(!is_file($path))continue;
             foreach($this->returned($path)as$key=>$node){
-                $target=match($group){'sms'=>$key==='code_lifetime'?'limits.sms_code_lifetime':null,'language'=>match($key){'max_bytes'=>'limits.language_pack_bytes','max_entries'=>'limits.language_pack_entries',default=>null},'site'=>str_starts_with($key,'asset_')?null:'site.'.$key,default=>$group.'.'.$key};
+                $target=match($group){'sms'=>$key==='code_lifetime'?'limits.sms_code_lifetime':null,'language'=>match($key){'max_bytes'=>'limits.language_pack_bytes','max_entries'=>'limits.language_pack_entries',default=>null},default=>$group.'.'.$key};
                 if($target!==null)$flat[$target]=$this->value($node);
             }
         }
@@ -68,7 +68,7 @@ final class LegacyConfigExport
         }
         // The source process config's scalar environment fallbacks are exported individually.
         foreach($this->nodes($root.'/config/process.php')as$node)if($node instanceof Node\Stmt\Return_&&$node->expr instanceof Node\Expr\Array_)foreach($node->expr->items as$item)if($item&&$item->key&&$this->value($item->key)==='webman'&&$item->value instanceof Node\Expr\Array_)foreach($item->value->items as$setting)if($setting&&$setting->key){$key=$this->value($setting->key);if($key==='listen'||$key==='count')$flat[$key==='listen'?'server.listen':'server.workers']=$this->value($setting->value);}
-        foreach($flat as$key=>$value)ConfigSchema::coerce($key,$value);
+        foreach($flat as$key=>$value)$flat[$key]=ConfigSchema::coerce($key,$value);
         return ConfigSchema::expand($flat);
     }
 }

@@ -142,6 +142,7 @@ final class CmsContext
         $this->global['shop_open'] = 0;
         $this->global['web_cmspath'] = rtrim((string)\app\cms\config\SiteSettings::get('base_path'), '/');
         $configuredHost = $this->global['web_basehost'] ?? '';
+        $this->memo['cms.configured_basehost'] = $configuredHost;
         $this->global['web_basehost'] = is_string($configuredHost) && trim($configuredHost) !== '' ? rtrim(trim($configuredHost), '/') : $this->origin();
         $this->device = $this->detectDevice();
         $this->global['lang'] = $this->lang;
@@ -267,6 +268,8 @@ final class CmsContext
         $theme = ThemeCatalog::canonical($theme);
         $device ??= $this->device;
         if (!in_array($device, ['pc', 'mobile'], true)) throw new \InvalidArgumentException('模板终端无效');
+        $responsive = ThemeCatalog::isResponsive($theme);
+        if ($responsive) $device = 'pc';
         $this->device = $device;
         $this->theme = $theme . '/' . $device;
         $directory = '/template/' . $theme;
@@ -276,7 +279,7 @@ final class CmsContext
         $this->global['web_templets_dir'] = $directory;
         $this->global['web_templeturl'] = $mainSite . $directory;
         $this->global['web_templets_pc'] = $mainSite . $directory . '/pc';
-        $this->global['web_templets_m'] = $mainSite . $directory . '/mobile';
+        $this->global['web_templets_m'] = $mainSite . $directory . ($responsive ? '/pc' : '/mobile');
         $this->config['groups']['web']['web_tpl_theme'] = $theme;
         $this->config['ey_config'] = array_replace($this->config['ey_config'] ?? [], $this->global);
         $this->config['tpcache'] = $this->global;
@@ -306,7 +309,7 @@ final class CmsContext
             $scheme = $forwarded === 'https' || $this->request->connection?->transport === 'ssl' ? 'https' : 'http';
             return $scheme . '://' . $this->request->host();
         }
-        return rtrim((string)\app\cms\config\SiteSettings::get('base_url'), '/');
+        return \app\cms\config\SiteSettings::origin($this->memo['cms.configured_basehost'] ?? $this->global['web_basehost'] ?? '');
     }
 
     private function detectDevice(): string

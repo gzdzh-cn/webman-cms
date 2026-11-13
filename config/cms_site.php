@@ -1,2 +1,4 @@
 <?php
-return \app\cms\config\DeploymentConfig::group('site') + \app\cms\config\DeploymentConfig::group('tools');
+return array_combine(['base_path','base_url','theme','backup_path'], array_map(
+    [\app\cms\config\SiteSettings::class, 'get'], ['base_path','base_url','theme','backup_path']
+));

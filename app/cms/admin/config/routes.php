@@ -497,6 +497,10 @@ $routes = array (
     'path' => '/web-admin/sitemap',
     'actions' => 
     array (
+      5 => 'baiduPreview',
+      6 => 'baiduSave',
+      7 => 'baiduPush',
+      8 => 'baiduSchedule',
       0 => 'clean',
       1 => 'generate',
       2 => 'index',

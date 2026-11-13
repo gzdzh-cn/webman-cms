@@ -172,8 +172,8 @@ class ArctypeController extends \plugin\admin\app\controller\Crud
         if ($request->method() !== 'POST') return $this->json(1, '删除失败');
         try {
             return (new \app\cms\service\CategoryStructureAccessService())->run($this->structureLanguage($request), function ($repository) use ($request) {
-                (new \app\cms\service\CategoryService($repository))->recycle($this->deleteInput($request));
-                return $this->json(0, '已移入回收站');
+                $recycled = (new \app\cms\service\RecyclePolicyService($repository))->delete('arctype', $this->deleteInput($request), \app\cms\service\RecyclePolicyService::expected($request->post('recycle_enabled')));
+                return $this->json(0, $recycled ? '已移入回收站' : '已彻底删除');
             }, true);
         } catch (\InvalidArgumentException $error) { return $this->json(1, $error->getMessage()); }
     }

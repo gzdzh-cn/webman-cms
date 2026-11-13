@@ -37,7 +37,7 @@ final class ConfigSchema
             'redis.timeout'=>[0.5,'CMS_REDIS_TIMEOUT','float',0.001,30],
             'redis.read_timeout'=>[0.5,'CMS_REDIS_READ_TIMEOUT','float',0.001,30],
             'redis.prefix'=>['cms:','CMS_REDIS_PREFIX','prefix'],
-            'server.listen'=>['http://0.0.0.0:8787','WEBMAN_LISTEN','listen'],
+            'server.listen'=>[8787,'WEBMAN_LISTEN','listen'],
             'server.workers'=>[2,'WEBMAN_WORKERS','int',1,256],
             'server.max_package_size'=>[10485760,'CMS_MAX_PACKAGE_SIZE','int',1048576,1073741824],
             'server.stop_timeout'=>[30,'CMS_STOP_TIMEOUT','int',2,600],
@@ -45,10 +45,6 @@ final class ConfigSchema
             'app.timezone'=>['Asia/Shanghai','APP_TIMEZONE','timezone'],
             'app.debug'=>[false,'APP_DEBUG','bool'],
             'app.memory_limit'=>['256M','CMS_MEMORY_LIMIT','memory'],
-            'site.base_path'=>['','CMS_BASE_PATH','url_path'],
-            'site.base_url'=>['http://127.0.0.1:8787','CMS_BASE_URL','url'],
-            'site.theme'=>['3144','CMS_THEME','string'],
-            'site.backup_path'=>['','CMS_BACKUP_PATH','string'],
             'logging.enable'=>[true,'LOG_ENABLE','bool'],
             'logging.print_to_console'=>[true,'LOG_PRINT_TO_CONSOLE','bool'],
             'logging.print_to_file'=>[true,'LOG_PRINT_TO_FILE','bool'],
@@ -112,6 +108,16 @@ final class ConfigSchema
         }
         $invalid = static fn() => new \RuntimeException('配置字段类型或范围无效：'.$key);
         if ($value === null && $field[0] === null) return null;
+        if ($type === 'listen') {
+            if (is_int($value) || (is_string($value) && preg_match('/^[1-9][0-9]{0,4}$/D', $value))) {
+                if ((int)$value < 1 || (int)$value > 65535) throw $invalid();
+                return (int)$value;
+            }
+            // Old deployments may bind loopback or IPv6. Preserve that address on upgrade.
+            if (!is_string($value) || !preg_match('#^http://(?:\[[0-9a-fA-F:]+\]|[A-Za-z0-9_.-]+):([0-9]{1,5})$#D', $value, $match)
+                || (int)$match[1] < 1 || (int)$match[1] > 65535) throw $invalid();
+            return $value;
+        }
         if ($type === 'int' || $type === 'level') {
             if (!is_int($value) && !(is_string($value) && preg_match('/^(?:0|[1-9][0-9]*)$/D', $value))) throw $invalid();
             $value = filter_var($value, FILTER_VALIDATE_INT);
@@ -141,8 +147,6 @@ final class ConfigSchema
             if ($type === 'memory' && !preg_match('/^[1-9][0-9]{0,5}[MG]$/D',$value)) throw $invalid();
             if ($type === 'url_path' && ($value !== '' && (!str_starts_with($value,'/') || str_contains($value,'..') || str_contains($value,'?') || str_contains($value,'#') || str_contains($value,'\\')))) throw $invalid();
             if ($type === 'url' && (!filter_var($value,FILTER_VALIDATE_URL) || !in_array(parse_url($value,PHP_URL_SCHEME),['http','https'],true) || parse_url($value,PHP_URL_USER)!==null)) throw $invalid();
-            if ($type === 'listen' && !preg_match('#^http://(?:\[[0-9a-fA-F:]+\]|[A-Za-z0-9_.-]+):([0-9]{1,5})$#D',$value,$m)) throw $invalid();
-            if ($type === 'listen' && ((int)$m[1]<1 || (int)$m[1]>65535)) throw $invalid();
             if ($type === 'timezone' && !in_array($value,\DateTimeZone::listIdentifiers(),true)) throw $invalid();
         }
         return $value;
@@ -156,6 +160,12 @@ final class ConfigSchema
             if ($key === 'paths') throw new \RuntimeException('paths 自定义目录配置已移除，请删除该区段；程序使用入口目录下的固定目录结构');
             // Only the retired key setting is accepted for upgrade compatibility.
             if ($key === 'security' && is_array($value) && (!$value || (array_keys($value) === ['key_file'] && is_string($value['key_file'])))) continue;
+            if ($key === 'site' && is_array($value)) {
+                foreach ($value as $retired=>$setting) {
+                    if (!array_key_exists($retired, self::retiredSite()) || !is_string($setting)) throw new \RuntimeException('已废弃 site 区段包含未知字段或无效值');
+                }
+                continue;
+            }
             if($key==='build.embedded_resources'&&is_string($value))throw new \RuntimeException('build.embedded_resources 必须是字符串列表');
             if (array_key_exists($key,self::fields())) { $result[$key]=self::coerce($key,$value); } elseif (is_array($value)) {
                 if (substr_count($key,'.')>5) throw new \RuntimeException('YAML 配置嵌套过深');
@@ -177,5 +187,10 @@ final class ConfigSchema
             $cursor[$last]=$value;unset($cursor);
         }
         return $result;
+    }
+    /** Accepted only to let existing deployments start; these values no longer control the site. */
+    public static function retiredSite(): array
+    {
+        return ['base_path'=>'CMS_BASE_PATH', 'base_url'=>'CMS_BASE_URL', 'theme'=>'CMS_THEME', 'backup_path'=>'CMS_BACKUP_PATH'];
     }
 }

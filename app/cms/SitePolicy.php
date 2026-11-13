@@ -37,7 +37,8 @@ final class SitePolicy
             return self::closed($context, (string)($settings['web_status_text'] ?? '网站暂时关闭，维护中……'));
         }
         $force = DeviceSelector::forced($context->input('param.goto'));
-        if (!$generating && $force === null && empty($settings['other_pcwapjs'])
+        if (!$generating && !ThemeCatalog::isResponsive(ThemeCatalog::configured($settings['web_tpl_theme'] ?? null))
+            && $force === null && empty($settings['other_pcwapjs'])
             && in_array($request->method(), ['GET', 'HEAD'], true) && !$request->isAjax()
             && preg_match('/mobile|android|iphone|ipad|ipod|windows phone/i', (string)$request->header('user-agent', ''))) {
             $mobile = self::mobileHost($context);

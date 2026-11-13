@@ -80,7 +80,13 @@ final class SearchActions
                 foreach (['search_second' => 60, 'search_maxnum' => 5, 'search_locking' => 120] as $key => $default) {
                     if (!isset($configuration[$key])) $configuration[$key] = $default;
                 }
-                if (empty($adminId) && Runtime::looseCompare(0, $configuration['search_second'], '<')) {
+                $searchFields = array_flip(Db::name('search_word')->getTableFields());
+                $hasIdentity = isset($searchFields['users_id'], $searchFields['ip']);
+                if (!$hasIdentity && empty($adminId) && Runtime::looseCompare(0, $configuration['search_second'], '<')) {
+                    $surplus = self::legacySearchWait($configuration, $now, $userId);
+                    if ($surplus > 0) return self::error(sprintf(foreign_lang('system14', $context->lang), ceil($surplus / 60)), [], $surplus);
+                }
+                if ($hasIdentity && empty($adminId) && Runtime::looseCompare(0, $configuration['search_second'], '<')) {
                     $where = !empty($userId) ? ['users_id' => $userId] : ['ip' => clientIP()];
                     $total = Db::name('search_word')->where($where)->where([
                         'update_time' => ['gt', $now - self::number($configuration['search_second'])],
@@ -103,16 +109,38 @@ final class SearchActions
                 }
                 $existing = Db::name('search_word')->field('id')->where(['word' => $word, 'lang' => $context->lang])->find();
                 if (empty($existing)) {
-                    Db::name('search_word')->insert(['word' => $word, 'sort_order' => 100, 'users_id' => $userId,
-                        'ip' => clientIP(), 'lang' => $context->lang, 'add_time' => $now, 'update_time' => $now]);
+                    Db::name('search_word')->insert(array_intersect_key(['word' => $word, 'sort_order' => 100, 'users_id' => $userId,
+                        'ip' => clientIP(), 'lang' => $context->lang, 'add_time' => $now, 'update_time' => $now], $searchFields));
                 } else {
-                    Db::name('search_word')->where(['id' => $existing['id']])->update(['searchNum' => Db::raw('searchNum+1'),
-                        'users_id' => $userId, 'ip' => clientIP(), 'update_time' => $now]);
+                    Db::name('search_word')->where(['id' => $existing['id']])->update(array_intersect_key(['searchNum' => Db::raw('searchNum+1'),
+                        'users_id' => $userId, 'ip' => clientIP(), 'update_time' => $now], $searchFields));
                 }
             }
         }
         if (!isset($parameters['keywords'])) $parameters['keywords'] = '';
         return ['kind' => 'render', 'field' => $parameters, 'template' => self::listsTemplate($context)];
+    }
+
+    /** Old imports lack visitor columns and search_locking; use the installed state store. */
+    private static function legacySearchWait(array $configuration, int $now, int $userId): int|float
+    {
+        $store = new \app\cms\persistence\StateStore('search:limits');
+        $key = hash('sha256', $userId > 0 ? 'user:'.$userId : 'ip:'.clientIP());
+        return $store->locked(function () use ($store, $key, $configuration, $now): int|float {
+            $state = $store->read($key);
+            $surplus = ($state['locked_until'] ?? 0) - $now;
+            if ($surplus > 0) return $surplus;
+            $since = $now - self::number($configuration['search_second']);
+            $hits = array_values(array_filter($state['hits'] ?? [], static fn($hit) => $hit > $since));
+            if (count($hits) >= intval($configuration['search_maxnum'])) {
+                $wait = max(0, self::number($configuration['search_locking']));
+                $store->write($key, ['hits'=>$hits, 'locked_until'=>$now + $wait]);
+                if ($wait > 0) return $wait;
+            }
+            $hits[] = $now;
+            $store->write($key, ['hits'=>$hits, 'locked_until'=>0]);
+            return 0;
+        });
     }
 
     private static function error(string $message, mixed $data = '', int|float $wait = 5): array

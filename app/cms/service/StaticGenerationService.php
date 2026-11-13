@@ -375,6 +375,10 @@ class StaticGenerationService
     protected function site(string $lang, string $device, ?string $origin = null, ?string $base = null): CmsContext
     {
         $previous = CmsContext::current();
+        if ($origin === null && $previous->request === null) {
+            $configured = $this->repository->table('config')->where(['name'=>'web_basehost','lang'=>$lang,'is_del'=>0])->value('value');
+            $origin = \app\cms\config\SiteSettings::origin($configured);
+        }
         $origin ??= $previous->origin(); $base ??= (string)($previous->global['web_cmspath'] ?? '');
         $request = $this->request($origin, $base . '/index.php?' . http_build_query(['lang' => $lang, 'goto' => $device]));
         $context = new CmsContext($request); CmsContext::set($context);

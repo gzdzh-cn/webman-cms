@@ -154,7 +154,7 @@ abstract class CmsDataController extends \plugin\admin\app\controller\Base
     public function delete(Request $request): Response
     {
         if ($request->method() !== 'POST') { return response('Method Not Allowed', 405); }
-        try { (new EnterpriseDataService())->delete($this->module, (array)$request->post('ids', [])); return $this->json(0, '删除成功'); }
+        try { (new EnterpriseDataService())->delete($this->module, (array)$request->post('ids', []), \app\cms\service\RecyclePolicyService::expected($request->post('recycle_enabled'))); return $this->json(0, '删除成功'); }
         catch (\InvalidArgumentException $error) { return $this->json(1, $error->getMessage()); }
     }
 }

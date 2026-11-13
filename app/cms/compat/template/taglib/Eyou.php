@@ -70,7 +70,7 @@ class Eyou extends Taglib
         'compare'    => ['attr' => 'name,value,type', 'alias' => ['eq,equal,notequal,neq,gt,lt,egt,elt,heq,nheq', 'type']],
         'ad'         => ['attr' => 'aid,id', 'close'=>1], 
         'adv'        => ['attr' => 'pid,row,loop,orderby,where,id,empty,key,mod,currentstyle,currentclass', 'close'=>1],  
-        'global'     => ['attr' => 'name', 'close' => 0],
+        'global'     => ['attr' => 'name,escape', 'close' => 0],
         'static'     => ['attr' => 'file,lang,href,code,site,version', 'close' => 0], 
         'prenext'    => ['attr' => 'get,titlelen,id,empty', 'alias' => 'beafter'],
         'field'      => ['attr' => 'name,addfields,aid', 'close' => 0], 
@@ -2352,6 +2352,7 @@ class Eyou extends Taglib
      */
     public function tagGlobal($tag)
     {
+        $escape = \app\cms\template\TemplateCapabilities::globalEscape($tag);
         $name = $tag['name'];
         $name  = $this->varOrvalue($name);
 
@@ -2360,7 +2361,9 @@ class Eyou extends Taglib
         // 查询数据库获取的数据集
         $parseStr .= ' $tagGlobal = new \app\cms\compat\template\taglib\eyou\TagGlobal;';
         $parseStr .= ' $__VALUE__ = $tagGlobal->getGlobal('.$name.');';
-        $parseStr .= ' echo $__VALUE__;';
+        $parseStr .= $escape
+            ? ' echo htmlspecialchars($__VALUE__, ENT_QUOTES+ENT_SUBSTITUTE, \'UTF-8\');'
+            : ' echo $__VALUE__;';
         $parseStr .= ' ?>';
 
         if (!empty($parseStr)) {

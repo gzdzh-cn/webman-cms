@@ -23,6 +23,7 @@ final class ThemeCatalog
     {
         $theme = self::canonical($theme);
         if ($device !== null && !in_array($device, ['pc', 'mobile'], true)) throw new \InvalidArgumentException('模板终端无效');
+        if ($device !== null && self::isResponsive($theme)) $device = 'pc';
         $base = \app\cms\support\EmbeddedResources::realpath(\app\cms\Paths::templates(''));
         if (!$base || is_link(\app\cms\Paths::templates(''))) throw new \InvalidArgumentException('模板根目录无效');
         $path = $base;
@@ -33,6 +34,22 @@ final class ThemeCatalog
         $actual = \app\cms\support\EmbeddedResources::realpath($path);
         if (!$actual || !is_dir($actual) || !str_starts_with($actual, $base . DIRECTORY_SEPARATOR)) throw new \InvalidArgumentException('模板目录不存在');
         return $actual;
+    }
+
+    /** An explicit boolean opt-in; existing split-device themes retain their paths. */
+    public static function metadata(string $theme): array
+    {
+        $theme = self::canonical($theme);
+        try { $file = self::root($theme) . '/theme.json'; }
+        catch (\InvalidArgumentException $error) { return []; }
+        if (!is_file($file) || is_link($file) || filesize($file) >= 65536) return [];
+        $value = json_decode((string)file_get_contents($file), true);
+        return is_array($value) ? $value : [];
+    }
+
+    public static function isResponsive(string $theme): bool
+    {
+        return (self::metadata($theme)['responsive'] ?? false) === true;
     }
 
     public static function all(): array

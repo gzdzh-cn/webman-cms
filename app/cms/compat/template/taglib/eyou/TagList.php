@@ -490,7 +490,7 @@ class TagList extends Base
                     $val['users_price'] = floatval($val['users_price']);
                     $val['old_price'] = floatval($val['old_price']);
                     $val['real_sales'] = $val['sales_num']; // 真实总销量
-                    $val['sales_num'] = $val['sales_all']; // 总虚拟销量
+                    $val['sales_num'] = $val['sales_all'] ?? $val['sales_num']; // 新版总销量；旧数据沿用 sales_num
                         
                     // 所属城市区域
                     $val['province_name'] = empty($citysite_list[$val['province_id']]) ? '' : $citysite_list[$val['province_id']]['name'];
@@ -1056,7 +1056,7 @@ class TagList extends Base
                 $arcval['users_price'] = floatval($arcval['users_price']);
                 $arcval['old_price'] = floatval($arcval['old_price']);
                 $arcval['real_sales'] = $arcval['sales_num']; // 真实总销量
-                $arcval['sales_num'] = $arcval['sales_all']; // 总虚拟销量
+                $arcval['sales_num'] = $arcval['sales_all'] ?? $arcval['sales_num']; // 新版总销量；旧数据沿用 sales_num
                         
                 // 所属城市区域
                 $arcval['province_name'] = empty($citysite_list[$arcval['province_id']]) ? '' : $citysite_list[$arcval['province_id']]['name'];
@@ -1639,7 +1639,7 @@ class TagList extends Base
                 $arcval['users_price'] = floatval($arcval['users_price']);
                 $arcval['old_price'] = floatval($arcval['old_price']);
                 $arcval['real_sales'] = $arcval['sales_num']; // 真实总销量
-                $arcval['sales_num'] = $arcval['sales_all']; // 总虚拟销量
+                $arcval['sales_num'] = $arcval['sales_all'] ?? $arcval['sales_num']; // 新版总销量；旧数据沿用 sales_num
                         
                 // 所属城市区域
                 $arcval['province_name'] = empty($citysite_list[$arcval['province_id']]) ? '' : $citysite_list[$arcval['province_id']]['name'];

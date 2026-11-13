@@ -15,7 +15,9 @@ final class FormFieldService
         $query = $this->repository->table('guestbook_attribute')->where('is_del', 1);
         foreach (['lang', 'typeid', 'form_type'] as $key) if (isset($input[$key]) && $input[$key] !== '') {
             if ($key === 'form_type') $this->formType($input[$key]);
-            $query->where($key, $input[$key]);
+            if ($key === 'form_type' && !isset($this->repository->columns('guestbook_attribute')['form_type'])) {
+                if ((int)$input[$key] !== 0) $query->whereRaw('1=0');
+            } else $query->where($key, $input[$key]);
         }
         $search = trim((string)($input['q'] ?? ''));
         if ($search !== '') $query->whereLike('attr_name', '%' . addcslashes($search, '%_') . '%');
@@ -28,9 +30,9 @@ final class FormFieldService
     {
         if ($old && !empty($old['is_del'])) throw new InvalidArgumentException('请先从回收站恢复表单字段');
         $field = $data + ($old ?? []) + ['lang' => (new LanguagePolicy($this->repository))->main(), 'form_type' => 0];
-        $this->formType($field['form_type']);
+        $this->formType(($field['form_type'] ?? 0));
         if ($old) foreach (['typeid', 'form_type', 'lang'] as $key) {
-            if ((string)$field[$key] !== (string)$old[$key] && ($this->repository->table('guestbook_attr')->where('attr_id', $old['attr_id'])->find()
+            if ((string)$field[$key] !== (string)($old[$key] ?? ($key === 'form_type' ? 0 : '')) && ($this->repository->table('guestbook_attr')->where('attr_id', $old['attr_id'])->find()
                 || $this->repository->table('language_attr')->whereIn('attr_group', ['guestbook_attribute', 'form_attribute'])->where('attr_value', (string)$old['attr_id'])->find())) {
                 throw new InvalidArgumentException('已有历史值或语言绑定的字段不能更换所属表单、模型或语言');
             }
@@ -53,7 +55,7 @@ final class FormFieldService
             if (count($selected) !== count($ids)) throw new InvalidArgumentException('表单字段不存在');
             $targets = []; $bindings = []; $groups = [];
             foreach ($selected as $field) {
-                $type = $this->formType($field['form_type']);
+                $type = $this->formType(($field['form_type'] ?? 0));
                 if ($formType !== null && $type !== $formType) throw new InvalidArgumentException('字段不属于当前表单类型');
                 if ((bool)$field['is_del'] !== ($action !== 'recycle')) throw new InvalidArgumentException($action === 'recycle' ? '字段已在回收站中' : '只能操作回收站内的表单字段');
                 [$expanded, $fieldBindings, $canonical] = $this->expand($field, $sync);
@@ -86,7 +88,7 @@ final class FormFieldService
     /** Resolve the selected field's actual canonical name, including translated IDs. */
     private function expand(array $field, EnterpriseLanguageSyncService $sync): array
     {
-        $r = $this->repository; $type = $this->formType($field['form_type']);
+        $r = $this->repository; $type = $this->formType(($field['form_type'] ?? 0));
         $group = $type === 1 ? 'form_attribute' : 'guestbook_attribute';
         $source = $r->table('language_attr')->whereIn('attr_group', ['guestbook_attribute', 'form_attribute'])->where('attr_value', (string)$field['attr_id'])->lock(true)->select()->toArray();
         if (!$source) return [[$field], [], null]; // Legitimate independent field.
@@ -100,7 +102,7 @@ final class FormFieldService
             if (!ctype_digit((string)$binding['attr_value']) || (int)$binding['attr_value'] < 1 || isset($seen[$binding['lang']])) throw new InvalidArgumentException('字段语言组存在重复或无效映射');
             $seen[$binding['lang']] = true;
             $row = $r->table('guestbook_attribute')->where('attr_id', (int)$binding['attr_value'])->lock(true)->find();
-            if (!$row || $this->formType($row['form_type']) !== $type || $row['lang'] !== $binding['lang']) throw new InvalidArgumentException('字段语言组跨模型或语言冲突');
+            if (!$row || $this->formType(($row['form_type'] ?? 0)) !== $type || $row['lang'] !== $binding['lang']) throw new InvalidArgumentException('字段语言组跨模型或语言冲突');
             $aliases = $r->table('language_attr')->whereIn('attr_group', ['guestbook_attribute', 'form_attribute'])->where('attr_value', (string)$row['attr_id'])->lock(true)->select()->toArray();
             if (count($aliases) !== 1) throw new InvalidArgumentException('字段绑定到多个语言组');
             $rows[] = $row;
@@ -113,7 +115,7 @@ final class FormFieldService
 
     private function validateOwnerGroup(array $source, array $fields): void
     {
-        $r = $this->repository; $group = (int)$source['form_type'] === 1 ? 'form' : 'arctype';
+        $r = $this->repository; $group = (int)($source['form_type'] ?? 0) === 1 ? 'form' : 'arctype';
         $bindings = $r->table('language_attr')->where(['attr_group' => $group, 'attr_value' => (string)$source['typeid']])->lock(true)->select()->toArray();
         if (count($bindings) !== 1 || $bindings[0]['lang'] !== $source['lang']) throw new InvalidArgumentException('所属表单语言绑定缺失或重复');
         $definition = $r->table('language_attribute')->where(['attr_group' => $group, 'attr_name' => $bindings[0]['attr_name']])->lock(true)->select()->toArray();
@@ -133,7 +135,7 @@ final class FormFieldService
 
     private function owner(array $field, bool $allowMissing): void
     {
-        $type = $this->formType($field['form_type']);
+        $type = $this->formType(($field['form_type'] ?? 0));
         $owner = $this->repository->table($type === 1 ? 'form' : 'arctype')->where($type === 1 ? 'form_id' : 'id', (int)($field['typeid'] ?? 0))->lock(true)->find();
         if (!$owner) {
             if ($allowMissing) return;

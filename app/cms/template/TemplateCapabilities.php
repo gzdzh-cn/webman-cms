@@ -8,10 +8,11 @@ use InvalidArgumentException;
 /** Shared source/compiled capabilities. Runtime adapters never expose generic dispatch. */
 final class TemplateCapabilities
 {
-    public const COMPILE_VERSION = 'enterprise-syntax-v1';
-    public const FUNCTIONS = ['array_slice','count','gettoptype','html_msubstr','htmlspecialchars_decode','intval','is_array','mydate','text_msubstr','date','hex2rgba','get_head_pic','get_filename','msubstr','strlen','floatval','strval','trim','substr','strtolower','strtoupper','in_array','is_numeric'];
+    public const COMPILE_VERSION = 'enterprise-syntax-v2-html-escape';
+    public const FUNCTIONS = ['array_slice','count','gettoptype','html_msubstr','htmlspecialchars','htmlspecialchars_decode','intval','is_array','mydate','text_msubstr','date','hex2rgba','get_head_pic','get_filename','msubstr','strlen','floatval','strval','trim','substr','strtolower','strtoupper','in_array','is_numeric'];
+    private const ESCAPE_CONSTANTS = ['ENT_QUOTES','ENT_SUBSTITUTE','ENT_HTML5'];
     public const ADAPTERS = ['html_msubstr'=>'templateHtmlSubstr', 'thumb_img'=>'templateThumb', 'url'=>'templateUrl', 'equal_pop_login'=>'templateEmpty', 'getusersconfigdata'=>'templateFeature'];
-    public const RUNTIME_METHODS = ['tagcondition','tagswitch','rangecontains','filtercount','filterstrlen','templaterequest','templatethumb','templateurl','templateempty','templatefeature','templatehtmlsubstr'];
+    public const RUNTIME_METHODS = ['tagcondition','tagswitch','rangecontains','filtercount','filterstrlen','templaterequest','templatethumb','templateurl','templateempty','templatefeature','templatehtmlsubstr','constant'];
     public const DISABLED_TAGS = ['user','usermenu','memberlist','memberinfos','collect','collectnum','comment','commentlist','articlepay','downloadpay','spaddress','spcart','sporder','sporderlist','spordergoods','spstatus','sppageorder','sppayapilist','sppurchase','spsearch','spsubmitorder','freebuynum'];
 
 
@@ -30,6 +31,23 @@ final class TemplateCapabilities
         if ($source !== 'param' || !preg_match('/^[A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z0-9_]+)*$/D', $key)) {
             throw new InvalidArgumentException('请求变量仅支持 Request.param 的固定键路径');
         }
+    }
+
+    public static function validateConstant(Node\Expr\ConstFetch $node): void
+    {
+        $name = $node->name;
+        if (!$name->isUnqualified() || (!in_array(strtolower($name->toString()), ['true','false','null'], true)
+            && !in_array($name->toString(), self::ESCAPE_CONSTANTS, true))) {
+            throw new InvalidArgumentException('模板常量不受支持');
+        }
+    }
+
+    /** This attribute selects one fixed encoding operation, never a callable. */
+    public static function globalEscape(array $tag): bool
+    {
+        if (!array_key_exists('escape', $tag)) return false;
+        if ($tag['escape'] !== 'html') throw new InvalidArgumentException('global 的 escape 属性仅支持 html');
+        return true;
     }
 
     public static function assignmentTarget(string $name): string
@@ -95,6 +113,8 @@ final class TemplateCapabilities
         if (!$node instanceof Node\Expr\StaticCall || !$node->class instanceof Node\Name || strtolower($node->class->toString()) !== 'app\\cms\\compat\\runtime'
             || !$node->name instanceof Node\Identifier || !in_array(strtolower($node->name->toString()), self::RUNTIME_METHODS, true)) throw new InvalidArgumentException('模板静态调用不受支持');
         $method = strtolower($node->name->toString());
+        if ($method === 'constant' && (count($node->args) !== 1 || !$node->args[0]->value instanceof Node\Scalar\String_
+            || $node->args[0]->value->value !== 'CONTROLLER_NAME')) throw new InvalidArgumentException('模板仅支持读取固定的 CONTROLLER_NAME 上下文常量');
         $range = ['templaterequest'=>[2,2], 'templatethumb'=>[1,4], 'templateurl'=>[0,7], 'templateempty'=>[0,1], 'templatefeature'=>[1,1], 'templatehtmlsubstr'=>[1,5]][$method] ?? null;
         if ($range && (count($node->args) < $range[0] || count($node->args) > $range[1])) throw new InvalidArgumentException('模板辅助函数参数数量无效');
         if ($method === 'templatefeature' && (!$node->args[0]->value instanceof Node\Scalar\String_ || $node->args[0]->value->value !== 'shop.shop_open')) throw new InvalidArgumentException('模板仅支持读取已禁用的商城开关');

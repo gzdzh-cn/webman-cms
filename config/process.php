@@ -21,7 +21,7 @@ global $argv;
 return [
     'webman' => [
         'handler' => Http::class,
-        'listen' => \app\cms\config\DeploymentConfig::get('server.listen'),
+        'listen' => \app\cms\config\DeploymentConfig::listener(),
         'count' => \app\cms\config\DeploymentConfig::get('server.workers'),
         'user' => '',
         'group' => '',
@@ -34,6 +34,11 @@ return [
             'appPath' => app_path(),
             'publicPath' => public_path()
         ]
+    ],
+    'cms-baidu-push' => [
+        'handler' => app\process\BaiduPushWorker::class,
+        'count' => 1,
+        'reloadable' => true,
     ],
     'cms-generation' => [
         'handler' => app\process\StaticGenerationWorker::class,

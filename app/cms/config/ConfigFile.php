@@ -43,6 +43,8 @@ final class ConfigFile
             $current=DeploymentConfig::document($file);
             if(self::identity($file)!==$expected)throw new \RuntimeException('YAML 配置已被其他操作修改，请重试');
             $next=$merge?array_replace_recursive($current,$data):$data;
+            unset($next['site']);
+            if(isset($next['server']['listen']))$next['server']['listen']=ConfigSchema::coerce('server.listen',$next['server']['listen']);
             $next=['version'=>1]+$next;ConfigSchema::flatten($next);
             $bytes="# CMS deployment configuration. Local .env keys override this file.\n".Yaml::dump($next,8,2,Yaml::DUMP_MULTI_LINE_LITERAL_BLOCK);
             if(is_file($file)) {

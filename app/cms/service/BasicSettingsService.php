@@ -44,10 +44,9 @@ class BasicSettingsService
                 $field('other_pcwapjs','终端自动跳转','radio','0','other',true,['options'=>[['value'=>'0','label'=>'自动跳转'],['value'=>'1','label'=>'关闭跳转']]]),
                 $field('absolute_path_open','绝对链接','radio','0','web',true,['options'=>$flag]),
                 $field('web_stypeid_open','副栏目','radio','0','web',true,['options'=>$flag]),
-                $field('web_recycle_switch','回收站','readonly','启用','web',true,['readOnly'=>true,'help'=>'当前文档和栏目统一先进入回收站，彻底删除在回收站单独操作。']),
+                $field('web_recycle_switch','回收站','radio','0','web',true,['options'=>[['value'=>'0','label'=>'开启'],['value'=>'1','label'=>'关闭']],'help'=>'开启时，文档、栏目、自定义变量和表单字段先进入回收站；关闭后，新删除的记录将彻底删除，无法恢复。已有回收站记录保留，不会自动清空。']),
                 $field('cms_template_mode','模板标签模式','readonly','','web',true,['readOnly'=>true,'help'=>'安装时确定；如需更改，请通过重新安装选择。']),
                 $field('web_tpl_theme','当前模板','readonly','','web',true,['readOnly'=>true,'help'=>'通过模板管理校验并切换。']),
-                $field('web_cmspath','安装目录','readonly','','web',true,['readOnly'=>true,'help'=>'由部署环境CMS_BASE_PATH控制。']),
             ]],
             ['id'=>'attachment','title'=>'附件扩展','fields'=>[
                 $field('basic_indexname','面包屑首页名','text','首页','basic'),$field('list_symbol','面包屑间隔符','text','>','basic',true),
@@ -158,7 +157,6 @@ class BasicSettingsService
         $groups=self::definitions();foreach($groups as&$group)foreach($group['fields'] as&$field){$lang=$field['global']?$scope['main']:$scope['lang'];$value=isset($records[$lang][$field['name']])?$this->scalar($records[$lang][$field['name']]['value']):$field['default'];
             if($field['name']==='file_uploadname_open')$value='随机重命名';
             if($field['name']==='cms_template_mode')$value=\app\cms\template\TemplateMode::label();
-            if($field['name']==='web_cmspath')$value=rtrim((string)\app\cms\config\SiteSettings::get('base_path'),'/');
             // Legacy separators are HTML entities; input.value expects the actual symbol.
             if($field['name']==='list_symbol')$value=html_entity_decode($value,ENT_QUOTES|ENT_HTML5,'UTF-8');
             $field['readOnly']=!empty($field['readOnly'])||($field['global']&&$scope['lang']!==$scope['main']);$field['readonly']=$field['readOnly'];$field['copy']=$group['id']==='web';

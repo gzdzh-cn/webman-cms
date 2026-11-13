@@ -251,13 +251,17 @@ class CategoryService
                 $repository->table('language_archives_copy_log')->whereIn('newid', $documents)->delete();
             }
             $repository->table('channelfield_bind')->whereIn('typeid', $all)->delete();
-            $attributes = $repository->table('guestbook_attribute')->where(['form_type' => 0])->whereIn('typeid', $all)->column('attr_id');
+            $attributeQuery = $repository->table('guestbook_attribute')->whereIn('typeid', $all);
+            if (isset($repository->columns('guestbook_attribute')['form_type'])) $attributeQuery->where('form_type', 0);
+            $attributes = $attributeQuery->column('attr_id');
             if ($attributes) {
                 $sync->removeBindings('guestbook_attribute', $attributes);
                 $repository->table('guestbook_attr')->whereIn('attr_id', $attributes)->delete();
                 $repository->table('guestbook_attribute')->whereIn('attr_id', $attributes)->delete();
             }
-            $submissions = $repository->table('guestbook')->where('form_type', 0)->whereIn('typeid', $all)->column('aid');
+            $submissionQuery = $repository->table('guestbook')->whereIn('typeid', $all);
+            if (isset($repository->columns('guestbook')['form_type'])) $submissionQuery->where('form_type', 0);
+            $submissions = $submissionQuery->column('aid');
             $repository->table('guestbook_attr')->whereIn('aid', $submissions)->delete();
             $repository->table('guestbook')->whereIn('aid', $submissions)->delete();
             $sync->removeBindings('arctype', $all);

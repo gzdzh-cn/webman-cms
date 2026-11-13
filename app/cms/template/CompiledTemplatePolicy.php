@@ -33,7 +33,7 @@ final class CompiledTemplatePolicy
         if (($node instanceof \PhpParser\Node\Arg && ($node->byRef || $node->unpack || $node->name !== null))
             || ($node instanceof \PhpParser\Node\ArrayItem && ($node->byRef || $node->unpack))
             || ($node instanceof \PhpParser\Node\Stmt\Foreach_ && $node->byRef)) self::reject('引用或参数展开');
-        if ($node instanceof \PhpParser\Node\Expr\ConstFetch && (!$node->name->isUnqualified() || !in_array(strtolower($node->name->toString()), ['true','false','null'], true))) self::reject('常量');
+        if ($node instanceof \PhpParser\Node\Expr\ConstFetch) TemplateCapabilities::validateConstant($node);
         if ($node instanceof \PhpParser\Node\Expr\Instanceof_ && (!$node->class instanceof \PhpParser\Node\Name || !in_array(strtolower($node->class->toString()), ['app\\cms\\compat\\collection','app\\cms\\compat\\paginator'], true))) self::reject('类型检查');
         if ($node instanceof \PhpParser\Node\Expr\FuncCall) {
             TemplateCapabilities::validateCall($node);

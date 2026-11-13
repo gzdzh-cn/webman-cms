@@ -142,8 +142,10 @@ class ArchiveController extends \plugin\admin\app\controller\Crud
     /** 移入回收站，保留正文、TAG和附件记录供恢复。 */
     public function delete(Request $request): Response
     {
-        (new \app\cms\service\ContentService())->recycle($this->deleteInput($request));
-        return $this->json(0, '已移入回收站');
+        try {
+            $recycled = (new \app\cms\service\RecyclePolicyService())->delete('archives', $this->deleteInput($request), \app\cms\service\RecyclePolicyService::expected($request->post('recycle_enabled')));
+            return $this->json(0, $recycled ? '已移入回收站' : '已彻底删除');
+        } catch (\InvalidArgumentException $error) { return $this->json(1, $error->getMessage()); }
     }
     
     /**

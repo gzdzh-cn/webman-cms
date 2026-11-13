@@ -224,6 +224,8 @@ class ContentService
 
     public function refreshCount(int $typeid): void
     {
+        // Imported legacy schemas calculate counts without this optional cache column.
+        if (!isset($this->repository->columns('arctype')['total_arc'])) return;
         $count = $this->repository->table('archives')->where(['typeid' => $typeid, 'is_del' => 0, 'status' => 1])->where('arcrank', '>=', 0)->count();
         $this->repository->table('arctype')->where('id', $typeid)->update(['total_arc' => $count]);
     }

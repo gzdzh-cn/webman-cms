@@ -1,3 +1,4 @@
+<?php $cmsRecycleEnabled = (new \app\cms\service\RecyclePolicyService())->enabled(); ?>
 ﻿<!DOCTYPE html>
 <html lang="zh-cn">
 
@@ -358,7 +359,8 @@
             let doRemove = function (ids) {
                 let data = {};
                 data[PRIMARY_KEY] = ids;
-                window.CmsUI.confirm("确认直接删除？子栏目及文档将一起清空。", {title: "确认删除", confirmText: "确认删除"}).then(function(approved) {
+                data.recycle_enabled = <?= $cmsRecycleEnabled ? '"1"' : '"0"' ?>;
+                window.CmsUI.confirm(<?= json_encode($cmsRecycleEnabled ? '确认将所选栏目、子栏目及文档移入回收站？' : '回收站已关闭，确认彻底删除所选栏目、子栏目及文档？此操作无法恢复。', JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE) ?>, {title: "确认删除", confirmText: "确认删除"}).then(function(approved) {
                         if(!approved)return;
                     let loading = layer.load();
                     $.ajax({

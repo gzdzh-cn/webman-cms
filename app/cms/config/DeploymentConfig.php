@@ -70,6 +70,12 @@ final class DeploymentConfig
     {
         self::initialize();return self::$snapshot[$key]??(array_key_exists($key,self::$snapshot)?null:throw new \RuntimeException('未知配置键：'.$key));
     }
+    /** Workerman requires a transport URI; deployers normally supply only the HTTP port. */
+    public static function listener(mixed $value=null): string
+    {
+        $listen=ConfigSchema::coerce('server.listen',$value ?? self::get('server.listen'));
+        return is_int($listen) ? 'http://0.0.0.0:'.$listen : $listen;
+    }
     public static function group(string $name, bool $live=false): array
     {
         if($live && $name!=='redis')throw new \LogicException('仅 Redis 配置允许请求内刷新');
@@ -92,6 +98,8 @@ final class DeploymentConfig
         $document=self::document();
         $warnings=array_key_exists('key_file',(array)($document['security']??[]))?['security.key_file 已废弃并忽略，可删除该字段；程序不再使用本地密钥文件']:[];
         if(array_key_exists('CMS_SECURITY_KEY_FILE',Environment::overrides()))$warnings[]='CMS_SECURITY_KEY_FILE 已废弃并忽略，可删除该环境变量';
+        if(array_key_exists('site',$document))$warnings[]='site 区段已废弃并忽略，可删除；网址与主题使用后台设置，根路径和私有备份目录由系统管理';
+        foreach(ConfigSchema::retiredSite() as $name)if(array_key_exists($name,Environment::overrides()))$warnings[]=$name.' 已废弃并忽略，可删除该环境变量';
         return ['ok'=>true,'fixed'=>(bool)\app\cms\support\EmbeddedResources::yaml(),'configuration_source'=>\app\cms\support\EmbeddedResources::yaml()?'embedded':'external','file'=>self::file(),'exists'=>is_file(self::file()),'fields'=>$fields,'warnings'=>$warnings];
     }
 }

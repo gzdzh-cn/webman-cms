@@ -582,7 +582,7 @@ class TagArclist extends Base
                         $val['users_price'] = floatval($val['users_price']);
                         $val['old_price'] = floatval($val['old_price']);
                         $val['real_sales'] = $val['sales_num']; // 真实总销量
-                        $val['sales_num'] = $val['sales_all']; // 总虚拟销量
+                        $val['sales_num'] = $val['sales_all'] ?? $val['sales_num']; // 新版总销量；旧数据沿用 sales_num
                         
                         // 所属城市区域
                         $val['province_name'] = empty($citysite_list[$val['province_id']]) ? '' : $citysite_list[$val['province_id']]['name'];

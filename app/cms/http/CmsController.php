@@ -498,6 +498,10 @@ use support\think\Db;
             if ($renderContext === $context) throw new \RuntimeException('Page template is empty: ' . $template);
         }
         $headers['X-CMS-Template'] = $renderContext->theme . '/' . $template . '.htm';
+        if ($renderContext->controller === 'Search'
+            && \app\cms\ThemeCatalog::isResponsive(\app\cms\ThemeCatalog::configured($renderContext->global['web_tpl_theme'] ?? null))) {
+            $headers['X-Robots-Tag'] = 'noindex, follow';
+        }
         try {
             $html = (new TemplateRenderer($renderContext))->render($template, $variables);
             if (preg_match('/<form\b[^>]*onsubmit\s*=\s*["\'][^"\']*\bsearchForm\s*\(/i', $html)) {
@@ -567,5 +571,19 @@ use support\think\Db;
         return $this->dispatch($request);
     }
 
-    private function missing(): Response { return \app\cms\ErrorPage::make(404); }
+    private function missing(): Response
+    {
+        $context = CmsContext::current();
+        if ($context->global && \app\cms\ThemeCatalog::isResponsive(\app\cms\ThemeCatalog::configured($context->global['web_tpl_theme'] ?? null))
+            && is_file($context->templateRoot() . '404.htm')) {
+            $context->controller = 'Error';
+            $context->action = 'notfound';
+            $context->tid = $context->aid = 0;
+            $context->field = [];
+            return $this->render($context, '404', [], false)->withStatus(404)->withHeaders([
+                'Cache-Control' => 'no-store', 'X-Robots-Tag' => 'noindex, follow',
+            ]);
+        }
+        return \app\cms\ErrorPage::make(404);
+    }
 }

@@ -34,6 +34,10 @@ final class TemplateRenderer
     private function variables(array $data):array
     {
         $values = array_replace(($this->context??Runtime::context())?->variables()??[], $data);
+        $context = $this->context ?? Runtime::context();
+        if ($context && isset($context->global['web_tpl_theme']) && ThemeCatalog::isResponsive((string)$context->global['web_tpl_theme'])) {
+            $values['page'] = (new \app\cms\service\PagePresentationService())->present($context);
+        }
         $mode = $this->options['template_mode'] ?? TemplateMode::current($this->context);
         if ($mode === 'webman' && array_key_exists('webman', $values)) $values['eyou'] = $values['webman'];
         unset($values['webman']);

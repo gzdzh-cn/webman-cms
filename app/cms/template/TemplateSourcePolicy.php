@@ -105,6 +105,7 @@ final class TemplateSourcePolicy
         $attributes = [];
         preg_match_all('/\b([\w-]+)\s*=\s*(["\'])(.*?)\2/is', $text, $matches, PREG_SET_ORDER);
         foreach ($matches as $attribute) $attributes[strtolower($attribute[1])] = $attribute[3];
+        if ($name === 'global') TemplateCapabilities::globalEscape($attributes);
         $lib = new \app\cms\compat\template\TagLib(self::compiler());
         if ($name === 'assign') { TemplateCapabilities::assignment($attributes, $lib); return; }
         if ($name === 'sql' && (!isset($attributes['sql']) || str_contains($attributes['sql'], '$') || preg_match('/^\h*[$:]/', $attributes['sql']))) throw new InvalidArgumentException('SQL标签必须使用静态SQL属性');
@@ -175,7 +176,7 @@ final class TemplateSourcePolicy
             throw new InvalidArgumentException('模板变量不受支持');
         }
         if ($node instanceof \PhpParser\Node\Expr\FuncCall || $node instanceof \PhpParser\Node\Expr\StaticCall) TemplateCapabilities::validateCall($node);
-        if ($node instanceof \PhpParser\Node\Expr\ConstFetch && !in_array(strtolower($node->name->toString()), ['true','false','null'], true)) throw new InvalidArgumentException('模板常量不受支持');
+        if ($node instanceof \PhpParser\Node\Expr\ConstFetch) TemplateCapabilities::validateConstant($node);
         foreach ($node->getSubNodeNames() as $key) {
             $value = $node->$key;
             foreach (is_array($value) ? $value : [$value] as $child) if ($child instanceof \PhpParser\Node) self::validateNode($child);

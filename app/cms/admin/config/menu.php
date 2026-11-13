@@ -61,6 +61,9 @@ $menus = [
             ['title' => '清理已生成页面', 'key' => \plugin\admin\app\controller\StaticgenerateController::class . '@clean', 'type' => 2, 'weight' => 2],
         ]],
         ['title' => 'Sitemap', 'key' => \plugin\admin\app\controller\SitemapController::class, 'href' => '/web-admin/sitemap/index', 'type' => 1, 'weight' => 89, 'children' => [
+            ['title' => '保存百度推送Token', 'key' => \plugin\admin\app\controller\SitemapController::class . '@baiduSave', 'type' => 2, 'weight' => 6],
+            ['title' => '管理百度定时推送', 'key' => \plugin\admin\app\controller\SitemapController::class . '@baiduSchedule', 'type' => 2, 'weight' => 4],
+            ['title' => '执行百度推送', 'key' => \plugin\admin\app\controller\SitemapController::class . '@baiduPush', 'type' => 2, 'weight' => 5],
             ['title' => '读取Sitemap设置', 'key' => \plugin\admin\app\controller\SitemapController::class . '@select', 'type' => 2, 'weight' => 4],
             ['title' => '保存Sitemap设置', 'key' => \plugin\admin\app\controller\SitemapController::class . '@save', 'type' => 2, 'weight' => 3],
             ['title' => '生成Sitemap文件', 'key' => \plugin\admin\app\controller\SitemapController::class . '@generate', 'type' => 2, 'weight' => 2],
