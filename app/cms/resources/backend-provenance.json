@@ -1,6 +1,6 @@
 {
   "name": "webman-cms",
-  "version": "1.0.1",
+  "version": "1.0.3",
   "upstream": {
     "package": "webman/admin",
     "version": "2.1.7",

@@ -226,15 +226,13 @@ final class InstallerService
         $this->configureSite($pdo,$in);$this->menus($pdo,$in['admin_prefix']);
         $pdo->beginTransaction();
         try{
-            $admins=$in['admin_prefix'].'admins';$existing=$pdo->query('SELECT id,username,password FROM `'.$admins.'`')->fetchAll(PDO::FETCH_ASSOC);
-            if($existing&&(count($existing)!==1||$existing[0]['username']!==$in['admin_username']||!password_verify($in['admin_password'],$existing[0]['password'])))throw new RuntimeException('管理员状态与本次安装不一致，请使用相同账号密码续装');
-            if(!$existing){$pdo->prepare('INSERT INTO `'.$admins.'` (username,nickname,password,created_at,updated_at,status) VALUES (?,?,?,NOW(),NOW(),0)')->execute([$in['admin_username'],'管理员',password_hash($in['admin_password'],PASSWORD_DEFAULT)]);$id=$pdo->lastInsertId();$pdo->prepare('INSERT INTO `'.$in['admin_prefix'].'admin_roles` (role_id,admin_id) VALUES(1,?)')->execute([$id]);}
+            $id=AdminSeeder::initialize($pdo,$in['admin_prefix'],$in['admin_username'],$in['admin_password']);
             $options=$in['admin_prefix'].'options';$q=$pdo->prepare('INSERT INTO `'.$options.'` (name,value,created_at,updated_at) VALUES (?,?,NOW(),NOW()) ON DUPLICATE KEY UPDATE value=VALUES(value),updated_at=NOW()');$q->execute(['cms_template_mode',$in['template_mode']]);$q->execute(['cms_site_signature',$journal['site_signature']]);$enabled=(int)$pdo->query('SELECT COUNT(*) FROM `'.$in['cms_prefix'].'language` WHERE status=1')->fetchColumn()>1;$q->execute(['cms_multilingual_enabled',$enabled?'1':'0']);
             \app\cms\service\HtmltextProvenanceService::markInstalled($pdo,$in['cms_prefix'],$in['data_strategy']);
             $pdo->commit();
         }catch(\Throwable $error){if($pdo->inTransaction())$pdo->rollBack();throw $error;}
         if(!(new LegacyInstallationInspector())->inspect($pdo,$in['cms_prefix'])['recognized'])throw new RuntimeException('导入后的核心结构或必要基础数据不完整，安装未完成');
-        $journal['admin_id']=(int)($existing?$existing[0]['id']:$id);
+        $journal['admin_id']=$id;
         $journal['phase']='database_complete';$this->saveJournal($journal);
     }
     private function finish(array $in,array &$journal): array
@@ -248,9 +246,9 @@ final class InstallerService
             if (!hash_equals((string)$journal['site_signature'],(string)$q->fetchColumn())) throw new RuntimeException('已完成数据库与本次安装不匹配');
             $q->execute(['cms_template_mode']);
             if ($q->fetchColumn()!==$in['template_mode']) throw new RuntimeException('已完成数据库模式与本次安装不匹配');
-            $admins=$pdo->query('SELECT id,username,password,status FROM `'.$in['admin_prefix'].'admins`')->fetchAll(PDO::FETCH_ASSOC);
-            if(count($admins)!==1||$admins[0]['username']!==$in['admin_username']||(int)$admins[0]['status']!==0||!password_verify($in['admin_password'],$admins[0]['password']))throw new RuntimeException('管理员状态与本次安装不一致，请使用相同账号密码续装');
-            $journal['admin_id']=(int)$admins[0]['id'];$this->saveJournal($journal);
+            $id=AdminSeeder::administrator($pdo,$in['admin_prefix'],$in['admin_username'],$in['admin_password']);
+            if(!$id)throw new RuntimeException('安装管理员不存在，不能完成安装');
+            $journal['admin_id']=$id;$this->saveJournal($journal);
         }
         $result=['installed'=>true,'pending'=>false,'done'=>true,'task_id'=>$journal['id'],'tables'=>$journal['total'],'template_mode'=>$in['template_mode'],'db_prefix'=>$in['db_prefix'],'import_demo'=>$in['import_demo'],'demo'=>$in['import_demo'],'data_strategy'=>$in['data_strategy'],'theme'=>$in['theme'],'login_url'=>'/web-admin','restart_required'=>true];
         $ready=false;
@@ -328,6 +326,7 @@ final class InstallerService
             if(!is_string($confirmation)||$confirmation==='')$errors['admin_password_confirm']='请再次输入管理员密码';elseif(is_string($password)&&!hash_equals($password,$confirmation))$errors['admin_password_confirm']='两次输入的管理员密码不一致';
             $data+=['admin_username'=>trim((string)($in['admin_username']??'')),'admin_password'=>is_string($password)?$password:'','site_name'=>trim((string)($in['site_name']??'我的网站')),'base_url'=>rtrim((string)($in['base_url']??''),'/')];
             if(!preg_match('/^[A-Za-z][A-Za-z0-9_]{2,31}$/D',$data['admin_username']))$errors['admin_username']='管理员账号需为 3 至 32 位字母、数字或下划线';
+            if(strcasecmp($data['admin_username'],'king')===0)$errors['admin_username']='king 为默认内容管理账号，请为超级管理员使用其他账号';
             if($data['data_strategy']!=='source_full'){if($data['site_name']===''||mb_strlen($data['site_name'])>100)$errors['site_name']='网站名称需为 1 至 100 字';if(!filter_var($data['base_url'],FILTER_VALIDATE_URL)||!in_array(parse_url($data['base_url'],PHP_URL_SCHEME),['http','https'],true)||parse_url($data['base_url'],PHP_URL_USER)!==null||parse_url($data['base_url'],PHP_URL_QUERY)!==null)$errors['base_url']='网站网址需为有效 HTTP 或 HTTPS 根网址';}
         }
         if($errors)throw new InstallerValidationException($errors);

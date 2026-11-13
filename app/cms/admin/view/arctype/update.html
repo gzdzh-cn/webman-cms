@@ -6,7 +6,6 @@
     <meta charset="UTF-8">
     <title>编辑栏目</title>
     <link rel="stylesheet" href="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/component/pear/css/pear.css'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>" />
-    <link rel="stylesheet" href="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/component/jsoneditor/css/jsoneditor.css'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>" />
     <link rel="stylesheet" href="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/admin/css/reset.css'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>" />
     <link rel="stylesheet" href="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/admin/css/dzh.css'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>" />
     <style>
@@ -274,7 +273,7 @@ function cmsEditorReturn(){
 
         <div class="bottom">
             <div class="button-container">
-                <button type="submit" class="pear-btn pear-btn-primary pear-btn-md" lay-submit="" lay-filter="save">
+                <button disabled data-cms-initializing type="submit" class="pear-btn pear-btn-primary pear-btn-md" lay-submit="" lay-filter="save">
                     保存
                 </button>
                 <button type="button" class="pear-btn pear-btn-md" data-cms-back>返回列表</button>
@@ -285,11 +284,11 @@ function cmsEditorReturn(){
 
     <script src="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/component/layui/layui.js?v=2.13.12'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>"></script>
     <script src="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/component/pear/pear.js'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>"></script>
-    <script src="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/component/jsoneditor/jsoneditor.js'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>"></script>
     <script src="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/admin/js/permission.js'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>"></script>
     <?php include \app\cms\Paths::cms('admin/view/archive/htmltext-provenance.php'); ?>
     <script src="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/admin/js/category-fields.js?v=f1b666959a37'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>"></script>
-    <script>CategoryFields.mount(document.getElementById("category-custom-fields"), new URLSearchParams(location.search).get("id") || 0, document.getElementById("category-custom-fields-card"));</script>
+    <script src="<?= htmlspecialchars(\app\cms\AssetManifest::url('/admin-assets/js/cms-category-editor.js'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>"></script>
+    <script>window.CmsCategoryFieldsReady = CategoryFields.mount(document.getElementById("category-custom-fields"), new URLSearchParams(location.search).get("id") || 0, document.getElementById("category-custom-fields-card"));</script>
 
     <script>
 
@@ -307,337 +306,13 @@ function cmsEditorReturn(){
             var $ = layui.jquery;
             var form = layui.form;
             var upload = layui.upload;
-            var arctypeData = {}, templateRequests = {};
+            var arctypeData = {};
 
             function currentArctypeLang() {
                 return arctypeData.lang || layui.url().search.lang || 'cn';
             }
 
-            function currentTemplateValue(select, name, channelId) {
-                var value = select.val();
-                if (value && value !== '0') return value;
-                return Number(arctypeData.current_channel) === Number(channelId) ? (arctypeData[name] || '') : '';
-            }
-
-            /**
-             * 将树形数据拍平成带缩进的下拉选项
-             */
-            function flattenTree(nodes, level = 0) {
-                var list = [];
-                if (!nodes || !Array.isArray(nodes)) {
-                    return list;
-                }
-                nodes.forEach(function (node) {
-                    if (!node) return;
-                    var indent = level > 0 ? '├─'.repeat(level) : '';
-                    var name = node.title || node.name || node.typename || '未命名';
-                    list.push({
-                        id: node.id,
-                        label: indent + name
-                    });
-                    if (node.children && Array.isArray(node.children) && node.children.length > 0) {
-                        list = list.concat(flattenTree(node.children, level + 1));
-                    }
-                });
-                return list;
-            }
-
-            /**
-             * 加载频道列表（模型列表）到下拉框
-             * @param {Function} callback 加载完成后的回调函数
-             */
-            function loadChannelOptions(callback) {
-                $.getJSON('/web-admin/channeltype/select', { format: 'select' }, function (res) {
-                    if (res.code === 0 && Array.isArray(res.data)) {
-                        var $select = $('#current-channel-select');
-                        if ($select.length > 0) {
-                            $select.empty().append('<option value="">请选择模型</option>');
-                            res.data.forEach(function (item) {
-                                $select.append('<option value="' + item.value + '">' + item.name + '</option>');
-                            });
-                            form.render('select');
-                            if (typeof callback === 'function') {
-                                callback();
-                            }
-                        }
-                    } else {
-                        console.error('加载频道列表失败:', res.msg);
-                        if (typeof callback === 'function') {
-                            callback();
-                        }
-                    }
-                }).fail(function () {
-                    console.error('加载频道列表请求失败');
-                    if (typeof callback === 'function') {
-                        callback();
-                    }
-                });
-            }
-
-            // 加载模板文件列表
-            function loadTemplateList(channelId, type, callback) {
-                // type: 'list' 或 'view'
-                var params = {
-                    channel_id: channelId,
-                    type: type,
-                    lang: currentArctypeLang()
-                };
-                var version = templateRequests[type] = (templateRequests[type] || 0) + 1;
-                $.getJSON('/web-admin/arctype/getTemplates', params, function (res) {
-                    if (version !== templateRequests[type]) return;
-                    if (res.code === 0 && Array.isArray(res.data)) {
-                        if (typeof callback === 'function') {
-                            callback(res.data);
-                        }
-                    } else {
-                        if (typeof callback === 'function') {
-                            callback([]);
-                        }
-                    }
-                }).fail(function () {
-                    if (version !== templateRequests[type]) return;
-                    if (typeof callback === 'function') {
-                        callback([]);
-                    }
-                });
-            }
-
-            // 处理内容模型变化的函数（先定义，后使用）
-            function handleChannelChange(channelId) {
-                channelId = parseInt(channelId) || 0;
-                var $templistLabel = $('#templist-label');
-                var $templistItem = $('#templist-item');
-                var $tempviewItem = $('#tempview-item');
-                var $templistSelect = $('select[name="templist"]');
-                var $tempviewSelect = $('select[name="tempview"]');
-                var $channelSelect = $('#current-channel-select');
-                var $channelItem = $channelSelect.closest('.layui-form-item');
-
-                // 获取访问权限和继承选项的元素
-                var $typearcrankItem = $('#typearcrank-item');
-                var $typearcrankSelect = $('#typearcrank-select');
-                var $inheritOptionItem = $('#inherit-option-item');
-                var $inheritOptionCheckbox = $('#inherit-option-checkbox');
-
-                // 清除之前的错误提示
-                $channelItem.find('.template-error-tip').remove();
-
-                if (channelId === 6) {
-                    // 单页模型：隐藏访问权限，保留模板、规则及内容提取继承
-                    $typearcrankItem.hide();
-                    $inheritOptionItem.show();
-
-                    // 单页模型：修改标签文字为"单页模板"，隐藏文档模板，单页模板必选
-                    $templistLabel.text('单页模板');
-                    $templistLabel.addClass('required');
-                    $templistSelect.attr('lay-verify', 'required');
-                    $tempviewItem.hide();
-                    $tempviewSelect.removeAttr('lay-verify');
-
-                    // 加载单页模板文件列表
-                    loadTemplateList(channelId, 'list', function (templates) {
-                        var currentValue = currentTemplateValue($templistSelect, 'templist', channelId);
-                        $templistSelect.empty().append('<option value="0">请选择模板</option>');
-                        templates.forEach(function (template) {
-                            $templistSelect.append('<option value="' + template.value + '">' + template.name + '</option>');
-                        });
-                        // 恢复之前的值（如果存在），否则选中第一个
-                        if (currentValue) {
-                            $templistSelect.val(currentValue);
-                        } else if (templates.length > 0) {
-                            $templistSelect.val(templates[0].value);
-                        }
-                        form.render('select');
-
-                        // 如果模板文件为0，显示红色提示
-                        if (templates.length === 0) {
-                            var $errorTip = $('<span class="template-error-tip" style="color: red; font-size: 12px; margin-left: 10px;">该模型缺少模板文件：lists_single.htm</span>');
-                            $channelItem.find('.layui-input-block').append($errorTip);
-                        }
-                    });
-                } else if (channelId === 8) {
-                    // 留言模型：显示访问权限和继承选项
-                    $typearcrankItem.show();
-                    $inheritOptionItem.show();
-
-                    // 留言模型：修改标签文字为"留言模板"，隐藏文档模板，留言模板必选
-                    $templistLabel.text('留言模板');
-                    $templistLabel.addClass('required');
-                    $templistSelect.attr('lay-verify', 'required');
-                    $tempviewItem.hide();
-                    $tempviewSelect.removeAttr('lay-verify');
-
-                    // 加载留言模板文件列表
-                    loadTemplateList(channelId, 'list', function (templates) {
-                        var currentValue = currentTemplateValue($templistSelect, 'templist', channelId);
-                        $templistSelect.empty().append('<option value="0">请选择模板</option>');
-                        templates.forEach(function (template) {
-                            $templistSelect.append('<option value="' + template.value + '">' + template.name + '</option>');
-                        });
-                        // 恢复之前的值（如果存在），否则选中第一个
-                        if (currentValue) {
-                            $templistSelect.val(currentValue);
-                        } else if (templates.length > 0) {
-                            $templistSelect.val(templates[0].value);
-                        }
-                        form.render('select');
-
-                        // 如果模板文件为0，显示红色提示
-                        if (templates.length === 0) {
-                            var $errorTip = $('<span class="template-error-tip" style="color: red; font-size: 12px; margin-left: 10px;">该模型缺少模板文件：lists_guestbook.htm</span>');
-                            $channelItem.find('.layui-input-block').append($errorTip);
-                        }
-                    });
-                } else if (channelId > 0) {
-                    // 其他模型：显示访问权限和继承选项
-                    $typearcrankItem.show();
-                    $inheritOptionItem.show();
-
-                    // 其他模型：恢复标签文字为"栏目模板"，显示文档模板，两个模板都必选
-                    $templistLabel.text('栏目模板');
-                    $templistLabel.addClass('required');
-                    $templistSelect.attr('lay-verify', 'required');
-                    $tempviewItem.show();
-                    $tempviewSelect.attr('lay-verify', 'required');
-                    $tempviewItem.find('.layui-form-label').addClass('required');
-
-                    // 加载栏目模板和文档模板
-                    loadTemplateList(channelId, 'list', function (listTemplates) {
-                        var currentListValue = currentTemplateValue($templistSelect, 'templist', channelId);
-                        $templistSelect.empty().append('<option value="0">请选择模板</option>');
-                        listTemplates.forEach(function (template) {
-                            $templistSelect.append('<option value="' + template.value + '">' + template.name + '</option>');
-                        });
-                        // 恢复之前的值（如果存在），否则选中第一个
-                        if (currentListValue) {
-                            $templistSelect.val(currentListValue);
-                        } else if (listTemplates.length > 0) {
-                            $templistSelect.val(listTemplates[0].value);
-                        }
-                        form.render('select');
-                    });
-
-                    loadTemplateList(channelId, 'view', function (viewTemplates) {
-                        var currentViewValue = currentTemplateValue($tempviewSelect, 'tempview', channelId);
-                        $tempviewSelect.empty().append('<option value="0">请选择模板</option>');
-                        viewTemplates.forEach(function (template) {
-                            $tempviewSelect.append('<option value="' + template.value + '">' + template.name + '</option>');
-                        });
-                        // 恢复之前的值（如果存在），否则选中第一个
-                        if (currentViewValue) {
-                            $tempviewSelect.val(currentViewValue);
-                        } else if (viewTemplates.length > 0) {
-                            $tempviewSelect.val(viewTemplates[0].value);
-                        }
-                        form.render('select');
-                    });
-                } else {
-                    // 未选择模型：显示访问权限和继承选项
-                    $typearcrankItem.show();
-                    $inheritOptionItem.show();
-
-                    // 未选择模型：移除所有必选验证
-                    $templistLabel.removeClass('required');
-                    $templistSelect.removeAttr('lay-verify');
-                    $tempviewSelect.removeAttr('lay-verify');
-                    $tempviewItem.find('.layui-form-label').removeClass('required');
-                }
-
-                // 重新渲染表单，使验证规则生效
-                form.render('select');
-                form.render('checkbox');
-            }
-
-            /**
-             * 递归获取所有下级栏目ID
-             * @param {Array} treeData 树形数据
-             * @param {number} parentId 父栏目ID
-             * @return {Array} 所有下级栏目ID数组
-             */
-            function getAllChildrenIds(treeData, parentId) {
-                var result = [];
-
-                // 递归函数，查找指定节点的所有子节点
-                function findChildren(nodes, targetId) {
-                    for (var i = 0; i < nodes.length; i++) {
-                        var node = nodes[i];
-                        if (node.id == targetId) {
-                            // 找到目标节点，获取其所有子节点
-                            if (node.children && node.children.length > 0) {
-                                node.children.forEach(function (child) {
-                                    result.push(child.id);
-                                    // 递归获取子节点的子节点
-                                    if (child.children && child.children.length > 0) {
-                                        findChildren([child], child.id);
-                                    }
-                                });
-                            }
-                            return;
-                        } else if (node.children && node.children.length > 0) {
-                            // 继续在子节点中查找
-                            findChildren(node.children, targetId);
-                        }
-                    }
-                }
-
-                findChildren(treeData, parentId);
-                return result;
-            }
-
-            /**
-             * 加载栏目树到"所属栏目"下拉框
-             * 并根据当前记录的 parent_id 选中对应项
-             * 排除当前栏目及其所有下级栏目
-             * @param {number} currentId 当前编辑的栏目ID
-             * @param {number} currentParentId 当前记录的 parent_id，用于选中对应项
-             * @param {Function} callback 加载完成后的回调函数
-             */
-            function loadParentOptionsAndSetValue(currentId, currentParentId, callback) {
-                $.getJSON(ARCTYPE_SELECT_API, { format: 'tree', limit: 2000, lang: currentArctypeLang() }, function (res) {
-                    if (res.code !== 0 || !Array.isArray(res.data)) {
-                        layer.msg(res.msg || '栏目数据加载失败');
-                        if (typeof callback === 'function') {
-                            callback();
-                        }
-                        return;
-                    }
-
-                    // 获取所有需要排除的栏目ID（当前栏目及其所有下级）
-                    var excludeIds = [];
-                    if (currentId) {
-                        excludeIds.push(currentId);
-                        // 递归获取所有下级栏目ID
-                        var childrenIds = getAllChildrenIds(res.data, currentId, []);
-                        excludeIds = excludeIds.concat(childrenIds);
-                    }
-
-                    // 将排除ID数组转换为Set，便于快速查找
-                    var excludeSet = new Set(excludeIds.map(String));
-
-                    // 拍平树形数据并过滤
-                    var options = flattenTree(res.data);
-                    var $select = $('select[name="parent_id"]');
-                    $select.empty().append('<option value="0">顶级栏目</option>');
-                    options.forEach(function (item) {
-                        // 排除当前栏目及其下级栏目
-                        if (!excludeSet.has(String(item.id))) {
-                            $select.append('<option value="' + item.id + '">' + item.label + '</option>');
-                        }
-                    });
-                    if (currentParentId != null) {
-                        $select.val(String(currentParentId));
-                    }
-                    form.render('select');
-                    if (typeof callback === 'function') {
-                        callback();
-                    }
-                }).fail(function () {
-                    layer.msg('栏目数据请求异常');
-                    if (typeof callback === 'function') {
-                        callback();
-                    }
-                });
-            }
+            function handleChannelChange(id) { categoryEditor.changeModel(id); }
 
             // 栏目图片上传
             function initUpload() {
@@ -775,144 +450,24 @@ function cmsEditorReturn(){
             });
 
 
-            // 1. 初始化表单
-            form.render();
-
-            // 先加载当前记录数据
-            $.getJSON(SELECT_API, function (res) {
-                if (res.code !== 0 || !res.data || !res.data[0]) {
-                    return;
+            var fieldsAttempt = 0;
+            var categoryEditor = CmsCategoryEditor.create({
+                form: form, element: document.querySelector('form[data-cms-page-editor]'), editing: true,
+                recordUrl: SELECT_API,
+                fields: function () { return fieldsAttempt++ === 0 ? window.CmsCategoryFieldsReady : CategoryFields.mount(document.getElementById('category-custom-fields'), new URLSearchParams(location.search).get('id') || 0, document.getElementById('category-custom-fields-card')); },
+                hydrate: function (row) {
+                    arctypeData = row;
+                    var values = Object.assign({}, row, {typelink: String(row.typelink || '').replace(/&amp;/g, '&'), is_remote: /^https?:\/\//.test(row.litpic || '') ? 1 : 0});
+                    form.val('arctype-form', values);
+                    var limits = Array.isArray(row.page_limit) ? row.page_limit.map(String) : String(row.page_limit || '').split(',').map(function (value) { return value.trim(); });
+                    document.querySelectorAll('input[name="page_limit[]"]').forEach(function (control) { control.checked = limits.includes(control.value); });
+                    $('#page-limit-item').toggle(parseInt(row.typearcrank) > 0);
+                    $('#is-remote-checkbox').prop('checked', values.is_remote === 1);
+                    handleRemoteCheckboxChange(values.is_remote === 1);
+                    toggleTypelink(row.is_part);
                 }
-                var row = res.data[0];
-                arctypeData = row;
-
-                // 同步加载频道列表和栏目树，确保都加载完成后再填充表单数据
-                var channelLoaded = false;
-                var parentLoaded = false;
-
-                function fillFormData() {
-                    // 两个接口都加载完成后，再填充表单数据
-                    if (channelLoaded && parentLoaded) {
-                        // 如果 typelink 字段包含 &amp;，先转换成 &
-                        if (row.typelink && row.typelink.indexOf('&amp;') !== -1) {
-                            row.typelink = row.typelink.replace(/&amp;/g, '&');
-                        }
-
-                        // 处理封面图（本地/远程）
-                        var isRemoteValue = 0;
-                        if (row.litpic) {
-                            // 判断是远程还是本地（这里简化处理，实际可能需要根据字段判断）
-                            // 如果 litpic 是完整 URL（http:// 或 https://），可能是远程
-                            var isRemote = row.litpic.indexOf('http://') === 0 || row.litpic.indexOf('https://') === 0;
-                            if (isRemote) {
-                                isRemoteValue = 1;
-                                row.is_remote = 1;
-                            } else {
-                                isRemoteValue = 0;
-                                row.is_remote = 0;
-                            }
-                        }
-
-                        // 处理 page_limit 字段：将后端返回的逗号分隔字符串转换为数组
-                        var pageLimitArray = [];
-                        if (row.page_limit) {
-                            if (Array.isArray(row.page_limit)) {
-                                // 后端返回的是数组格式，直接使用
-                                pageLimitArray = row.page_limit;
-                            } else {
-                                // 后端返回的是字符串格式（如 "1,2"），转换为数组
-                                pageLimitArray = String(row.page_limit).split(',').map(function (v) {
-                                    return v.trim();
-                                }).filter(function (v) {
-                                    return v !== '';
-                                });
-                            }
-                        }
-
-                        // 先手动设置 page_limit 复选框的选中状态
-                        // 因为 Layui 的 form.val() 对 page_limit[] 这种带方括号的字段名支持不好
-                        if (pageLimitArray.length > 0) {
-                            // 先取消所有复选框的选中状态
-                            $('input[name="page_limit[]"]').prop('checked', false);
-                            // 根据数组值选中对应的复选框
-                            pageLimitArray.forEach(function (value) {
-                                $('input[name="page_limit[]"][value="' + value + '"]').prop('checked', true);
-                            });
-                        }
-
-                        // 普通字段自动回填（form.val() 用于填充其他字段，如 typename、dirname、current_channel 等）
-                        form.val("arctype-form", row);
-
-
-                        // 根据访问权限显示/隐藏限制页面
-                        if (row.typearcrank && parseInt(row.typearcrank) > 0) {
-                            $('#page-limit-item').show();
-                        } else {
-                            $('#page-limit-item').hide();
-                        }
-
-                        // 填充数据后，更新预览按钮状态和远程图片复选框状态
-                        setTimeout(function () {
-                            // 确保复选框状态正确
-                            var $remoteCheckbox = $('#is-remote-checkbox');
-                            if (isRemoteValue === 1) {
-                                $remoteCheckbox.prop('checked', true);
-                            } else {
-                                $remoteCheckbox.prop('checked', false);
-                            }
-                            form.render('checkbox'); // 重新渲染复选框
-
-                            // 根据复选框状态更新按钮显示
-                            var isRemote = $remoteCheckbox.is(':checked');
-                            var $previewBtn = $('#preview-image');
-                            var $uploadBtn = $('#upload-image');
-
-                            if (isRemote) {
-                                // 远程图片：只隐藏上传按钮，保留预览按钮（如果有图片地址）
-                                $uploadBtn.hide();
-                                // 如果有图片地址，显示预览按钮
-                                var $input = $('#litpic-input');
-                                if ($input.val().trim()) {
-                                    $previewBtn.show();
-                                }
-                            } else {
-                                // 本地图片：显示上传按钮，根据是否有值显示预览按钮
-                                $uploadBtn.show();
-                                updatePreviewButton();
-                            }
-
-                            // 检查 is_part 的值，控制 typelink 输入框显示
-                            var checkedRadio = $('input[name="is_part"]:checked');
-                            if (checkedRadio.length > 0) {
-                                toggleTypelink(checkedRadio.val());
-                            }
-
-                            // 根据当前选中的模型，更新模板标签文字和显示状态
-                            var currentChannelId = $('#current-channel-select').val();
-                            if (currentChannelId) {
-                                handleChannelChange(currentChannelId);
-                            }
-                        }, 100);
-                    }
-                }
-
-                // 加载频道列表（模型列表）
-                loadChannelOptions(function () {
-                    channelLoaded = true;
-                    fillFormData();
-                });
-
-                // 获取当前编辑的栏目ID
-                var currentId = row.id;
-
-                // 加载所属栏目下拉，并设置当前记录的 parent_id
-                // 排除当前栏目及其所有下级栏目
-                loadParentOptionsAndSetValue(currentId, row.parent_id, function () {
-                    parentLoaded = true;
-                    fillFormData();
-                });
             });
-
+            categoryEditor.initialize();
             // 初始化上传按钮
             initUpload();
 
@@ -966,6 +521,7 @@ function cmsEditorReturn(){
 
             // 4. 表单提交事件
             form.on("submit(save)", function (data) {
+                if (!categoryEditor.isReady()) { window.CmsUI.notice('栏目尚未初始化完成，请等待或重新加载'); return false; }
                 var formData = data.field;
                 formData.lang = currentArctypeLang();
 

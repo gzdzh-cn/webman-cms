@@ -1,3 +1,85 @@
+/* Report first-load readiness to the workspace. The parent retains mounted layouts. */
+(function (window, document) {
+    'use strict';
+    // Only embedded registered pages report initial readiness; standalone editors stay visible.
+    try { if (parent === window || !parent.CmsNavigation?.resolve(location.href)) return; } catch (_) { return; }
+    var root = document.documentElement;
+    // Hidden iframe clocks are throttled; schedule presentation on the workspace.
+    var clock = window.parent;
+    var active = true, loaded = false, pending = 0, revision = 0, scheduled = false, explicit = false;
+    var nativeFetch = window.fetch, nativeSend = XMLHttpRequest.prototype.send;
+    root.dataset.cmsPageState = 'pending';
+    root.setAttribute('aria-busy', 'true');
+    var resources = new Set(), completed = new WeakSet();
+    function watchResource(node) {
+        if (node.nodeType !== 1) return;
+        if ((node.matches('script[src]') || node.matches('link[rel="stylesheet"]')) && !completed.has(node)) resources.add(node);
+        node.querySelectorAll('script[src],link[rel="stylesheet"]').forEach(function (item) { if (!completed.has(item)) resources.add(item); });
+    }
+    function resourceDone(event) {
+        var node = event.target;
+        if (!(node instanceof Element) || !node.matches('script[src],link[rel="stylesheet"]')) return;
+        completed.add(node); resources.delete(node); revision++; schedule();
+    }
+    document.addEventListener('load', resourceDone, true);
+    document.addEventListener('error', resourceDone, true);
+    var observer = new MutationObserver(function (records) {
+        records.forEach(function (record) { record.addedNodes.forEach(watchResource); });
+        revision++; schedule();
+    });
+    observer.observe(document, {childList: true, subtree: true});
+    var deadline = clock.setTimeout(function () { finish('timeout'); }, 12000);
+    function finish(reason) {
+        if (!active) return;
+        active = false;
+        observer.disconnect();
+        document.removeEventListener('load', resourceDone, true);
+        document.removeEventListener('error', resourceDone, true);
+        clock.clearTimeout(deadline);
+        root.dataset.cmsPageState = reason === 'timeout' ? 'timeout' : 'ready';
+        root.removeAttribute('aria-busy');
+        window.dispatchEvent(new CustomEvent('cms-page-ready', {detail: {reason: reason}}));
+        window.frameElement?.dispatchEvent(new CustomEvent('cms-frame-content-ready'));
+    }
+    function schedule() {
+        resources.forEach(function (node) { if (!node.isConnected) resources.delete(node); });
+        if (!active || !loaded || (!explicit && pending) || resources.size || scheduled) return;
+        scheduled = true;
+        var stamp = revision, checked = false;
+        function check() {
+            if (checked) return;
+            checked = true;
+            scheduled = false;
+            if (!active || (!explicit && pending) || resources.size) return;
+            if (stamp !== revision) { schedule(); return; }
+            finish('settled');
+        }
+        // Use the visible workspace clock even while this document is preloading.
+        clock.requestAnimationFrame(function () { clock.requestAnimationFrame(check); });
+        clock.setTimeout(check, 32);
+    }
+    function begin() {
+        if (!active) return function () {};
+        pending++;
+        var ended = false;
+        return function () { if (ended) return; ended = true; pending--; revision++; schedule(); };
+    }
+    window.fetch = function () {
+        var end = begin();
+        try { return nativeFetch.apply(this, arguments).finally(end); }
+        catch (error) { end(); throw error; }
+    };
+    XMLHttpRequest.prototype.send = function () {
+        var end = begin();
+        this.addEventListener('loadend', end, {once: true});
+        try { return nativeSend.apply(this, arguments); }
+        catch (error) { this.removeEventListener('loadend', end); end(); throw error; }
+    };
+    window.CmsPageReady = {hold: begin, complete: function () { explicit = true; revision++; schedule(); }};
+    document.addEventListener('DOMContentLoaded', function () { loaded = true; revision++; schedule(); }, {once: true});
+    if (document.readyState !== 'loading') { loaded = true; schedule(); }
+})(window, document);
+
 /* Page-level adapter: editor language comes from the workspace, never a second picker. */
 (function (window, document) {
     'use strict';

@@ -203,7 +203,7 @@ class TemplateFileService
             $old = $exists ? file_get_contents($file) : null;
             if ($exists && $old === false) throw new RuntimeException('无法读取原模板文件');
             if (!$create && (!preg_match('/^[a-f0-9]{64}$/D', (string)($input['hash'] ?? '')) || !hash_equals(hash('sha256', $old), (string)$input['hash']))) throw new InvalidArgumentException('文件已被修改，请重新读取后保存');
-            if ($exists && hash_equals(hash('sha256', $old), hash('sha256', $bytes))) return ['path' => $path, 'hash' => hash('sha256', $bytes), 'changed' => false];
+            if ($exists && hash_equals(hash('sha256', $old), hash('sha256', $bytes))) return ['path' => $path, 'hash' => hash('sha256', $bytes), 'content' => $bytes, 'changed' => false];
             $mode = $exists ? (fileperms($file) & 0777) : 0644;
             $temporary = $this->temporary($directory, $bytes, $mode);
             if ($exists) $rollback = $this->temporary($directory, $old, $mode);
@@ -217,7 +217,7 @@ class TemplateFileService
                 $rollback = null;
                 throw new RuntimeException('缓存发布失败，模板内容已恢复', 0, $error);
             }
-            return ['path' => $path, 'hash' => hash('sha256', $bytes), 'changed' => true];
+            return ['path' => $path, 'hash' => hash('sha256', $bytes), 'content' => $bytes, 'changed' => true];
         } finally {
             if ($temporary !== null && is_file($temporary)) @unlink($temporary);
             if ($rollback !== null && is_file($rollback)) @unlink($rollback);

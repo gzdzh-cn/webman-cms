@@ -384,6 +384,22 @@ layui.define(['jquery', 'element'], function(exports) {
 	}
 
 	// Update an existing module tab without adding or selecting another tab.
+	// The CMS keeps page frames mounted; changing the saved tab metadata must not navigate them.
+	pearTab.prototype.rememberTabPage = function(id, url, title) {
+		id = String(id);
+		if (typeof url !== "string" || !url.trim()) return false;
+		var item = tabData.find(function(tab) { return tab.id === id; });
+		if (!item) return false;
+		item.url = url;
+		if (title !== undefined) {
+			item.title = String(title);
+			$("#" + this.option.elem).find(".layui-tab-title li").filter(function() { return $(this).attr("lay-id") === id; })
+				.find(".title").text(item.title);
+		}
+		storageSet(this.option.elem + "-pear-tab-data", JSON.stringify(tabData));
+		return true;
+	};
+
 	pearTab.prototype.replaceTabPage = function(id, url, title) {
 		id = String(id);
 		if (typeof url !== "string" || !url.trim()) return false;

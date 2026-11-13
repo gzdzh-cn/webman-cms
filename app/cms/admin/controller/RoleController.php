@@ -329,6 +329,8 @@ class RoleController extends \plugin\admin\app\controller\Crud
                 'value' => (string)$item->id,
                 'id' => $item->id,
                 'pid' => $item->pid,
+                // Tree adds ancestors for presentation even when the parent cannot grant them.
+                'assignable' => $rule_id_string === '*' || in_array((string)$item->id, $include, true),
             ];
         }
         $tree = new Tree($items);

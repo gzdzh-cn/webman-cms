@@ -86,7 +86,7 @@ body.role-editor{margin:0;background:#f4f6f9;color:#344054;font:14px/1.5 -apple-
 <main class="role-main">
 <form id="role-form" autocomplete="off">
 <section class="role-card" aria-labelledby="role-info-title"><div class="role-card-heading"><h2 id="role-info-title">角色信息</h2><span id="role-name-preview" class="role-name-preview"></span></div><div class="role-meta"><label class="role-field"><span><em>*</em>角色名称</span><input name="name" id="role-name" maxlength="255" required disabled placeholder="请输入角色名称"></label><label class="role-field"><span><em>*</em>父级角色</span><select name="pid" id="role-parent" disabled aria-describedby="parent-note"><option value="">读取中…</option></select></label></div><p class="hint" id="parent-note">功能权限受父级角色约束；调整父级后，请核对可选权限。</p></section>
-<section class="role-card" aria-labelledby="permission-title"><div class="role-card-heading"><h2 id="permission-title">功能权限</h2><span id="selection-count" class="role-selection">正在读取…</span></div><p class="role-super-note" id="super-note" hidden>超级管理员拥有全部功能权限，权限与父级不可在此调整。</p><div class="role-tools" data-cms-filter><input type="search" id="permission-search" class="role-search" aria-label="搜索功能权限" placeholder="搜索权限，例如文章、SEO、上传"><button type="button" id="select-all" disabled>全选</button><button type="button" id="clear-all" disabled>清空</button><button type="button" id="invert" disabled>反选</button><button type="button" id="expand-all" disabled>展开全部</button><button type="button" id="fold-all" disabled>收起全部</button></div><div id="permission-groups"><p class="role-loading">正在读取角色与权限…</p></div><p class="permission-empty" id="permission-empty" hidden>没有匹配的功能权限</p><p class="hint">勾选组名可全选或取消整组；部分权限选中时显示半选状态。</p></section>
+<section class="role-card" aria-labelledby="permission-title"><div class="role-card-heading"><h2 id="permission-title">功能权限</h2><span id="selection-count" class="role-selection">正在读取…</span></div><p class="role-super-note" id="super-note" hidden>超级管理员拥有全部功能权限，权限与父级不可在此调整。</p><div class="role-tools" data-cms-filter><input type="search" id="permission-search" class="role-search" aria-label="搜索功能权限" placeholder="搜索权限，例如文章、SEO、上传"><button type="button" id="select-all" disabled>全选</button><button type="button" id="clear-all" disabled>清空</button><button type="button" id="invert" disabled>反选</button><button type="button" id="expand-all" disabled>展开全部</button><button type="button" id="fold-all" disabled>收起全部</button></div><div id="permission-groups"><p class="role-loading">正在读取角色与权限…</p></div><p class="permission-empty" id="permission-empty" hidden>没有匹配的功能权限</p><p class="hint">勾选任一组名可全选下级，取消组名可清空下级；选中任一下级时，所属组名同步勾选。</p></section>
 <footer class="role-footer"><span id="save-note" class="role-footer-note">角色信息与功能权限一并保存</span><button type="submit" id="save-role" class="primary" disabled>保存角色</button><button type="button" id="reset-role" disabled>恢复已保存</button><button type="button" data-role-back>返回列表</button></footer>
 </form>
 </main>
@@ -104,7 +104,7 @@ const creating=document.body.dataset.roleCreate==='1';
 const permissionNames=<?= json_encode($cmsRolePermissionLabels, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE) ?>;
 const permissionTitle=item=>permissionNames[String(item.value)]??String(item.name??item.value);
 const params=new URLSearchParams(location.search),id=creating?'':params.get('id')||'',lang=params.get('lang'),back='/web-admin/role/index'+(lang?'?'+new URLSearchParams({lang}):'');
-let role=null,parents=[],selected=new Set(),available=new Map(),groups=[],boxes=new Map(),branchRows=[],savedRole='',savedLanguages='',scope=null,returning=false,busy=false,loading=false,languageBusy=false,rulesBusy=false,ruleRevision=0,leaveApproved=false,currentParent='',superRole=false,contentScope=null,contentBusy=false,savedContent='';
+let role=null,parents=[],selected=new Set(),available=new Map(),ruleParents=new Map(),groups=[],boxes=new Map(),branchRows=[],savedRole='',savedLanguages='',scope=null,returning=false,busy=false,loading=false,languageBusy=false,rulesBusy=false,ruleRevision=0,leaveApproved=false,currentParent='',superRole=false,contentScope=null,contentBusy=false,savedContent='';
 const node=(tag,text,className)=>{const element=document.createElement(tag);if(text!==undefined)element.textContent=text;if(className)element.className=className;return element};
 function status(message,error=false,target=$('page-status')){target.textContent=message;target.classList.toggle('error',error)}
 async function request(path,options={}){const response=await fetch('/web-admin/role/'+path,{cache:'no-store',...options,headers:{Accept:'application/json',...(options.headers||{})}});let result;try{result=await response.json()}catch(_){throw Error('响应无法读取，请检查登录状态后重试')}if(!response.ok||result.code!==0)throw Error(result.msg||'读取失败，请稍后重试');return result.data}
@@ -114,46 +114,41 @@ function dirty(){return roleForm.dataset.cmsDirty==='1'||languageForm.dataset.cm
 function clean(form){window.CmsUI?.clean(form);window.CmsModuleNavigation?.markClean(form);delete form.dataset.cmsDirty}
 function roleChanged(){if(savedRole&&signature()===savedRole)clean(roleForm);else roleForm.dataset.cmsDirty='1';$('save-note').textContent=roleForm.dataset.cmsDirty==='1'?'有未保存的角色修改':'角色信息与功能权限一并保存';summary()}
 function languageChanged(){if(languageSignature()===savedLanguages)clean(languageForm);else languageForm.dataset.cmsDirty='1';$('language-count').textContent=languageForm.querySelectorAll('input:checked').length+' 种'}
-function controls(){const blocked=busy||contentBusy||rulesBusy||!role||returning;name.disabled=blocked||superRole;parent.disabled=blocked||superRole||languageBusy;$('save-role').disabled=blocked||superRole||languageBusy;$('reset-role').disabled=blocked||languageBusy;['select-all','clear-all','invert'].forEach(key=>$(key).disabled=blocked||superRole);['expand-all','fold-all'].forEach(key=>$(key).disabled=blocked);boxes.forEach(box=>box.disabled=blocked||superRole);$('cms-role-languages-save').disabled=returning||!scope||scope.super||languageBusy||busy||contentBusy||rulesBusy||String(role?.pid)!==parent.value;$('reset-languages').disabled=returning||!scope||languageBusy||busy||contentBusy;languageForm.querySelectorAll('input').forEach(box=>box.disabled=returning||!scope||scope.super||languageBusy||busy||contentBusy||!scope.allowed.includes(box.dataset.lang));const contentBlocked=blocked||languageBusy||!contentScope||contentScope.super||String(role?.pid)!==parent.value;$('save-content-scope').disabled=contentBlocked;$('reset-content-scope').disabled=contentBlocked;contentForm.querySelectorAll('input,select').forEach(control=>control.disabled=contentBlocked||control.dataset.scopeAllowed==='0');$('save-role').textContent=loading?'正在读取…':busy?'正在保存…':creating?'创建角色':'保存角色';$('save-content-scope').textContent=contentBusy?'正在保存…':'保存内容范围'}
+function controls(){const blocked=busy||contentBusy||rulesBusy||!role||returning;name.disabled=blocked||superRole;parent.disabled=blocked||superRole||languageBusy;$('save-role').disabled=blocked||superRole||languageBusy;$('reset-role').disabled=blocked||languageBusy;['select-all','clear-all','invert'].forEach(key=>$(key).disabled=blocked||superRole);['expand-all','fold-all'].forEach(key=>$(key).disabled=blocked);boxes.forEach((box,key)=>box.disabled=blocked||superRole||assignable([available.get(key)]).length===0);$('cms-role-languages-save').disabled=returning||!scope||scope.super||languageBusy||busy||contentBusy||rulesBusy||String(role?.pid)!==parent.value;$('reset-languages').disabled=returning||!scope||languageBusy||busy||contentBusy;languageForm.querySelectorAll('input').forEach(box=>box.disabled=returning||!scope||scope.super||languageBusy||busy||contentBusy||!scope.allowed.includes(box.dataset.lang));const contentBlocked=blocked||languageBusy||!contentScope||contentScope.super||String(role?.pid)!==parent.value;$('save-content-scope').disabled=contentBlocked;$('reset-content-scope').disabled=contentBlocked;contentForm.querySelectorAll('input,select').forEach(control=>control.disabled=contentBlocked||control.dataset.scopeAllowed==='0');$('save-role').textContent=loading?'正在读取…':busy?'正在保存…':creating?'创建角色':'保存角色';$('save-content-scope').textContent=contentBusy?'正在保存…':'保存内容范围'}
 function finishSave(message,target=$('page-status')){if(dirty()){status(message+'，还有未保存的修改，请保存后再返回列表。',false,target);window.CmsUI.success(message);return}returning=true;leaveApproved=true;controls();status(message+'，正在返回角色列表…',false,target);window.CmsUI.success(message,()=>location.assign(back))}
 function collect(items){return items.flatMap(item=>[String(item.value),...collect(item.children||[])])}
+function assignable(items){return items.flatMap(item=>[...(item.assignable===false?[]:[String(item.value)]),...assignable(item.children||[])])}
+function syncAncestors(key){for(let ancestor=ruleParents.get(key);ancestor!==undefined;ancestor=ruleParents.get(ancestor)){const item=available.get(ancestor),hasSelection=collect(item.children||[]).some(id=>selected.has(id));if(hasSelection&&item.assignable!==false)selected.add(ancestor);else if(!hasSelection)selected.delete(ancestor)}}
 function summary(){
-    const count=[...available.keys()].filter(key=>selected.has(key)).length;
-    $('selection-count').textContent='已选 '+count+' / '+available.size+' 项';
-    boxes.forEach((box,key)=>{box.checked=selected.has(key);box.indeterminate=false});
+    const ids=[...available.keys()].filter(key=>available.get(key).assignable!==false),count=ids.filter(key=>selected.has(key)).length;
+    $('selection-count').textContent='已选 '+count+' / '+ids.length+' 项';
+    boxes.forEach((box,key)=>{box.checked=selected.has(key)||collect(available.get(key).children||[]).some(id=>selected.has(id));box.indeterminate=false;box.setAttribute('aria-checked',String(box.checked))});
     groups.forEach(group=>{
         const count=group.ids.filter(key=>selected.has(key)).length;
         group.count.textContent=count+'/'+group.ids.length;
-        const box=boxes.get(group.key);
-        box.checked=count===group.ids.length;
-        box.indeterminate=count>0&&count<group.ids.length;
-        box.setAttribute('aria-checked',box.indeterminate?'mixed':String(box.checked));
     });
 }
-function markRule(key,checked){if(checked)selected.add(key);else selected.delete(key);roleChanged();status('')}
-function checkbox(item,members=null){
+function markRule(key,checked){assignable([available.get(key)]).forEach(id=>{if(checked)selected.add(id);else selected.delete(id)});syncAncestors(key);roleChanged();status('')}
+function checkbox(item){
     const key=String(item.value),label=node('label',undefined,'permission-label'),box=node('input');
     box.type='checkbox';box.setAttribute('lay-ignore','');box.dataset.rule=key;
-    if(members)box.dataset.permissionGroup='1';
+    if(item.children?.length)box.dataset.permissionGroup='1';
     box.checked=selected.has(key);box.disabled=superRole;
     box.addEventListener('change',()=>{
         if(box.disabled||busy||rulesBusy||returning||superRole){summary();return}
-        if(!members){markRule(key,box.checked);return}
-        const checked=box.checked;
-        members.forEach(id=>{if(checked)selected.add(id);else selected.delete(id)});
-        roleChanged();status('');
+        markRule(key,box.checked);
     });
     label.append(box,node('span',permissionTitle(item)));boxes.set(key,box);return label;
 }
 function branch(item){const children=item.children||[],label=checkbox(item);if(!children.length){branchRows.push({element:label,text:permissionTitle(item).toLowerCase()});return label}const section=node('div',undefined,'permission-module'),body=node('div',undefined,'permission-leaves');section.append(label,body);children.forEach(child=>body.append(branch(child)));branchRows.push({element:section,text:section.textContent.toLowerCase()});return section}
 function filter(){const query=$('permission-search').value.trim().toLowerCase();let matches=0;groups.forEach(group=>{const own=group.title.includes(query);group.element.hidden=!!query&&!own&&!group.text.includes(query);if(!group.element.hidden){matches++;if(query)group.element.open=true;}group.rows.forEach(row=>row.element.hidden=!!query&&!own&&!row.text.includes(query))});$('permission-empty').hidden=matches>0}
 function renderRules(items){
-    available=new Map();groups=[];boxes=new Map();branchRows=[];
+    available=new Map();ruleParents=new Map();groups=[];boxes=new Map();branchRows=[];
     const host=$('permission-groups');host.replaceChildren();
-    const index=rows=>rows.forEach(item=>{available.set(String(item.value),item);index(item.children||[])});index(items);
+    const index=(rows,parentKey)=>rows.forEach(item=>{const key=String(item.value);available.set(key,item);if(parentKey!==undefined)ruleParents.set(key,parentKey);index(item.children||[],key)});index(items);
     items.forEach(item=>{
         const element=node('details',undefined,'permission-group');element.open=true;
-        const heading=node('summary'),ids=collect([item]),label=checkbox(item,ids),count=node('span',undefined,'group-count');
+        const heading=node('summary'),ids=assignable([item]),label=checkbox(item),count=node('span',undefined,'group-count');
         label.addEventListener('click',event=>event.stopPropagation());heading.append(label,count);
         const body=node('div',undefined,'permission-body'),start=branchRows.length;
         (item.children||[]).forEach(child=>body.append(branch(child)));
@@ -164,7 +159,7 @@ function renderRules(items){
     summary();filter();controls();
 }
 function fillParents(){parent.replaceChildren();parent.append(new Option('顶级角色','0'));const descendants=new Set([String(role.id)]);function mark(items,included=false){items.forEach(item=>{const within=included||String(item.value)===String(role.id);if(within)descendants.add(String(item.value));mark(item.children||[],within)})}mark(parents);function append(items,depth=0){items.forEach(item=>{const option=new Option('　'.repeat(depth)+String(item.name),String(item.value));option.disabled=descendants.has(String(item.value));parent.append(option);append(item.children||[],depth+1)})}append(parents);if(![...parent.options].some(option=>option.value===String(role.pid))){const option=new Option('当前父级 #'+role.pid,String(role.pid));parent.append(option)}parent.value=String(role.pid);currentParent=parent.value}
-async function fetchRules(pid,prune=false){const revision=++ruleRevision;rulesBusy=true;controls();try{const data=await request('rules?'+new URLSearchParams({id:superRole?role.id:String(pid)==='0'?1:pid}));if(revision!==ruleRevision)return false;if(!Array.isArray(data))throw Error('权限列表格式不正确');const allowed=new Set(collect(data));let removed=0;if(superRole)selected=new Set(allowed);else if(prune)for(const key of selected)if(!allowed.has(key)){selected.delete(key);removed++}renderRules(data);if(removed)status('已移除 '+removed+' 项超出新父级范围的权限，请核对后保存。');return true}finally{if(revision===ruleRevision){rulesBusy=false;controls()}}}
+async function fetchRules(pid,prune=false){const revision=++ruleRevision;rulesBusy=true;controls();try{const data=await request('rules?'+new URLSearchParams({id:superRole?role.id:String(pid)==='0'?1:pid}));if(revision!==ruleRevision)return false;if(!Array.isArray(data))throw Error('权限列表格式不正确');const allowed=new Set(assignable(data));let removed=0;if(superRole)selected=new Set(allowed);else if(prune)for(const key of selected)if(!allowed.has(key)){selected.delete(key);removed++}renderRules(data);if(removed)status('已移除 '+removed+' 项超出新父级范围的权限，请核对后保存。');return true}finally{if(revision===ruleRevision){rulesBusy=false;controls()}}}
 async function loadLanguages(){scope=null;controls();if(creating)return;try{const data=await request('languagescope?'+new URLSearchParams({id}));scope=data;const root=$('cms-role-languages');root.replaceChildren();data.languages.forEach(language=>{const label=node('label'),box=node('input');box.type='checkbox';box.setAttribute('lay-ignore','');box.dataset.lang=language.mark;box.checked=data.selected.includes(language.mark);box.addEventListener('change',languageChanged);label.append(box,node('span',language.title),node('small',language.mark));root.append(label)});savedLanguages=languageSignature();clean(languageForm);languageChanged();status(data.super?'超级管理员始终拥有全部语言。':'',false,$('cms-role-languages-status'))}catch(error){window.CmsUI.failure(error.message);status(error.message,true,$('cms-role-languages-status'));$('cms-role-languages').textContent='语言范围暂不可用'}finally{controls()}}
 function contentGrants(){const grants=[];contentForm.querySelectorAll('[data-content-kind]').forEach(group=>{const mode=group.querySelector('select').value;if(mode==='none')return;const categories=mode==='all'?null:[...group.querySelectorAll('input:checked')].map(box=>Number(box.value)).sort((a,b)=>a-b);if(categories===null||categories.length)grants.push({categories,ownership:group.dataset.contentKind})});return grants}
 function contentSignature(){return JSON.stringify(contentGrants())}
@@ -175,7 +170,14 @@ async function loadContentScope(){contentScope=null;controls();if(creating)retur
 async function load(){loading=true;busy=true;controls();status('');try{if(!creating&&(!/^\d+$/.test(id)||Number(id)<1))throw Error('角色编号无效，请返回角色列表');const [rows,tree]=await Promise.all([creating?Promise.resolve([{id:0,name:'',pid:0,rules:''}]):request('select?'+new URLSearchParams({id})),request('select?format=tree')]);if(!Array.isArray(rows)||!rows.length)throw Error('角色不存在或无权访问');role={...rows[0],pid:rows[0].pid??0};parents=tree;superRole=role.rules==='*';name.value=role.name;$('role-name-preview').textContent=role.name;$('role-id').textContent=creating?'新角色':'#'+role.id;$('super-note').hidden=!superRole;fillParents();selected=new Set(String(role.rules||'').split(',').filter(value=>value&&value!=='*'));await fetchRules(role.pid);savedRole=signature();clean(roleForm);await loadLanguages();await loadContentScope();roleChanged()}catch(error){role=null;status(error.message,true);$('permission-groups').replaceChildren(node('p','角色资料未完整加载，请返回列表或刷新重试。','permission-empty'));$('selection-count').textContent='未加载'}finally{loading=false;busy=false;controls()}}
 parent.addEventListener('change',async()=>{if(languageForm.dataset.cmsDirty==='1'||contentForm.dataset.cmsDirty==='1'){parent.value=currentParent;status('请先保存语言或内容范围，或恢复选择后再调整父级。',true);roleChanged();return}const previous=currentParent;const next=parent.value;try{if(await fetchRules(next,true)){currentParent=next;roleChanged();if(next!==String(role.pid))status('父级已调整，请核对功能权限并先保存角色，再设置语言范围。',false,$('cms-role-languages-status'))}}catch(error){parent.value=previous;status(error.message,true);roleChanged()}controls()});
 name.addEventListener('input',roleChanged);$('permission-search').addEventListener('input',filter);
-['select-all','clear-all','invert'].forEach(key=>$(key).addEventListener('click',()=>{if(key==='clear-all')selected.clear();else available.forEach((item,id)=>{if(key==='invert'&&selected.has(id))selected.delete(id);else selected.add(id)});roleChanged()}));
+['select-all','clear-all','invert'].forEach(key=>$(key).addEventListener('click',()=>{
+    if(key==='clear-all')selected.clear();
+    else if(key==='invert'){
+        available.forEach((item,id)=>{if(item.assignable===false)return;if(item.children?.length||selected.has(id))selected.delete(id);else selected.add(id)});
+        [...selected].filter(id=>available.has(id)&&!available.get(id).children?.length).forEach(syncAncestors);
+    }else available.forEach((item,id)=>{if(item.assignable!==false)selected.add(id)});
+    roleChanged();status('');
+}));
 $('expand-all').addEventListener('click',()=>groups.forEach(group=>group.element.open=true));$('fold-all').addEventListener('click',()=>groups.forEach(group=>group.element.open=false));
 if(creating)$('reset-role').textContent='重置表单';
 $('reset-role').addEventListener('click',async()=>{if(dirty()&&!await window.CmsUI.confirm('放弃当前未保存的修改，重新读取已保存的角色？',{title:'还原角色修改',confirmText:'放弃修改',cancelText:'继续编辑'}))return;window.CmsUI.clean(roleForm);window.CmsUI.clean(languageForm);clean(contentForm);load()});

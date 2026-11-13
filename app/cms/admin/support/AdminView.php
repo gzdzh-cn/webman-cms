@@ -70,7 +70,13 @@ final class AdminView
         $state['csrf'] = LanguageAdminSecurity::token($request);
         $json = json_encode($state, JSON_HEX_TAG|JSON_HEX_AMP|JSON_HEX_APOS|JSON_HEX_QUOT|JSON_THROW_ON_ERROR);
         $url = htmlspecialchars(\app\cms\AssetManifest::url('/admin-assets/js/cms-language-context.js'), ENT_QUOTES, 'UTF-8');
-        return preg_replace('/<head\b[^>]*>/i', '$0'.'<script>window.CmsLanguageInitial='.$json.';</script><script src="'.$url.'"></script>', $html, 1);
+        // Establish embedded-page presentation before parsing any body content.
+        // Applying it on the iframe load event exposed retired headings for a frame.
+        $layoutCss = htmlspecialchars(\app\cms\AssetManifest::url('/admin-assets/css/cms-page-layout.css'), ENT_QUOTES, 'UTF-8');
+        $presentation = '<script>try{if(parent!==window&&parent.CmsNavigation&&parent.CmsNavigation.resolve(location.href)&&/\/(index|dashboard|featuremap)\/?$/.test(location.pathname)){document.documentElement.classList.add("cms-workspace-document");}}catch(_){}</script>'
+            . '<style>html.cms-workspace-document body>h1,html.cms-workspace-document body>main>h1,html.cms-workspace-document body>main>header>h1,html.cms-workspace-document .cms-module-navigation>.cms-module-heading,html.cms-workspace-document #management>.page-head h1{display:none!important}</style>'
+            . '<link rel="stylesheet" data-cms-page-layout="1" href="'.$layoutCss.'">';
+        return preg_replace('/<head\b[^>]*>/i', '$0'.$presentation.'<script>window.CmsLanguageInitial='.$json.';</script><script src="'.$url.'"></script>', $html, 1);
     }
 
     private static function variables(array $vars): array

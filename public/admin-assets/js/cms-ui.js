@@ -10,6 +10,18 @@ function dirty(root){if(root&&!filter(root))root.dataset.cmsDirty='1';}
 function isBusy(root=document){return !!(root.matches?.('[data-cms-submit-busy][aria-busy="true"],[data-cms-upload-busy="1"]')||root.querySelector?.('[data-cms-submit-busy][aria-busy="true"],[data-cms-upload-busy="1"]'));}
 function isDirty(root=document){return !!root.querySelector?.('[data-cms-dirty="1"]')||root.dataset?.cmsDirty==='1';}
 function safeUrl(value){try{const u=new URL(value,location.href);return u.origin===location.origin&&/^\/web-admin\//.test(u.pathname)?u:null;}catch(_){return null;}}
+function openEditor(href){
+ const target=safeUrl(href);if(!target)return false;
+ const source=new URL(location.href),language=window.CmsEditContext?.get()?.edit||source.searchParams.get('lang')||window.CmsLanguageInitial?.lang;
+ if(language)target.searchParams.set('lang',language);
+ if(!target.searchParams.has('return'))target.searchParams.set('return',source.pathname+source.search);
+ try{if(parent!==window&&parent.CmsNavigation?.openEditor){const result=parent.CmsNavigation.openEditor(target.href,window);if(result!==null)return result}}catch(error){notice('编辑页面暂时无法打开，请重试。');return false;}
+ return leave(()=>location.assign(target.pathname+target.search));
+}
+function navigateBack(target,saved){
+ try{if(parent!==window&&parent.CmsNavigation?.returnEditor(window,{href:target,saved}))return;}catch(_){}
+ if(target)location.assign(target);
+}
 function notice(text){let box=document.querySelector('[data-cms-ui-notice]');if(!box){box=document.createElement('div');box.dataset.cmsUiNotice='';box.className='cms-ui-notice';box.setAttribute('role','status');document.body.append(box);}box.textContent=text;box.hidden=!text;}
 async function confirm(message,options={}){
  if(confirming)return false;
@@ -32,13 +44,17 @@ function discard(root=document){clean(root);root.querySelectorAll('dialog[open]'
 function guard(callback,root=document){
  if(isBusy(root)){notice('正在处理，请完成后再离开。');return false;}
  const open=root.querySelector('dialog[open]:not([data-cms-ui-owned]),.layui-layer-page,.layui-layer-iframe,.layui-layer-dialog');
- if(!isDirty(root)&&!open)return true;
+ if(!isDirty(root)){
+  if(!open)return true;
+  const windows=Array.from(root.querySelectorAll('dialog[open]:not([data-cms-ui-owned]),.layui-layer-page,.layui-layer-iframe,.layui-layer-dialog'));
+  if(windows.every(node=>node.matches('dialog[data-cms-editor="page"]'))){discard(root);return true;}
+ }
  if(!callback)return false;
  (async()=>{if(isDirty(root)){if(!await leave(null,root))return;}else if(!await confirm('离开页面将关闭当前窗口，是否继续？',{title:'关闭当前窗口',confirmText:'离开页面',cancelText:'继续操作'}))return;discard(root);callback();})();return false;
 }
 function returnUrl(explicit){const requested=safeUrl(new URL(location.href).searchParams.get('return'));const fallback=safeUrl(explicit||document.body.dataset.cmsReturnUrl||location.pathname.replace(/\/(insert|update)\/?$/,'/index'));const u=requested&&fallback&&requested.pathname===fallback.pathname?requested:fallback;if(!u)return null;const language=new URL(location.href).searchParams.get('lang');if(language)u.searchParams.set('lang',language);return u.pathname+u.search+u.hash;}
-function back(explicit){const target=returnUrl(explicit);if(target)return leave(()=>location.assign(target));return Promise.resolve(false);}
-function saved(explicit){clean();const target=returnUrl(explicit);if(Date.now()-lastSuccess<4000&&lastSuccessPopup){return lastSuccessPopup.finished.then(()=>{if(target)location.assign(target);});}return success('保存成功',()=>{if(target)location.assign(target);});}
+function back(explicit){const target=returnUrl(explicit);if(target)return leave(()=>navigateBack(target,false));return Promise.resolve(false);}
+function saved(explicit){clean();const target=returnUrl(explicit);if(Date.now()-lastSuccess<4000&&lastSuccessPopup){return lastSuccessPopup.finished.then(()=>{if(target)navigateBack(target,true);});}return success('保存成功',()=>{if(target)navigateBack(target,true);});}
 function setBusy(root,value){if(!root)return;root.toggleAttribute('data-cms-submit-busy',!!value);root.setAttribute('aria-busy',String(!!value));const controls=root.querySelectorAll('button,input[type=submit]');if(value){controls.forEach(button=>{if(!busyState.has(button))busyState.set(button,{disabled:button.disabled,text:button.textContent});button.disabled=true;if(button.type==='submit'&&button.tagName==='BUTTON')button.textContent='正在保存…';});}else controls.forEach(button=>{const saved=busyState.get(button);if(saved){button.disabled=saved.disabled;button.textContent=saved.text;busyState.delete(button);}});}
 function error(root,message,fields={}){
  root=root||document.body;root.querySelectorAll('.cms-ui-field-error').forEach(e=>e.remove());root.querySelectorAll('[aria-invalid=true]').forEach(e=>e.removeAttribute('aria-invalid'));
@@ -131,6 +147,6 @@ function toast(message,options={}){
         let closed=false;function close(){if(closed)return;closed=true;dialog.close();dialog.remove();previous?.focus?.()}
         return {update(text){if(!closed)message.textContent=text},close,async finish(result={}){if(closed)return;dialog.dataset.kind=result.kind||'success';emblem.classList.remove('cms-ui-spinner');emblem.textContent=result.kind==='error'?'!':'✓';title.textContent=result.title||'操作完成';message.textContent=result.message||'已完成';track.hidden=true;await new Promise(resolve=>window.setTimeout(resolve,result.duration??1000));close()}};
     }
-    window.CmsUI={toast,feedback,success,failure,warning,persist,progress,confirm,leave,guard,discard,back,saved,clean,dirty,isDirty,layer,setBusy,error,notice,returnUrl,setup};
+    window.CmsUI={openEditor,toast,feedback,success,failure,warning,persist,progress,confirm,leave,guard,discard,back,saved,clean,dirty,isDirty,layer,setBusy,error,notice,returnUrl,setup};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 })(window,document);

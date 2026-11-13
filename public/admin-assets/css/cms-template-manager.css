@@ -14,6 +14,9 @@ body.cms-template-page{box-sizing:border-box;margin:0;padding:20px;background:#f
 .cms-template-page button{cursor:pointer}
 .cms-template-page button:not(:disabled):hover{border-color:#a9bad1;background:#f8fafc}
 .cms-template-page button:disabled{cursor:default;color:#8a96a7;background:#f8fafc}
+.cms-template-page .cms-filterbar>.cms-template-refresh{display:inline-flex;align-items:center;justify-content:center;flex:0 0 36px;width:36px;height:36px;min-height:36px;margin-left:auto;padding:8px;border:1px solid #dce3ec;border-radius:5px;color:#64748b;background:#fff;line-height:1}
+.cms-template-page .cms-filterbar>.cms-template-refresh:not(:disabled):hover{border-color:#a9bad1;background:#f5f8fc;color:#2563eb}
+.cms-template-refresh svg{display:block;flex:none}
 .cms-template-page a{color:#2563eb;text-decoration:none}
 .cms-template-page a:hover{color:#1d4ed8}
 .cms-template-page :focus-visible{outline:2px solid #6b9afa;outline-offset:3px}

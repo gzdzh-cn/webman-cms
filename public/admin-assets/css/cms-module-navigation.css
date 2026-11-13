@@ -1,6 +1,7 @@
 body.cms-module-page { margin: 0; padding: 20px; background: #f4f6f9; color: #263249; box-sizing: border-box; }
 .cms-module-navigation { margin: 0 0 20px; font: 14px/1.5 system-ui, sans-serif; }
 .cms-module-navigation .cms-module-heading { margin: 0 0 14px; font-size: 22px; font-weight: 600; line-height: 1.5; color: #243149; }
+.cms-module-navigation>.cms-module-heading{display:none!important}
 .cms-module-navigation .cms-module-tabs { display: flex; flex-wrap: wrap; gap: 4px 20px; align-items: center; margin: 0; padding: 0; border-bottom: 1px solid #dfe5ed; }
 .cms-module-navigation .cms-module-tabs a { display: block; padding: 9px 2px 11px; border-bottom: 2px solid transparent; color: #5d6b80; text-decoration: none; white-space: nowrap; }
 .cms-module-navigation .cms-module-tabs a:hover { color: var(--cms-page-blue,#2563eb); }

@@ -444,7 +444,7 @@ function cmsOpenEditor(href) {
     const language=window.CmsEditContext?.get()?.edit||source.searchParams.get('lang')||window.CmsLanguageInitial?.lang;
     if(language)target.searchParams.set('lang',language);
     target.searchParams.set('return',source.pathname+source.search);
-    location.assign(target.pathname+target.search);
+    window.CmsUI.openEditor(target.pathname+target.search);
 }
 </script>
 </body>

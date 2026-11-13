@@ -23,6 +23,9 @@ body.cms-content-page{box-sizing:border-box;margin:0;padding:20px;background:#f5
 .cms-content-page :focus-visible{outline:2px solid #6b9afa;outline-offset:2px}
 .cms-content-page .hint,.cms-content-page .muted{color:#768398;font-size:13px;line-height:1.7;margin:12px 0}
 .cms-content-page .status,.cms-content-page #message{color:#b52828;white-space:pre-wrap;overflow-wrap:anywhere}
+/* Page progress and empty/success hints are neutral; only failures use red. */
+.cms-content-page #status,.cms-content-page #message{color:#64748b}
+.cms-content-page #status[data-error="true"],.cms-content-page #message[data-error="true"]{color:#b52828}
 .cms-content-page .status:empty,.cms-content-page #message:empty,.cms-content-page #owner:empty{display:none}
 .cms-content-page .cms-table-scroll{width:100%;max-width:100%;overflow-x:auto;margin-top:20px;border:1px solid #e5eaf1;border-radius:6px}
 .cms-content-page .cms-table-scroll>table{display:table;width:100%;min-width:640px;margin:0;border-collapse:collapse;font-size:14px}

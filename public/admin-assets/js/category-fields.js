@@ -114,19 +114,22 @@
             if (provenance) provenance.reset();
             provenance = window.CmsHtmltextProvenance.create();
             host.replaceChildren(element('p', '正在加载栏目字段…'));
+            const controller = new AbortController(), timeout = setTimeout(() => controller.abort(), 10000);
             try {
-                const response = await fetch('/web-admin/channelfield/categoryFields?typeid=' + encodeURIComponent(typeId || 0));
+                const response = await fetch('/web-admin/channelfield/categoryFields?typeid=' + encodeURIComponent(typeId || 0), {signal: controller.signal});
                 const result = await response.json();
                 if (version !== requestVersion) return;
                 if (!response.ok || result.code !== 0 || !Array.isArray(result.data)) throw Error(result.msg || '栏目字段加载失败');
                 fields = result.data; host.replaceChildren(); fields.forEach(render);
                 if (card) card.hidden = fields.length === 0;
                 ready = true;
+                return true;
             } catch (error) {
                 if (version !== requestVersion) return;
                 if (card) card.hidden = false;
-                host.replaceChildren(element('p', error.message), button('重新加载', () => window.CategoryFields.mount(container, requestedTypeId, card)));
-            }
+                host.replaceChildren(element('p', error.name === 'AbortError' ? '栏目字段读取超时，请重试' : error.message), button('重新加载', () => window.CategoryFields.mount(container, requestedTypeId, card)));
+                return false;
+            } finally { clearTimeout(timeout); }
         },
         collect() {
             if (!ready) throw Error('栏目字段尚未加载完成，请稍后重试');
