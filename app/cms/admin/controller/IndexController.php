@@ -27,7 +27,7 @@ class IndexController
      * 不需要鉴权的方法
      * @var string[]
      */
-    protected $noNeedAuth = ['dashboard', 'featuremap', 'restartInfo', 'restartStart', 'restartStatus'];
+    protected $noNeedAuth = ['dashboard', 'featuremap', 'serverInfo', 'restartInfo', 'restartStart', 'restartStatus'];
 
     /**
      * 后台主页
@@ -62,8 +62,26 @@ class IndexController
             'documents' => $repository->table('archives')->where(['is_del' => 0, 'lang' => \app\cms\CmsContext::current()->lang])->count(),
             'today' => $repository->table('archives')->where(['is_del' => 0, 'lang' => \app\cms\CmsContext::current()->lang])->where('add_time', '>=', strtotime('today'))->count(),
             'messages' => $repository->table('guestbook')->where(['is_read' => 0, 'lang' => \app\cms\CmsContext::current()->lang])->count(),
-            'dashboardInfo' => (new \app\cms\service\AdminDashboardInfo())->collect($request, $repository),
+            'dashboardInfo' => (new \app\cms\service\AdminDashboardInfo())->collect($request, $repository, \app\cms\cache\CachePolicy::isDevelopment()),
+            'serverDetailsAllowed' => \app\cms\cache\CachePolicy::isDevelopment(),
         ]);
+    }
+
+    /** Same login requirement as the workbench. No caller-supplied collection targets. */
+    public function serverInfo(Request $request): Response
+    {
+        if ($request->method() !== 'GET') return response('Method Not Allowed', 405)->withHeader('Cache-Control', 'no-store');
+        $details = $request->get('details', '0');
+        if (!is_string($details) || !in_array($details, ['0', '1'], true)) return json(['code'=>1, 'msg'=>'无效的详情参数', 'data'=>[]])->withStatus(400)->withHeader('Cache-Control', 'no-store');
+        if ($details === '1' && !\app\cms\cache\CachePolicy::isDevelopment()) {
+            return json(['code'=>2, 'msg'=>'仅在 app.debug 开启时允许查看服务器详情', 'data'=>[]])->withStatus(403)->withHeader('Cache-Control', 'no-store');
+        }
+        try {
+            $info = (new \app\cms\service\AdminDashboardInfo())->collect($request, new \app\cms\repository\CmsRepository(), $details === '1');
+            return json(['code'=>0, 'msg'=>'ok', 'data'=>$info['statistics']])->withHeader('Cache-Control', 'no-store');
+        } catch (\Throwable) {
+            return json(['code'=>1, 'msg'=>'服务器信息采样失败，请重试', 'data'=>[]])->withStatus(503)->withHeader('Cache-Control', 'no-store');
+        }
     }
 
     /** A login-protected directory; each destination keeps its own authorization. */

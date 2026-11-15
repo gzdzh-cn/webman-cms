@@ -110,7 +110,11 @@ class App extends \support\App
             worker_start($processName, $process[$processName]);
         } else if (DIRECTORY_SEPARATOR === '/') {
             foreach (config('process', []) as $processName => $config) {
-                worker_start($processName, $config);
+                if (in_array($processName, ['cms-background','cms-baidu-push','cms-generation'], true)) {
+                    \app\cms\support\TaskProcess::start($processName, $config);
+                } elseif ($processName === 'monitor') {
+                    \app\cms\support\MonitorProcess::start($config);
+                } else worker_start($processName, $config);
             }
             foreach (config('plugin', []) as $firm => $projects) {
                 foreach ($projects as $name => $project) {

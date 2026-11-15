@@ -100,6 +100,8 @@ final class DeploymentConfig
         if(array_key_exists('CMS_SECURITY_KEY_FILE',Environment::overrides()))$warnings[]='CMS_SECURITY_KEY_FILE 已废弃并忽略，可删除该环境变量';
         if(array_key_exists('site',$document))$warnings[]='site 区段已废弃并忽略，可删除；网址与主题使用后台设置，根路径和私有备份目录由系统管理';
         foreach(ConfigSchema::retiredSite() as $name)if(array_key_exists($name,Environment::overrides()))$warnings[]=$name.' 已废弃并忽略，可删除该环境变量';
-        return ['ok'=>true,'fixed'=>(bool)\app\cms\support\EmbeddedResources::yaml(),'configuration_source'=>\app\cms\support\EmbeddedResources::yaml()?'embedded':'external','file'=>self::file(),'exists'=>is_file(self::file()),'fields'=>$fields,'warnings'=>$warnings];
+        $highPerformance = self::get('performance.separate_task_processes');
+        $topology = ['mode'=>$highPerformance?'separate':'combined', 'high_performance'=>$highPerformance, 'background_processes'=>$highPerformance?['cms-baidu-push','cms-generation']:['cms-background'], 'production_processes'=>self::get('server.workers')+($highPerformance?4:2), 'monitor_process'=>$highPerformance, 'memory_watchdog'=>$highPerformance?'monitor':'master', 'effective'=>'restart', 'reload_switches_mode'=>false];
+        return ['ok'=>true,'process_topology'=>$topology,'fixed'=>(bool)\app\cms\support\EmbeddedResources::yaml(),'configuration_source'=>\app\cms\support\EmbeddedResources::yaml()?'embedded':'external','file'=>self::file(),'exists'=>is_file(self::file()),'fields'=>$fields,'warnings'=>$warnings];
     }
 }

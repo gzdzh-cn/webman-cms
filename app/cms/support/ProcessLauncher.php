@@ -44,13 +44,20 @@ final class ProcessLauncher
         // executable and selected external config identity instead of a substring.
         if(!$valid&&PHP_OS_FAMILY==='Linux'&&\Phar::running(false)){
             $args=explode("\0",$raw);
-            if(($args[0]??null)===\Phar::running(false)&&in_array($args[1]??'', ['start','restart'],true)){
+            $executable=(string)($args[0]??'');
+            if($executable!==''&&!str_starts_with($executable,'/')){
+                $cwd=@readlink('/proc/'.$pid.'/cwd');
+                $executable=is_string($cwd)?$cwd.'/'.$executable:'';
+            }
+            $expected=realpath(\Phar::running(false));
+            if($expected!==false&&$executable!==''&&realpath($executable)===$expected&&in_array($args[1]??'', ['start','restart'],true)){
                 $environment=@file_get_contents('/proc/'.$pid.'/environ');
                 if(is_string($environment)){
                     $values=[];foreach(explode("\0",$environment)as$line){$pair=explode('=',$line,2);if(count($pair)===2)$values[$pair[0]]=$pair[1];}
                     $current=\app\cms\config\Environment::processEnvironment();$valid=true;
                     $keys=['CMS_ENV_FILE','CMS_CONFIG_FILE'];
-                    foreach(\app\cms\config\ConfigSchema::fields()as$field=>$spec)if($spec[1]!==''&&!str_starts_with($field,'redis.'))$keys[]=$spec[1];
+                    // A topology override changes the next launch, not this site's identity.
+                    foreach(\app\cms\config\ConfigSchema::fields()as$field=>$spec)if($spec[1]!==''&&!str_starts_with($field,'redis.')&&$field!=='performance.separate_task_processes')$keys[]=$spec[1];
                     foreach($keys as$key)if(($values[$key]??null)!==($current[$key]??null))$valid=false;
                 }
             }

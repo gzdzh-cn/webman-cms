@@ -56,9 +56,18 @@ final class BaiduPushScheduleService
         $store=$this->store($lang);
         return $store->locked(function()use($store,$lang,$enabled,$expression,$zone,$limit,$site,$now){
             $state=$store->read('schedule',$this->defaults());
+            if ($enabled === '0') {
+                // Keep in-flight identity, cursor and site. Its receipt cannot re-enable us.
+                $state['enabled'] = false;
+                $state['confirm_http'] = false;
+                $state['updated_at'] = $now;
+                $state['revision'] = bin2hex(random_bytes(12));
+                $store->write('schedule', $state);
+                return $this->present($lang, $state, $now);
+            }
             if (($state['lease_until']??0)>$now) throw new \InvalidArgumentException('推送正在执行，请稍后保存');
             $changed=$state['site']!==$site;
-            $state=array_replace($state,['enabled'=>$enabled==='1','cron'=>$expression->expression,'timezone'=>$zone,'limit'=>(int)$limit,'site'=>$site,'confirm_http'=>$enabled==='1','updated_at'=>$now]);
+            $state=array_replace($state,['enabled'=>$enabled==='1','cron'=>$expression->expression,'timezone'=>$zone,'limit'=>(int)$limit,'site'=>$site,'confirm_http'=>$enabled==='1','updated_at'=>$now,'revision'=>bin2hex(random_bytes(12))]);
             // Saving never immediately submits, and cannot re-arm the current minute.
             $state['last_slot']=max((int)$state['last_slot'],intdiv($now,60)*60);
             if ($changed) { $state['cursor']=0; unset($state['quota_day'],$state['quota_site'],$state['remaining']); }
@@ -70,15 +79,37 @@ final class BaiduPushScheduleService
     /** Only worker/CLI calls this method; there is no public trigger route. */
     public function tick(?int $now=null): array
     {
+        $results = [];
+        $count = count((new LanguagePolicy($this->repository))->publicLanguages());
+        for ($i = 0; $i < $count; $i++) {
+            $next = $this->tickOne($now);
+            if (!$next) break;
+            $results += $next;
+        }
+        return $results;
+    }
+
+    /** At most one request. $after is this worker's last observed instant, never offline history. */
+    public function tickOne(?int $now = null, ?int $after = null): array
+    {
         if (CmsContext::current()->request || !in_array(PHP_SAPI,['cli','micro'],true)) throw new \RuntimeException('定时调度仅允许后台进程执行');
-        $results=[];
+        $instant = $now ?? time();
+        $after ??= intdiv($instant, 60) * 60 - 1;
+        $candidates = [];
         foreach ((new LanguagePolicy($this->repository))->publicLanguages() as $language) {
-            $lang=(string)$language['mark'];$instant=$now??time();$store=$this->store($lang);
-            $claim=$store->locked(function()use($store,$instant){
-                $state=$store->read('schedule',$this->defaults());$slot=intdiv($instant,60)*60;
-                if (!$state['enabled']||empty($state['confirm_http'])||$state['last_slot']>=$slot||($state['lease_until']??0)>$instant) return null;
-                $date=(new \DateTimeImmutable('@'.$instant))->setTimezone(new \DateTimeZone($state['timezone']));
-                if (!(new CronExpression($state['cron']))->matches($date)) return null;
+            $lang = (string)$language['mark'];
+            $state = $this->store($lang)->read('schedule', $this->defaults());
+            if (!$state['enabled'] || empty($state['confirm_http']) || ($state['lease_until'] ?? 0) > $instant) continue;
+            $date = (new \DateTimeImmutable('@'.max($after, (int)$state['last_slot'])))->setTimezone(new \DateTimeZone($state['timezone']));
+            $slot = (new CronExpression($state['cron']))->next($date)->getTimestamp();
+            if ($slot <= $instant) $candidates[] = ['lang'=>$lang, 'slot'=>$slot, 'revision'=>$state['revision'] ?? null];
+        }
+        usort($candidates, static fn($a, $b) => [$a['slot'],$a['lang']] <=> [$b['slot'],$b['lang']]);
+        foreach ($candidates as $candidate) {
+            $lang = $candidate['lang']; $slot = $candidate['slot']; $store = $this->store($lang);
+            $claim=$store->locked(function()use($store,$instant,$slot,$candidate){
+                $state=$store->read('schedule',$this->defaults());
+                if (!$state['enabled'] || empty($state['confirm_http']) || $state['last_slot'] >= $slot || ($state['lease_until']??0)>$instant || ($state['revision']??null) !== $candidate['revision']) return null;
                 $state['last_slot']=$slot;$state['lease_until']=$instant+900;$state['run_id']=bin2hex(random_bytes(12));
                 $store->write('schedule',$state);
                 return $state;
@@ -95,24 +126,37 @@ final class BaiduPushScheduleService
                     $limit=isset($claim['remaining'])&&($claim['quota_day']??'')===$day ? min($claim['limit'],$claim['remaining']) : $claim['limit'];
                     $preview=$this->push->preview(['lang'=>$lang,'offset'=>$cursor,'limit'=>$limit]);
                     if (!$preview['selected']&&$preview['total']>0) $cursor=0;
-                    $pushed=$this->push->push(['lang'=>$lang,'offset'=>$cursor,'limit'=>$limit,'confirm_http'=>'1']);
+                    $pushed=$this->push->push(['lang'=>$lang,'offset'=>$cursor,'limit'=>$limit,'confirm_http'=>'1'], function () use ($store, $claim): bool {
+                        return $store->locked(function () use ($store, $claim): bool {
+                            $current = $store->read('schedule', $this->defaults());
+                            if (empty($current['enabled']) || empty($current['confirm_http']) || ($current['run_id']??'') !== $claim['run_id'] || ($current['revision']??null) !== ($claim['revision']??null)) return false;
+                            $current['dispatching'] = true;
+                            $store->write('schedule', $current);
+                            return true;
+                        });
+                    });
                     $cursor=$pushed['next_offset']>=$pushed['total']?0:$pushed['next_offset'];
                     $result=['at'=>$instant,'status'=>$pushed['unaccepted']?'partial':'success','message'=>'提交'.$pushed['submitted'].'条，接收'.$pushed['accepted'].'条，未接收'.$pushed['unaccepted'].'条，剩余额度'.$pushed['remaining'],'submitted'=>$pushed['submitted'],'accepted'=>$pushed['accepted'],'unaccepted'=>$pushed['unaccepted'],'remaining'=>$pushed['remaining']];
                     $quota=['quota_day'=>$day,'quota_site'=>$claim['site'],'remaining'=>$pushed['remaining']];
                 }
             } catch (\Throwable $error) {
+                if ($error instanceof PushCancelled) {
+                    $result['status'] = 'cancelled';
+                    $result['message'] = '自动推送已关闭，本次请求未发送';
+                } else {
                 // Known public service diagnostics contain no provider response or credential.
                 $safe=($error instanceof \InvalidArgumentException||$error instanceof \RuntimeException) && preg_match('/^(?:Token已清除|连接百度|百度|请先保存百度|当前范围|请先在基本设置)/u',$error->getMessage());
                 $result['message']=$safe ? $error->getMessage() : '定时推送发生内部错误，请检查服务与数据库状态';
+                }
             }
             $store->locked(function()use($store,$claim,$result,$cursor,$quota){
                 $state=$store->read('schedule',$this->defaults());
                 if (($state['run_id']??'')!==$claim['run_id']) return;
-                $state=array_replace($state,$quota,['cursor'=>$cursor,'lease_until'=>0,'history'=>array_slice([$result,...$state['history']],0,20)]);
+                $state=array_replace($state,$quota,['cursor'=>$cursor,'lease_until'=>0,'dispatching'=>false,'history'=>array_slice([$result,...$state['history']],0,20)]);
                 $store->write('schedule',$state);
             });
-            $results[$lang]=$result;
+            return [$lang=>$result];
         }
-        return $results;
+        return [];
     }
 }

@@ -466,7 +466,7 @@ class Base
                     // 无规格
                     $goodsList[$key]['old_price'] = unifyPriceHandle($value['users_price']);
                     $goodsList[$key]['users_price'] = unifyPriceHandle($value['users_price'] * $discountRate);
-                    $goodsList[$key]['crossed_price'] = unifyPriceHandle($value['crossed_price'] * $discountRate);
+                    $goodsList[$key]['crossed_price'] = unifyPriceHandle(($value['crossed_price'] ?? 0) * $discountRate);
                 }
 
                 // 加入购物车 onclick

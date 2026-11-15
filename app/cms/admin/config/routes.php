@@ -281,6 +281,7 @@ $routes = array (
       0 => 'dashboard',
       1 => 'featuremap',
       2 => 'index',
+      'serverInfo',
       'restartInfo', 'restartStart', 'restartStatus',
     ),
   ),

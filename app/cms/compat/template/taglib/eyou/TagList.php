@@ -404,6 +404,17 @@ class TagList extends Base
                     'var_page' => config('paginate.var_page'),
                     'query' => $query_get,
                 );
+                // A query entry such as /index.php is not the category directory.
+                // Build rewrite pagination from this category's canonical URL.
+                $context = \app\cms\CmsContext::current();
+                if ((int)$seo_pseudo === 3 && $uiset !== 'on' && (int)$context->tid === (int)$this->tid) {
+                    $canonical = (string)($context->field['typeurl'] ?? '');
+                    if ($canonical !== '') {
+                        $paginate['path'] = (string)(parse_url($canonical, PHP_URL_PATH) ?: '/');
+                        parse_str((string)(parse_url($canonical, PHP_URL_QUERY) ?? ''), $canonicalQuery);
+                        $paginate['query'] = array_replace($canonicalQuery, $paginate['query']);
+                    }
+                }
                 $page = input('param.page/d');
 
                 $cache_key_suffix = md5("{$this->tid}_{$this->php_sessid}");
@@ -1021,7 +1032,7 @@ class TagList extends Base
          */
         if ($pages->total() > 0) {
             //写入搜索结果
-            if (!empty($where_keywords)){
+            if (!empty($where_keywords) && in_array('resultNum', Db::name('search_word')->getTableFields(), true)){
                 Db::name('search_word')->where('word',$where_keywords)->update(['resultNum'=>$pages->total()]);
             }
             $list = $pages->items();

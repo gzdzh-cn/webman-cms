@@ -13,7 +13,7 @@ use Workerman\Worker;
 final class AdminDashboardInfo
 {
     /** @return array{system: list<array>, server: list<array>} */
-    public function collect(Request $request, CmsRepository $repository): array
+    public function collect(Request $request, CmsRepository $repository, bool $includeDetails = false): array
     {
         $site = $this->site($request, $repository);
         $webman = $this->version('workerman/webman-framework');
@@ -32,7 +32,7 @@ final class AdminDashboardInfo
         $memoryLimit = (string)ini_get('memory_limit');
         $executionTime = (string)ini_get('max_execution_time');
 
-        return [
+        $info = [
             'system' => [
                 $this->row('site_name', '站点名称', $site['name']),
                 $this->row('language', '当前语言', $site['language'], $site['language_note']),
@@ -49,7 +49,7 @@ final class AdminDashboardInfo
                 $this->row('database', 'MySQL版本', $database),
                 $this->row('http_package_limit', 'HTTP请求包上限', $this->bytes($packageLimit), $packageNote),
                 $this->row('php_memory_limit', 'PHP内存限制', $memoryLimit === '-1' ? '不限（-1）' : $this->text($memoryLimit, '未配置'), '当前PHP进程限制。'),
-                $this->row('php_memory_usage', '当前进程内存', $this->bytes(memory_get_usage(true)), '当前常驻worker已分配内存，非服务器总内存。'),
+                $this->row('php_memory_usage', '当前 HTTP 进程 PHP 内存', $this->bytes(memory_get_usage(true)), 'PHP 已分配内存，与整站 PSS、服务器内存口径不同。'),
                 $this->row('php_memory_peak', '进程内存峰值', $this->bytes(memory_get_peak_usage(true)), '当前进程已分配内存峰值。'),
                 $this->row('php_upload_max', 'PHP上传配置', $this->text(ini_get('upload_max_filesize'), '未配置'), 'PHP配置参考，不作为Webman生效上限。'),
                 $this->row('php_post_max', 'PHP POST配置', $this->text(ini_get('post_max_size'), '未配置'), 'PHP配置参考，不作为Webman生效上限。'),
@@ -59,6 +59,13 @@ final class AdminDashboardInfo
                 $this->row('zlib', 'Zlib支持', extension_loaded('zlib') ? (defined('ZLIB_VERSION') ? (string)ZLIB_VERSION : $this->extension('zlib')) : '未安装'),
             ],
         ];
+        $info['statistics'] = (new ServerStatistics())->collect($info['server']);
+        $info['server'] = $info['statistics']['summary'];
+        // Detail data must not leak through initial HTML or the summary refresh.
+        if (!$includeDetails || !\app\cms\cache\CachePolicy::isDevelopment()) {
+            $info['statistics'] = array_intersect_key($info['statistics'], array_flip(['sampled_at', 'summary']));
+        }
+        return $info;
     }
 
     private function site(Request $request, CmsRepository $repository): array

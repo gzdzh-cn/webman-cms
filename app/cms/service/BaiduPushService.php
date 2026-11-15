@@ -51,7 +51,7 @@ class BaiduPushService extends SitemapService
         return ['lang'=>$lang,'site'=>$site,'total'=>count($urls),'offset'=>$offset,'limit'=>$limit,'selected'=>count(array_slice($urls,$offset,$limit)), 'urls'=>array_slice($urls,$offset,min(10,$limit))];
     }
 
-    public function push(array $input): array
+    public function push(array $input, ?\Closure $beforeSend = null): array
     {
         [$lang,$site,$urls,$offset,$limit] = $this->selection($input);
         $token=$this->token($lang);
@@ -60,6 +60,7 @@ class BaiduPushService extends SitemapService
         if (!$selected) throw new InvalidArgumentException('当前范围没有可推送的公开网址');
         if (($input['confirm_http'] ?? '') !== '1') throw new InvalidArgumentException('百度官方推送接口使用HTTP传输Token和网址，请先阅读并勾选提交确认');
         $send=$this->transport ?? fn($site,$token,$body)=>$this->requestBaidu($site,$token,$body);
+        if ($beforeSend !== null && !$beforeSend()) throw new PushCancelled('自动推送已关闭，本次尚未发送的请求已取消');
         try { $response=$send($site,$token,implode("\n",$selected)); }
         catch (\Throwable) { throw new RuntimeException('连接百度推送接口失败或超时；提交结果未知，请先到百度平台核对后再重试'); }
         $data=json_decode((string)($response['body']??''),true);

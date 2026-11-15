@@ -14,14 +14,14 @@ class CacheModeCommand extends Command
     {
         $this->setName('cms:cache-mode')->setDescription('检查或切换 CMS 缓存模式')
             ->addOption('check', null, InputOption::VALUE_NONE, '检查当前模式及 Redis')
-            ->addOption('set', null, InputOption::VALUE_REQUIRED, '切换到 1、2 或 3');
+            ->addOption('set', null, InputOption::VALUE_REQUIRED, '切换到 1（runtime）或 3（Redis）；开发行为使用 app.debug');
     }
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         try {
             $check = (bool)$input->getOption('check');
             $mode = $input->getOption('set');
-            if ($check === ($mode !== null)) throw new \InvalidArgumentException('请选择 --check 或 --set=1|2|3');
+            if ($check === ($mode !== null)) throw new \InvalidArgumentException('请选择 --check 或 --set=1|3');
             $result = $check ? CachePolicy::health() : CachePolicy::transition((string)$mode);
             $output->writeln(json_encode($result, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR));
             return $check && !$result['redis_available'] ? 1 : 0;

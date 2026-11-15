@@ -31,6 +31,33 @@ final class Migrations
             if (!$dryRun) $pdo->exec('ALTER TABLE `' . $table . '` ' . implode(', ', $changes));
             $pending[] = '002_enterprise_sms_delivery';
         }
+        // Eyou category guestbooks predate free forms and device attribution.
+        // A zero form_type preserves their ownership as category guestbooks.
+        $guestbookColumns = [
+            'guestbook' => [
+                'form_type' => 'tinyint NOT NULL DEFAULT 0',
+                'users_id' => 'int unsigned NOT NULL DEFAULT 0',
+                'is_star' => 'tinyint NOT NULL DEFAULT 0',
+                'source' => 'tinyint NOT NULL DEFAULT 0',
+                'examine' => 'tinyint NOT NULL DEFAULT 1',
+            ],
+            'guestbook_attr' => ['form_type' => 'tinyint NOT NULL DEFAULT 0'],
+            'guestbook_attribute' => ['form_type' => 'tinyint NOT NULL DEFAULT 0'],
+        ];
+        $guestbookChanged = false;
+        foreach ($guestbookColumns as $suffix => $definitions) {
+            $table = $cmsPrefix . $suffix; $existing = $columns($table);
+            if (!$existing) continue;
+            $additions = [];
+            foreach ($definitions as $name => $definition) {
+                if (!array_key_exists($name, $existing)) $additions[] = 'ADD COLUMN `' . $name . '` ' . $definition;
+            }
+            if ($additions) {
+                if (!$dryRun) $pdo->exec('ALTER TABLE `' . $table . '` ' . implode(', ', $additions));
+                $guestbookChanged = true;
+            }
+        }
+        if ($guestbookChanged) $pending[] = '003_legacy_guestbook_ownership';
         return $pending;
     }
 }

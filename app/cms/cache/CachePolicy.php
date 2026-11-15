@@ -30,7 +30,7 @@ final class CachePolicy
         $rows = $repository->connection()->query("SELECT c.value AS mode,s.payload,s.sha256 FROM (SELECT mark FROM `$language` ORDER BY id ASC LIMIT 1) l LEFT JOIN `$config` c ON c.lang=l.mark AND c.name='web_cmsmode' AND c.is_del=0 LEFT JOIN `$records` s ON s.scope=? AND s.name=? LIMIT 2", [self::SCOPE, self::RECORD]);
         if (count($rows) > 1) throw new \RuntimeException('网站模式配置重复');
         $row = $rows[0] ?? [];
-        $mode = self::validate($row['mode'] ?? '1');
+        $mode = self::storedMode($row['mode'] ?? '1');
         $epochs = ['cache_generation'=>'legacy', 'session_generation'=>'legacy'];
         if (isset($row['payload'])) {
             if (!hash_equals((string)$row['sha256'], hash('sha256', $row['payload']))) throw new \RuntimeException('缓存代际记录校验失败');
@@ -59,12 +59,22 @@ final class CachePolicy
     public static function validate(mixed $mode): string
     {
         if (is_string($mode) && preg_match('/^[sib]:/', $mode)) $mode = @unserialize($mode, ['allowed_classes'=>false]);
-        if (!is_scalar($mode) || !in_array((string)$mode, ['1','2','3'], true)) throw new \InvalidArgumentException('网站模式必须为1、2或3');
+        if (!is_scalar($mode) || !in_array((string)$mode, ['1','3'], true)) throw new \InvalidArgumentException('网站模式必须为1（runtime）或3（Redis）；开发模式请通过 app.debug 配置');
         return (string)$mode;
     }
+    /** Read legacy development records without rewriting an existing database. */
+    public static function storedMode(mixed $mode): string
+    {
+        if (is_string($mode) && preg_match('/^[sib]:/', $mode)) $mode = @unserialize($mode, ['allowed_classes'=>false]);
+        return self::validate(is_scalar($mode) && (string)$mode === '2' ? '1' : $mode);
+    }
+    public static function isDevelopment(): bool { return \app\cms\config\DeploymentConfig::get('app.debug') === true; }
     public static function isRedis(): bool { return self::snapshot()['mode'] === '3'; }
     public static function cacheGeneration(): string { return \Webman\Context::get('cms.cache.generation') ?? self::snapshot()['cache_generation']; }
-    public static function isOperational(?int $mode = null): bool { return in_array($mode ?? (int)self::snapshot()['mode'], [1,3], true); }
+    public static function isOperational(?int $mode = null): bool
+    {
+        return !self::isDevelopment() && in_array($mode ?? (int)self::snapshot()['mode'], [1,2,3], true);
+    }
     public static function prepareTransition(string $mode): void { if (self::validate($mode) === '3') RedisConnection::probe(); }
 
     public static function assertTransactional(CmsRepository $repository): void
@@ -108,7 +118,7 @@ final class CachePolicy
             $rows = $repository->table('config')->where(['name'=>'web_cmsmode','is_del'=>0])->whereIn('lang',array_column($languages,'mark'))->lock(true)->select()->toArray();
             $records = [];
             foreach ($rows as $row) { if (isset($records[$row['lang']])) throw new \RuntimeException('网站模式配置重复'); $records[$row['lang']]=$row; }
-            $old = self::validate($records[$languages[0]['mark']]['value'] ?? '1');
+            $old = self::storedMode($records[$languages[0]['mark']]['value'] ?? '1');
             foreach ($languages as $language) {
                 $payload = ['value'=>$mode,'inc_type'=>'web','is_del'=>0,'update_time'=>time()];
                 if (isset($records[$language['mark']])) $repository->table('config')->where('id',$records[$language['mark']]['id'])->update($payload);
@@ -122,7 +132,7 @@ final class CachePolicy
 
     public static function health(): array
     {
-        $result = ['mode'=>self::snapshot()['mode'], 'redis_extension'=>extension_loaded('redis'), 'redis_available'=>false];
+        $result = ['mode'=>self::snapshot()['mode'], 'development'=>self::isDevelopment(), 'redis_extension'=>extension_loaded('redis'), 'redis_available'=>false];
         try { RedisConnection::probe(); $result['redis_available']=true; }
         catch (\Throwable $error) { $result['message']='Redis 检查失败，请核对扩展、私有配置及服务权限'; }
         return $result;

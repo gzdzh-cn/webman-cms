@@ -38,10 +38,12 @@ final class ConfigSchema
             'redis.read_timeout'=>[0.5,'CMS_REDIS_READ_TIMEOUT','float',0.001,30],
             'redis.prefix'=>['cms:','CMS_REDIS_PREFIX','prefix'],
             'server.listen'=>[8787,'WEBMAN_LISTEN','listen'],
-            'server.workers'=>[2,'WEBMAN_WORKERS','int',1,256],
+            'server.workers'=>[1,'WEBMAN_WORKERS','int',1,256],
             'server.max_package_size'=>[10485760,'CMS_MAX_PACKAGE_SIZE','int',1048576,1073741824],
             'server.stop_timeout'=>[30,'CMS_STOP_TIMEOUT','int',2,600],
             'server.process_manager'=>['standalone','CMS_PROCESS_MANAGER','manager'],
+            // High-performance mode: separate push, generation and monitor processes.
+            'performance.separate_task_processes'=>[false,'CMS_SEPARATE_TASK_PROCESSES','bool'],
             'app.timezone'=>['Asia/Shanghai','APP_TIMEZONE','timezone'],
             'app.debug'=>[false,'APP_DEBUG','bool'],
             'app.memory_limit'=>['256M','CMS_MEMORY_LIMIT','memory'],

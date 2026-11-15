@@ -51,7 +51,7 @@ final class TemplateRenderer
             'cache_path'=>rtrim($this->options['cache_path']??runtime_path('cms/templates'),'/').'/',
             'cache_prefix'=>'cms-'.($this->options['template_mode']??TemplateMode::current($this->context)).'-'.TemplateDialect::VERSION.'-'.substr(hash('sha256',$this->root()),0,12).'-',
             'template_mode'=>$this->options['template_mode']??TemplateMode::current($this->context),
-            'view_suffix'=>'htm', 'tpl_cache'=>$this->options['tpl_cache']??\app\cms\cache\CachePolicy::isOperational(),
+            'view_suffix'=>'htm', 'tpl_cache'=>!\app\cms\cache\CachePolicy::isDevelopment() && ($this->options['tpl_cache']??\app\cms\cache\CachePolicy::isOperational()),
             'taglib_pre_load'=>'\\app\\cms\\compat\\template\\taglib\\Eyou',
             'taglib_build_in'=>'\\app\\cms\\compat\\template\\taglib\\Cx',
             'tpl_deny_func_list'=>Runtime::config('global.tpl_deny_func_list')??'echo,exit',

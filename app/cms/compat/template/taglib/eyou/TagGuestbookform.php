@@ -235,8 +235,8 @@ class TagGuestbookform extends Base
                 }
 
                 // 是否为手机号码类型 且 需要发进行真实验证
-                if (6 === intval($val['attr_input_type']) && 1 === intval($val['real_validate'])) $realValidateData = $val;
-                if (7 === intval($val['attr_input_type']) && 1 === intval($val['real_validate'])) $realValidateDataEmail = $val;
+                if (6 === intval($val['attr_input_type']) && 1 === intval($val['real_validate'] ?? 0)) $realValidateData = $val;
+                if (7 === intval($val['attr_input_type']) && 1 === intval($val['real_validate'] ?? 0)) $realValidateDataEmail = $val;
             }
 
             // 如果存在需要真实验证则执行

@@ -94,7 +94,7 @@ server:
   listen: 8787
   # HTTP worker 数量，不含静态生成等辅助进程；按 CPU 和内存容量调整。
   # 环境变量：WEBMAN_WORKERS；允许范围：1～256；生效：完整重启。
-  workers: 2
+  workers: 1
   # 单个 HTTP 请求包大小上限，单位：字节，包含头部和请求体；10485760 为 10 MiB。
   # 环境变量：CMS_MAX_PACKAGE_SIZE；允许范围：1048576～1073741824；生效：完整重启。
   max_package_size: 10485760
@@ -105,12 +105,20 @@ server:
   # 环境变量：CMS_PROCESS_MANAGER；生效：完整重启。
   process_manager: standalone
 
+# 高性能模式；修改后必须完整 stop/start，reload 不切换进程模式。
+performance:
+  # false：推送、静态生成和 Sitemap 共用一个进程，主进程监护内存。
+  # true：推送、生成（静态和 Sitemap）、monitor 各自独立，提高任务并行能力。
+  # workers=1 时生产模式总进程数：false 为 3，true 为 5；增加进程会增加常驻内存。
+  # 环境变量：CMS_SEPARATE_TASK_PROCESSES；生效：完整重启。
+  separate_task_processes: false
+
 # 应用启动参数；修改后完整重启。
 app:
   # 应用时区，使用 PHP 支持的时区名称，例如 Asia/Shanghai 或 UTC。
   # 环境变量：APP_TIMEZONE；生效：完整重启。
   timezone: Asia/Shanghai
-  # 应用调试开关，生产环境建议 false；与后台运营/开发/Redis 缓存模式是独立设置。
+  # 应用调试及开发开关，生产环境建议 false；开启后每次编译前台模板，停用原开发模式对应的业务缓存，并开放工作台服务器详情。
   # 环境变量：APP_DEBUG；生效：完整重启。
   debug: false
   # PHP 进程内存限制，使用正整数加 M 或 G，例如 256M、1G。

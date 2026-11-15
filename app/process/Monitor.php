@@ -47,6 +47,8 @@ class Monitor
      */
     protected int $ppid = 0;
 
+    protected ?array $masterIdentity = null;
+
     /**
      * Pause monitor
      * @return void
@@ -96,23 +98,25 @@ class Monitor
     public function __construct($monitorDir, $monitorExtensions, array $options = [])
     {
         $this->ppid = function_exists('posix_getppid') ? posix_getppid() : 0;
-        static::resume();
+        $this->masterIdentity = PHP_OS_FAMILY === 'Linux' ? \app\cms\support\MemoryWatchdog::identity($this->ppid) : null;
         $this->paths = (array)$monitorDir;
         $this->extensions = $monitorExtensions;
-        foreach (get_included_files() as $index => $file) {
-            $this->loadedFiles[$file] = $index;
-            if (strpos($file, 'webman-framework/src/support/App.php')) {
-                break;
+        if ($options['enable_file_monitor'] ?? true) {
+            foreach (get_included_files() as $index => $file) {
+                $this->loadedFiles[$file] = $index;
+                if (strpos($file, 'webman-framework/src/support/App.php')) {
+                    break;
+                }
             }
         }
         if (!Worker::getAllWorkers()) {
             return;
         }
-        $disableFunctions = explode(',', ini_get('disable_functions'));
-        if (in_array('exec', $disableFunctions, true)) {
-            echo "\nMonitor file change turned off because exec() has been disabled by disable_functions setting in " . PHP_CONFIG_FILE_PATH . "/php.ini\n";
-        } else {
-            if ($options['enable_file_monitor'] ?? true) {
+        if ($options['enable_file_monitor'] ?? true) {
+            $disableFunctions = explode(',', ini_get('disable_functions'));
+            if (in_array('exec', $disableFunctions, true)) {
+                echo "\nMonitor file change turned off because exec() has been disabled by disable_functions setting in " . PHP_CONFIG_FILE_PATH . "/php.ini\n";
+            } else {
                 Timer::add(1, function () {
                     $this->checkAllFilesChange();
                 });
@@ -227,7 +231,7 @@ class Monitor
      */
     public function checkMemory($memoryLimit): void
     {
-        if (static::isPaused() || $memoryLimit <= 0) {
+        if (PHP_OS_FAMILY !== 'Linux' || static::isPaused() || $memoryLimit <= 0 || $this->masterIdentity === null) {
             return;
         }
         $masterPid = $this->getMasterPid();
@@ -236,25 +240,12 @@ class Monitor
             return;
         }
 
-        $childrenFile = "/proc/$masterPid/task/$masterPid/children";
-        if (!is_file($childrenFile) || !($children = file_get_contents($childrenFile))) {
+        if ((\app\cms\support\MemoryWatchdog::identity($masterPid)['start'] ?? null) !== $this->masterIdentity['start']) return;
+        $children = @file_get_contents("/proc/$masterPid/task/$masterPid/children", false, null, 0, 65536);
+        if (!is_string($children) || trim($children) === '') {
             return;
         }
-        foreach (explode(' ', $children) as $pid) {
-            $pid = (int)$pid;
-            $statusFile = "/proc/$pid/status";
-            if (!is_file($statusFile) || !($status = file_get_contents($statusFile))) {
-                continue;
-            }
-            $mem = 0;
-            if (preg_match('/VmRSS\s*?:\s*?(\d+?)\s*?kB/', $status, $match)) {
-                $mem = $match[1];
-            }
-            $mem = (int)($mem / 1024);
-            if ($mem >= $memoryLimit) {
-                posix_kill($pid, SIGINT);
-            }
-        }
+        \app\cms\support\MemoryWatchdog::inspect(array_map('intval', preg_split('/\s+/', trim($children))), $masterPid, (int)$memoryLimit, $this->masterIdentity);
     }
 
     /**
@@ -264,38 +255,7 @@ class Monitor
      */
     protected function getMemoryLimit($memoryLimit): int
     {
-        if ($memoryLimit === 0) {
-            return 0;
-        }
-        $usePhpIni = false;
-        if (!$memoryLimit) {
-            $memoryLimit = ini_get('memory_limit');
-            $usePhpIni = true;
-        }
-
-        if ($memoryLimit == -1) {
-            return 0;
-        }
-        $unit = strtolower($memoryLimit[strlen($memoryLimit) - 1]);
-        $memoryLimit = (int)$memoryLimit;
-        if ($unit === 'g') {
-            $memoryLimit = 1024 * $memoryLimit;
-        } else if ($unit === 'k') {
-            $memoryLimit = ($memoryLimit / 1024);
-        } else if ($unit === 'm') {
-            $memoryLimit = (int)($memoryLimit);
-        } else if ($unit === 't') {
-            $memoryLimit = (1024 * 1024 * $memoryLimit);
-        } else {
-            $memoryLimit = ($memoryLimit / (1024 * 1024));
-        }
-        if ($memoryLimit < 50) {
-            $memoryLimit = 50;
-        }
-        if ($usePhpIni) {
-            $memoryLimit = (0.8 * $memoryLimit);
-        }
-        return (int)$memoryLimit;
+        return \app\cms\support\MemoryWatchdog::limit((string)($memoryLimit ?? \app\cms\config\DeploymentConfig::get('app.memory_limit')));
     }
 
 }

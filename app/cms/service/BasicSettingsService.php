@@ -36,7 +36,7 @@ class BasicSettingsService
                 $field('web_thirdcode_wap','手机端第三方代码','textarea'),
             ]],
             ['id'=>'core','title'=>'核心设置','fields'=>[
-                $field('web_cmsmode','网站模式','radio','1','web',true,['options'=>[['value'=>'1','label'=>'运营模式'],['value'=>'2','label'=>'开发模式'],['value'=>'3','label'=>'Redis 缓存模式']],'help'=>'保存时读取最新 .env 和 config/manifest/config.yaml 的 redis 参数并验证连接和读写能力，失败不切换。优先级为 .env 的 CMS_REDIS_*、进程环境、YAML 参数；修改文件参数后可直接保存，无需重启服务。切入或切出时需要重新登录，不会切换 SEO URL 模式。']),
+                $field('web_cmsmode','网站模式','radio','1','web',true,['options'=>[['value'=>'1','label'=>'runtime 模式'],['value'=>'3','label'=>'Redis 缓存模式']],'help'=>'网站模式保存在数据库中。开发行为由 YAML 的 app.debug 或 .env 的 APP_DEBUG 控制，完整重启生效；开启后每次编译前台模板，并停用原开发模式对应的业务缓存。Redis 参数按 .env、进程环境、所选 YAML 的优先级读取，保存时验证连接和读写能力，失败不切换；切入或切出 Redis 需要重新登录，不会切换 SEO URL 模式。']),
                 $field(ErrorDisplaySettings::KEY,'前台错误显示','select','0','seo',true,['options'=>[['value'=>'0','label'=>'关闭，显示友好错误页面'],['value'=>'1','label'=>'开启，显示原生异常详情']],'help'=>'保存后立即生效，无需重启。原生异常会显示文件路径、SQL语句和调用堆栈，仅在排查问题时开启，完成后请关闭。']),
                 $field('web_is_https','HTTPS链接','radio','0','web',true,['options'=>$flag]),
                 $field('web_mobile_domain_open','手机站域名','radio','0','web',true,['options'=>$flag]),
@@ -107,7 +107,7 @@ class BasicSettingsService
             $scope=$this->scope(['lang'=>$selected['lang']],true);
             if($scope['id']!==$selected['id']||$scope['main_id']!==$selected['main_id'])throw new InvalidArgumentException('语言已删除或重新创建，请刷新后重试');
             $records=$this->records(array_column($scope['languages'],'mark'),true);$definitions=array_column(self::definitions(),null,'id');$fields=array_column($definitions[$id]['fields'],null,'name');
-            $oldMode=\app\cms\cache\CachePolicy::validate($records[$scope['main']]['web_cmsmode']['value']??'1');$newMode=$oldMode;
+            $oldMode=\app\cms\cache\CachePolicy::storedMode($records[$scope['main']]['web_cmsmode']['value']??'1');$newMode=$oldMode;
             $data=$input;unset($data['lang'],$data['group']);
             if($id==='web'&&array_key_exists('web_logo_local',$data)){if(array_key_exists('web_logo',$data))throw new InvalidArgumentException('LOGO参数重复');$data['web_logo']=$data['web_logo_local'];unset($data['web_logo_local']);}
             if(!$data)throw new InvalidArgumentException('没有提交设置字段');
@@ -157,6 +157,7 @@ class BasicSettingsService
         $groups=self::definitions();foreach($groups as&$group)foreach($group['fields'] as&$field){$lang=$field['global']?$scope['main']:$scope['lang'];$value=isset($records[$lang][$field['name']])?$this->scalar($records[$lang][$field['name']]['value']):$field['default'];
             if($field['name']==='file_uploadname_open')$value='随机重命名';
             if($field['name']==='cms_template_mode')$value=\app\cms\template\TemplateMode::label();
+            if($field['name']==='web_cmsmode')$value=\app\cms\cache\CachePolicy::storedMode($value);
             // Legacy separators are HTML entities; input.value expects the actual symbol.
             if($field['name']==='list_symbol')$value=html_entity_decode($value,ENT_QUOTES|ENT_HTML5,'UTF-8');
             $field['readOnly']=!empty($field['readOnly'])||($field['global']&&$scope['lang']!==$scope['main']);$field['readonly']=$field['readOnly'];$field['copy']=$group['id']==='web';

@@ -79,7 +79,8 @@ class StaticGenerationService
 
     public function step(array $input): array
     {
-        $batch = max(1, min(10, (int)($input['batch'] ?? 3)));
+        if (CmsContext::current()->request !== null || !in_array(PHP_SAPI, ['cli','micro'], true)) throw new \RuntimeException('静态任务仅允许后台进程执行，请查询持久进度');
+        $batch = max(1, min(10, (int)($input['batch'] ?? 1)));
         return $this->store->locked(function () use ($input, $batch): array {
             $job = $this->job($input);
             if ($job['state'] === 'complete') return $this->summary($job);
@@ -273,8 +274,7 @@ class StaticGenerationService
             $unique = []; foreach ($tasks as $task) $unique[$this->entryKey($task['lang'], $task['device'], $task['url'])] = $task;
             if (!$unique) return ['skipped' => true, 'reason' => '没有可生成的公开页面'];
             $job = $this->createJob(array_values($unique), $options + ['automatic' => true], function_exists('admin_id') ? (int)admin_id() : 0);
-            $result = $this->step(['job' => $job['id'], 'batch' => 3]);
-            return ['job' => $result, 'warning' => $result['failed'] ? '内容已保存，部分静态页面生成失败，请在生成任务中查看详情' : (!$result['done'] ? '内容已保存，静态任务尚未全部完成，可在生成页面继续' : '')];
+            return ['job' => $job, 'queued' => true, 'warning' => ''];
         } catch (\Throwable $error) { return ['warning' => '内容已保存，静态生成未完成：' . $error->getMessage()]; }
     }
 
@@ -295,8 +295,7 @@ class StaticGenerationService
             if (!empty($site->global['seo_uphtml_after_home']) || !empty($site->global['seo_uphtml_editafter_home'])) $tasks = array_merge($tasks, $this->plan($site, array_replace($options, ['scope' => 'home'])));
             if (!$tasks) return ['skipped' => true, 'reason' => '没有需要重新生成的有效页面'];
             $job = $this->createJob($tasks, $options + ['automatic' => true], function_exists('admin_id') ? (int)admin_id() : 0);
-            $result = $this->step(['job' => $job['id'], 'batch' => 3]);
-            return ['job' => $result, 'warning' => $result['failed'] ? '栏目已保存，部分静态页面生成失败，请查看任务' : ''];
+            return ['job' => $job, 'queued' => true, 'warning' => ''];
         } catch (\Throwable $error) { return ['warning' => '栏目已保存，静态生成未完成：' . $error->getMessage()]; }
     }
 
@@ -509,7 +508,7 @@ class StaticGenerationService
     private function summary(array $job): array { $job['total'] = count($job['tasks'] ?? []); unset($job['tasks']); $job['done'] = $job['state'] === 'complete'; return $job; }
 
     /** Called by the dedicated worker. The global store lock arbitrates with HTTP steps. */
-    public function advancePending(int $batch = 3): array
+    public function advancePending(int $batch = 1): array
     {
         $results = [];
         foreach ($this->manifest()['jobs'] as $id) {

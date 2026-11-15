@@ -1089,7 +1089,7 @@ if (!function_exists('thumb_img'))
         $thumbConfig =& \app\cms\CmsContext::current()->memo[__FUNCTION__ . ':thumbConfig'];
         if ($thumbConfig === null) { $thumbConfig = null; }
         if (null === $thumbConfig) {
-            @ini_set('memory_limit', '-1'); // 内存不限制，防止图片大小过大，导致缩略图处理失败，网站打不开
+            // Keep the deployment memory limit in long-running workers.
             $thumbConfig = tpCache('thumb');
         }
         $thumbextra = \app\cms\compat\config('global.thumb');
@@ -2748,7 +2748,7 @@ if (!function_exists('download_file'))
     {
         //设置脚本的最大执行时间，设置为0则无时间限制
         function_exists('set_time_limit') && set_time_limit(0);
-        @ini_set('memory_limit','-1');
+        // Keep the deployment memory limit in long-running workers.
         @ini_set('max_execution_time', '0');
 
         $down_path = iconv("utf-8", "gb2312//IGNORE", $down_path);
@@ -4827,7 +4827,7 @@ if (!function_exists('func_thumb_img'))
         $thumbConfig =& \app\cms\CmsContext::current()->memo[__FUNCTION__ . ':thumbConfig'];
         if ($thumbConfig === null) { $thumbConfig = null; }
         if (null === $thumbextra) {
-            @ini_set('memory_limit', '-1'); // 内存不限制，防止图片大小过大，导致缩略图处理失败，网站打不开
+            // Keep the deployment memory limit in long-running workers.
             $thumbConfig = tpCache('thumb');
             $thumbextra = \app\cms\compat\config('global.thumb');
             empty($thumbConfig['thumb_width']) && $thumbConfig['thumb_width'] = $thumbextra['width'];

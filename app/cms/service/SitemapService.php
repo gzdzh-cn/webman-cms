@@ -22,7 +22,7 @@ class SitemapService extends StaticGenerationService
         if(!in_array($lang,array_column($languages,'mark'),true))throw new \InvalidArgumentException('请选择有效语言');
         $site=$this->site($lang,'pc');$files=[];
         foreach($this->manifest()['entries'] as $entry)if(in_array($entry['lang'],$allowed,true))$files[]=array_intersect_key($entry,array_flip(['url','format','lang','links','generated_at','bytes']));
-        return ['lang'=>$lang,'languages'=>$languages,'settings'=>$this->settings($site),'files'=>$files,'urls'=>$this->urls($site),'ai_available'=>AiContentIndexService::available($site),'ai_url'=>(new AiContentIndexService($this->repository,$this->store->root()))->url($site),'automatic_tasks'=>array_values(array_filter($this->manifest()['automatic']??[],static fn($task)=>in_array($task['lang'],$allowed,true)))];
+        return ['lang'=>$lang,'languages'=>$languages,'settings'=>$this->settings($site),'files'=>$files,'urls'=>$this->urls($site),'ai_available'=>AiContentIndexService::available($site),'ai_url'=>(new AiContentIndexService($this->repository,$this->store->root()))->url($site),'automatic_tasks'=>array_values(array_filter($this->manifest()['automatic']??[],static fn($task)=>in_array($task['lang'],$allowed,true))), 'queue_tasks'=>(new SitemapQueue($this->repository, $this->store))->summaries($allowed)];
     }
 
     public function save(array $input):array
@@ -61,32 +61,18 @@ class SitemapService extends StaticGenerationService
         foreach($formats as$format)if(!is_string($format)||!in_array($format,['xml','txt','html','ai'],true))throw new \InvalidArgumentException('请选择有效的地图格式');
         $formats=array_values(array_unique($formats));
         if(array_key_exists('formats',$input))foreach($formats as$format)if(!$this->formatEnabled($settings,$format))throw new \InvalidArgumentException(strtoupper($format).' 地图尚未启用，请先保存设置');
-        return $this->generateFiles($languages,$formats);
+        return (new SitemapQueue($this->repository, $this->store))->enqueue($languages, $formats);
     }
 
-    /** Internal queue already checked its stored site identity; HTTP callers authorize above. */
-    private function generateFiles(array $languages,array $formats):array
+    public function clean(array $input): array
     {
-        $files=[];$failures=[];
-        foreach($languages as $lang){
-            try{
-                $site=$this->site($lang,'pc');$devices=!empty($site->global['web_mobile_domain_open'])?['pc','mobile']:['pc'];$languageFiles=[];
-                foreach($devices as$device){$selectedSite=$device==='pc'?$site:$this->site($lang,'mobile');$links=$this->links($selectedSite);
-                    foreach($formats as$format)if(($format!=='ai'||$device==='pc')&&$this->formatEnabled($this->settings($selectedSite),$format))foreach($this->documents($selectedSite,$links,$format)as$document){$this->assertPublicDestinationFree(['url'=>$document['url'],'base'=>(string)($selectedSite->global['web_cmspath']??'')]);$languageFiles[]=$document+['lang'=>$lang,'device'=>$device,'format'=>$format,'signature'=>$this->sitemapSignature($selectedSite)];}
-                }
-                array_push($files,...$languageFiles);
-            }catch(\Throwable $error){$failures[]=['lang'=>$lang,'message'=>$error->getMessage()];}
-        }
-        return $this->store->locked(function()use($files,$languages,$formats,$failures){
-            $manifest=$this->manifest();$written=[];
-            foreach($files as$file){$object=$this->store->put($file['body'],$file['format']==='ai'?'html':$file['format']);unset($file['body']);$entry=$object+$file+['generated_at'=>time()];$manifest['entries'][hash('sha256',$file['url'])]=$entry;$manifest['objects'][$entry['object']]=$entry;$written[]=$entry;}
-            $newUrls=array_column($written,'url');$failedLangs=array_column($failures,'lang');
-            foreach($manifest['entries']as$key=>$entry)if(in_array($entry['lang'],$languages,true)&&!in_array($entry['lang'],$failedLangs,true)&&in_array($entry['format'],$formats,true)&&!in_array($entry['url'],$newUrls,true))unset($manifest['entries'][$key]);
-            $this->store->write('manifest.json',$manifest);
-            return ['files'=>array_map(static fn($entry)=>array_intersect_key($entry,array_flip(['url','lang','format','links','bytes','generated_at'])),$written),'failures'=>$failures,'complete'=>!$failures];
+        return $this->store->locked(function () use ($input): array {
+            (new SitemapQueue($this->repository, $this->store))->assertIdle((string)($input['lang']??''));
+            return parent::clean($input);
         });
     }
 
+    /** Internal queue already checked its stored site identity; HTTP callers authorize above. */
     public static function response(Request $request,CmsContext $context):?Response
     {
         if($ai=AiContentIndexService::response($request,$context))return $ai;
@@ -227,31 +213,13 @@ class SitemapService extends StaticGenerationService
     /** One language per tick, with a revision check so concurrent edits remain queued. */
     public function advanceAutomatic():array
     {
-        return $this->store->locked(function(): array {
-        $pending=$this->manifest()['automatic']??[];
-        foreach($pending as$key=>$task)if($task['state']==='pending'){
-            if (!in_array($task['lang'],array_column($this->languages(),'mark'),true)) continue;
-            $previous=CmsContext::current();
-            try{
-                $site=$this->site($task['lang'],'pc',$task['origin'],$task['base']);CmsContext::set($site);Runtime::boot($site);
-                if(($task['template_mode']??'eyou')!==\app\cms\template\TemplateMode::current($site)
-                    ||(isset($task['dialect_version'])&&$task['dialect_version']!==\app\cms\template\TemplateDialect::VERSION)
-                    ||($task['site_signature']??'legacy')!==\app\cms\template\TemplateMode::siteSignature($site))throw new \RuntimeException('Sitemap任务模式、编译版本或站点签名不匹配，请重新创建');
-                if(empty($this->settings($site)['sitemap_auto']))$result=['complete'=>true,'skipped'=>true];
-                else $result=$this->generateFiles([$task['lang']],array_values(array_filter(['xml','txt','html','ai'],fn($format)=>$this->formatEnabled($this->settings($site),$format))));
-            }catch(\Throwable$error){$result=['complete'=>false,'failures'=>[['lang'=>$task['lang'],'message'=>$error->getMessage()]]];}
-            finally{CmsContext::set($previous);Runtime::boot($previous);}
-            $this->store->locked(function()use($key,$task,$result){$manifest=$this->manifest();if(($manifest['automatic'][$key]['revision']??'')===$task['revision']){$manifest['automatic'][$key]['state']=!empty($result['complete'])?'complete':'failed';$manifest['automatic'][$key]['finished_at']=time();$manifest['automatic'][$key]['result']=$result;$this->store->write('manifest.json',$manifest);}});
-            return $result;
-        }
-        return [];
-        });
+        return (new SitemapQueue($this->repository, $this->store))->advance();
     }
-    private function link(string $url,string $title,int $time,string $type,array $settings):array{return ['url'=>html_entity_decode($url,ENT_QUOTES|ENT_HTML5,'UTF-8'),'title'=>$title,'time'=>$time,'kind'=>$type,'frequency'=>$settings['sitemap_changefreq_'.$type],'priority'=>$settings['sitemap_priority_'.$type]];}
-    private function absolute(string $url,CmsContext $site):string{return preg_match('#^https?://#i',$url)?$url:$site->origin().'/'.ltrim($url,'/');}
-    private function escape(mixed $value):string{return htmlspecialchars(preg_replace('/[\x00-\x08\x0b\x0c\x0e-\x1f]/','',(string)$value),ENT_XML1|ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8');}
-    private function xmlNode(array $link):string{return '<url><loc>'.$this->escape($link['url']).'</loc><lastmod>'.date('Y-m-d',max(0,(int)$link['time'])).'</lastmod><changefreq>'.$this->escape($link['frequency']).'</changefreq><priority>'.$this->escape($link['priority']).'</priority>'.(isset($link['mobile_mode'])&&$link['mobile_mode']!=='pc'?'<mobile:mobile type="'.$this->escape($link['mobile_mode']).'"/>':'').'</url>';}
+    protected function link(string $url,string $title,int $time,string $type,array $settings):array{return ['url'=>html_entity_decode($url,ENT_QUOTES|ENT_HTML5,'UTF-8'),'title'=>$title,'time'=>$time,'kind'=>$type,'frequency'=>$settings['sitemap_changefreq_'.$type],'priority'=>$settings['sitemap_priority_'.$type]];}
+    protected function absolute(string $url,CmsContext $site):string{return preg_match('#^https?://#i',$url)?$url:$site->origin().'/'.ltrim($url,'/');}
+    protected function escape(mixed $value):string{return htmlspecialchars(preg_replace('/[\x00-\x08\x0b\x0c\x0e-\x1f]/','',(string)$value),ENT_XML1|ENT_QUOTES|ENT_SUBSTITUTE,'UTF-8');}
+    protected function xmlNode(array $link):string{return '<url><loc>'.$this->escape($link['url']).'</loc><lastmod>'.date('Y-m-d',max(0,(int)$link['time'])).'</lastmod><changefreq>'.$this->escape($link['frequency']).'</changefreq><priority>'.$this->escape($link['priority']).'</priority>'.(isset($link['mobile_mode'])&&$link['mobile_mode']!=='pc'?'<mobile:mobile type="'.$this->escape($link['mobile_mode']).'"/>':'').'</url>';}
     protected function formatEnabled(array $settings,string $format):bool{return !empty($settings[$format==='ai'?'ai_content_index_html':'sitemap_'.$format]);}
     private function fileResponse(string $body,string $format,string $source):Response{return response($body,200,['Content-Type'=>['xml'=>'application/xml','txt'=>'text/plain','html'=>'text/html','ai'=>'text/html'][$format].'; charset=utf-8','X-CMS-Sitemap'=>$source,'X-Content-Type-Options'=>'nosniff','Cache-Control'=>'no-cache']);}
-    private function sitemapSignature(CmsContext $site):string{return hash('sha256',serialize([$this->signature($site),$this->settings($site)]));}
+    protected function sitemapSignature(CmsContext $site):string{return hash('sha256',serialize([$this->signature($site),$this->settings($site)]));}
 }

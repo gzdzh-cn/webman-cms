@@ -49,7 +49,7 @@ final class GeneratedFileStore
     public function remove(array $entry): bool { return $this->store->removeObject($entry); }
     private function metadata(string $name): void
     {
-        if (!preg_match('/^(?:manifest|job-[a-f0-9]{32})\.json$/D', $name)) throw new \InvalidArgumentException('生成记录名称无效');
+        if (!preg_match('/^(?:manifest|job-[a-f0-9]{32}(?:-u[0-9]{1,6}-(?:link-[a-f0-9]{64}|type-[0-9]{1,20}|keys-[0-9]{1,6}|piece-[0-9]{1,6}))?)\.json$/D', $name)) throw new \InvalidArgumentException('生成记录名称无效');
     }
 
     /** Canonical path/query identity, without fragments or transport-specific origin. */

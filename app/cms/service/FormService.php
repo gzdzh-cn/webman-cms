@@ -92,9 +92,15 @@ class FormService
                     $aid = (int)$duplicate['aid'];
                     $repository->table('guestbook')->where('aid', $aid)->update(['is_read' => 0, 'add_time' => time(), 'update_time' => time()]);
                 } else {
-                    $aid = (int)$repository->table('guestbook')->insertGetId(['typeid' => $typeid, 'form_type' => $formType, 'channel' => $formType === 1 ? 0 : 8, 'md5data' => $hash, 'ip' => $ip, 'source' => (int)($context['source'] ?? 1) === 2 ? 2 : 1, 'lang' => $lang, 'add_time' => time(), 'update_time' => time(), 'examine' => $formType === 1 && !empty($owner['open_examine']) ? 0 : 1]);
+                    $guestbookData = ['typeid' => $typeid, 'form_type' => $formType, 'channel' => $formType === 1 ? 0 : 8, 'md5data' => $hash, 'ip' => $ip, 'source' => (int)($context['source'] ?? 1) === 2 ? 2 : 1, 'lang' => $lang, 'add_time' => time(), 'update_time' => time()];
+                    if (isset($repository->columns('guestbook')['examine'])) {
+                        $guestbookData['examine'] = $formType === 1 && !empty($owner['open_examine']) ? 0 : 1;
+                    } elseif ($formType === 1 && !empty($owner['open_examine'])) {
+                        throw new InvalidArgumentException('当前表单数据结构不支持审核，请联系管理员');
+                    }
+                    $aid = (int)$repository->table('guestbook')->insertGetId($guestbookData);
                     foreach ($values as $attrId => $value) { $repository->table('guestbook_attr')->insert(['aid' => $aid, 'form_type' => $formType, 'attr_id' => $attrId, 'attr_value' => $value, 'lang' => $lang, 'add_time' => time(), 'update_time' => time()]); }
-                    if ($formType === 0) { $repository->table('arctype')->where('id', $typeid)->update(['total_arc' => $repository->table('guestbook')->where(['typeid' => $typeid, 'form_type' => 0])->count()]); }
+                    if ($formType === 0 && isset($repository->columns('arctype')['total_arc'])) { $repository->table('arctype')->where('id', $typeid)->update(['total_arc' => $repository->table('guestbook')->where(['typeid' => $typeid, 'form_type' => 0])->count()]); }
                 }
                 return ['aid' => $aid, 'duplicate' => (bool)$duplicate];
             });

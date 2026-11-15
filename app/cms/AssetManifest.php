@@ -17,11 +17,11 @@ final class AssetManifest
         $data = json_decode((string)file_get_contents($path), true, 512, JSON_THROW_ON_ERROR);
         if (($data['format'] ?? null) !== 2) throw new \RuntimeException('Unsupported resource manifest');
         self::$data = $data;
-        foreach ($data['files'] as $entry) {
-            self::$targets[$entry['target']] = $entry;
-            foreach ($entry['aliases'] as $url) self::$urls[$url] = $entry;
-            foreach ($entry['read_aliases'] ?? $entry['aliases'] as $url) self::$reads[$url] = $entry;
-            if ($entry['url']) self::$urls[$entry['url']] = $entry;
+        foreach ($data['files'] as $index => $entry) {
+            self::$targets[$entry['target']] = $index;
+            foreach ($entry['aliases'] as $url) self::$urls[$url] = $index;
+            foreach ($entry['read_aliases'] ?? $entry['aliases'] as $url) self::$reads[$url] = $index;
+            if ($entry['url']) self::$urls[$entry['url']] = $index;
         }
     }
 
@@ -40,8 +40,10 @@ final class AssetManifest
     {
         self::load();
         $path = self::clean($url);
-        return $path === null ? null : (self::$urls[$path] ?? null);
+        return $path === null ? null : self::record(self::$urls[$path] ?? null);
     }
+
+    private static function record(?int $index): ?array { return $index === null ? null : self::$data['files'][$index]; }
 
     private static function physical(array $entry): ?string
     {
@@ -76,7 +78,7 @@ final class AssetManifest
         self::load();
         $key = '/' . ltrim($path, '/');
         if (str_contains($key, '\\') || preg_match('#(^|/)\.[^/]*(/|$)#', $key) || str_contains($key, "\0")) return null;
-        $entry = $key === null ? null : (self::$reads[$key] ?? self::$urls[$key] ?? null);
+        $entry = self::record(self::$reads[$key] ?? self::$urls[$key] ?? null);
         if ($entry && $entry['source'] === 'public/static/common/js/lang/foreign_global.js') return \app\cms\service\LanguageAssetService::generated();
         return $entry ? self::physical($entry) : null;
     }
@@ -89,7 +91,7 @@ final class AssetManifest
         if (!is_array($parts) || isset($parts['host']) || isset($parts['scheme'])) return $oldUrl;
         $path = self::clean($oldUrl);
         if ($path === null) return $oldUrl;
-        $entry = self::$urls[$path] ?? null;
+        $entry = self::record(self::$urls[$path] ?? null);
         $url = $entry && $entry['public'] ? $entry['url'] : null;
         if (!$url && str_ends_with($path, '/')) {
             foreach (self::$data['directories'] as $old => $new) {
@@ -121,7 +123,7 @@ final class AssetManifest
 
     public static function isPublicTarget(string $file, bool $htmlOnly = false): bool
     {
-        self::load();$relative=Paths::relative($file);$entry=$relative===null?null:(self::$targets[$relative]??null);
+        self::load();$relative=Paths::relative($file);$entry=$relative===null?null:self::record(self::$targets[$relative]??null);
         return $entry && $entry['public'] && (!$htmlOnly || $entry['html_allowed']) && self::physical($entry) === \app\cms\support\EmbeddedResources::realpath($file);
     }
     public static function isManagedFile(string $file): bool
