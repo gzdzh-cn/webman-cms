@@ -14,7 +14,8 @@ class BuildBinaryCommand extends Command
             ->addOption('binary-name',null,InputOption::VALUE_REQUIRED,'生成的二进制文件名（默认 cms）')
             ->addOption('target',null,InputOption::VALUE_REQUIRED|InputOption::VALUE_IS_ARRAY,'目标平台，可重复指定')
             ->addOption('build-runtime',null,InputOption::VALUE_REQUIRED,'运行时缓存目录（默认 bin/build-runtime）')
-            ->addOption('embedded-resources',null,InputOption::VALUE_REQUIRED,'内置资源 JSON 字符串数组')
+            ->addOption('embed-admin-assets',null,InputOption::VALUE_REQUIRED,'是否内嵌 admin-assets（默认 true，false 关闭）')
+            ->addOption('embedded-resources',null,InputOption::VALUE_REQUIRED,'额外内置资源 JSON 数组（默认 []）')
             ->addOption('runtime',null,InputOption::VALUE_REQUIRED,'单平台锁定 micro.sfx 文件');
     }
     protected function execute(InputInterface $input,OutputInterface $output):int
@@ -22,11 +23,11 @@ class BuildBinaryCommand extends Command
         try {
             if(\Phar::running(false))throw new \RuntimeException('请在源码构建环境执行');
             $options=DeploymentConfig::group('build');
-            foreach(['output','binary-name','build-runtime','embedded-resources']as$name)if($input->getOption($name)!==null){$key=match($name){'embedded-resources'=>'embedded_resources','binary-name'=>'binary_name',default=>$name};$options[$key]=ConfigSchema::coerce('build.'.$key,$input->getOption($name));}
+            foreach(['output','binary-name','build-runtime','embedded-resources','embed-admin-assets']as$name)if($input->getOption($name)!==null){$key=match($name){'embedded-resources'=>'embedded_resources','embed-admin-assets'=>'embed_admin_assets','binary-name'=>'binary_name',default=>$name};$options[$key]=ConfigSchema::coerce('build.'.$key,$input->getOption($name));}
             if($input->getOption('target'))$options['target']=ConfigSchema::coerce('build.target',$input->getOption('target'));
             if($input->getOption('runtime')&&count($options['target'])>1)throw new \RuntimeException('--runtime 仅允许单平台');
             if(ini_get('phar.readonly')) {
-                $args=[PHP_BINARY,'-d','phar.readonly=0',\app\cms\Paths::code('webman'),'cms:build-bin','--output='.$options['output'],'--binary-name='.$options['binary_name'],'--build-runtime='.$options['build-runtime'],'--embedded-resources='.json_encode($options['embedded_resources'],JSON_THROW_ON_ERROR)];
+                $args=[PHP_BINARY,'-d','phar.readonly=0',\app\cms\Paths::code('webman'),'cms:build-bin','--output='.$options['output'],'--binary-name='.$options['binary_name'],'--build-runtime='.$options['build-runtime'],'--embedded-resources='.json_encode($options['embedded_resources'],JSON_THROW_ON_ERROR),'--embed-admin-assets='.($options['embed_admin_assets']?'true':'false')];
                 foreach($options['target']as$target)$args[]='--target='.$target;
                 if($input->getOption('runtime'))$args[]='--runtime='.$input->getOption('runtime');
                 if($output->isQuiet())$args[]='--quiet';
@@ -40,7 +41,7 @@ class BuildBinaryCommand extends Command
             $progress=static function(string $message)use($progressOutput,$started,$timezone):void{
                 $progressOutput->writeln(\Symfony\Component\Console\Formatter\OutputFormatter::escape(sprintf('[%s +%.1fs] %s',(new \DateTimeImmutable('now',$timezone))->format('H:i:s'),microtime(true)-$started,$message)));
             };
-            $result=(new \app\cms\maintenance\BinaryBuilder($progress))->build($options['output'],$options['target'],$options['build-runtime'],$options['embedded_resources'],$input->getOption('runtime'),$options['binary_name']);
+            $result=(new \app\cms\maintenance\BinaryBuilder($progress))->build($options['output'],$options['target'],$options['build-runtime'],$options['embedded_resources'],$input->getOption('runtime'),$options['binary_name'],$options['embed_admin_assets']);
             $progress('构建完成，耗时 '.number_format(microtime(true)-$started,1).' 秒；共发布 '.count($result['releases']).' 个平台。');
             $output->writeln(json_encode($result,JSON_PRETTY_PRINT|JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE|JSON_THROW_ON_ERROR));return 0;
         }catch(\Throwable$error){$output->writeln('<error>构建已停止：'.\Symfony\Component\Console\Formatter\OutputFormatter::escape($error->getMessage()).'</error>');return 1;}

@@ -7,14 +7,14 @@ final class Paths
 {
     public const PUBLIC_ASSET_URL = '/admin-assets';
     public const COMMON_ASSET_URL = self::PUBLIC_ASSET_URL . '/common';
-    public const PUBLIC_ASSETS = 'public' . self::PUBLIC_ASSET_URL;
-    public const COMMON_ASSETS = 'public' . self::COMMON_ASSET_URL;
+    public const PUBLIC_ASSETS = 'app/cms/resources/admin-assets';
+    public const COMMON_ASSETS = self::PUBLIC_ASSETS . '/common';
     /** Fixed deployment layout, relative to the source entry or executable directory. */
     public const DIRECTORIES = [
         'site_root'=>'',
         'config_dir'=>'config',
         'public_dir'=>'public',
-        'assets_dir'=>'public/admin-assets',
+        'assets_dir'=>self::PUBLIC_ASSETS,
         'template_dir'=>'template',
         'uploads_dir'=>'uploads',
         'html_dir'=>'public/html',
@@ -41,26 +41,27 @@ final class Paths
             // An unused external copy must not affect an embedded resource root.
             if (\app\cms\support\EmbeddedResources::has('public')) {
                 $paths['public_dir']=self::code('public');
-                $paths['assets_dir']=self::code('public/admin-assets');
             }
+            if (\app\cms\support\EmbeddedResources::hasAssets()) $paths['assets_dir']=self::code(self::PUBLIC_ASSETS);
             if (\app\cms\support\EmbeddedResources::has('template')) $paths['template_dir']=self::code('template');
             foreach ($paths as $value) if (!str_starts_with($value,'phar://')) \app\cms\config\Entry::assertPath($value);
             foreach (array_filter([\app\cms\config\DeploymentConfig::file(), \app\cms\support\EmbeddedResources::yaml()?null:\app\cms\config\Environment::path()],static fn($p)=>is_string($p)&&!str_starts_with($p,'phar://')) as $privateFile) foreach (['public_dir','assets_dir','uploads_dir','html_dir','template_dir','runtime_dir','install_dir'] as $key) if ($privateFile === $paths[$key] || str_starts_with($privateFile, $paths[$key].'/')) throw new \RuntimeException('配置文件不能位于公开或临时目录');
         }
-        if(in_array($name,['public_dir','assets_dir'],true)&&\app\cms\support\EmbeddedResources::has('public'))return self::code($name==='public_dir'?'public':'public/admin-assets');
+        if($name==='public_dir'&&\app\cms\support\EmbeddedResources::has('public'))return self::code('public');
+        if($name==='assets_dir'&&\app\cms\support\EmbeddedResources::hasAssets())return self::code(self::PUBLIC_ASSETS);
         if($name==='template_dir'&&\app\cms\support\EmbeddedResources::has('template'))return self::code('template');
         return $paths[$name] ?? throw new \InvalidArgumentException('未知目录映射');
     }
     public static function logical(string $path): string
     {
-        $mounts=['public/admin-assets'=>'assets_dir','public/uploads'=>'uploads_dir','uploads'=>'uploads_dir','public/html'=>'html_dir','public'=>'public_dir','template'=>'template_dir','runtime'=>'runtime_dir','config'=>'config_dir','install'=>'install_dir'];
+        $mounts=[self::PUBLIC_ASSETS=>'assets_dir','public/uploads'=>'uploads_dir','uploads'=>'uploads_dir','public/html'=>'html_dir','public'=>'public_dir','template'=>'template_dir','runtime'=>'runtime_dir','config'=>'config_dir','install'=>'install_dir'];
         foreach($mounts as $prefix=>$key)if($path===$prefix||str_starts_with($path,$prefix.'/'))return self::join(self::directory($key),ltrim(substr($path,strlen($prefix)),'/'));
         if(preg_match('#^install_[a-z]{12}(?:/|$)#',$path))return self::join(dirname(self::directory('install_dir')),$path);
         return self::code($path);
     }
     public static function relative(string $file): ?string
     {
-        foreach(['assets_dir'=>'public/admin-assets','uploads_dir'=>'public/uploads','html_dir'=>'public/html','template_dir'=>'template','config_dir'=>'config','runtime_dir'=>'runtime','public_dir'=>'public']as$key=>$logical){$root=self::directory($key);if($file===$root||str_starts_with($file,$root.'/'))return $logical.substr($file,strlen($root));}
+        foreach(['assets_dir'=>self::PUBLIC_ASSETS,'uploads_dir'=>'public/uploads','html_dir'=>'public/html','template_dir'=>'template','config_dir'=>'config','runtime_dir'=>'runtime','public_dir'=>'public']as$key=>$logical){$root=self::directory($key);if($file===$root||str_starts_with($file,$root.'/'))return $logical.substr($file,strlen($root));}
         $root=self::code();return str_starts_with($file,$root.'/')?substr($file,strlen($root)+1):null;
     }
     public static function cms(string $path = ''): string { return self::join(__DIR__, $path); }

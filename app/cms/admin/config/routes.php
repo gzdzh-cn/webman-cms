@@ -407,14 +407,7 @@ $routes = array (
     'path' => '/web-admin/plugin',
     'actions' => 
     array (
-      0 => 'captcha',
-      1 => 'getInstalledPlugins',
-      2 => 'index',
-      3 => 'install',
-      4 => 'list',
-      5 => 'login',
-      6 => 'pay',
-      7 => 'uninstall',
+      'index', 'select', 'detail', 'add', 'save', 'enable', 'disable', 'delete', 'legacyPreview', 'legacyImport',
     ),
   ),
   'plugin\\admin\\app\\controller\\ProductparameterController' => 

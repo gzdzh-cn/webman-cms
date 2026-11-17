@@ -519,7 +519,7 @@ EOF;
      */
     private function getAutoAttrInput($typeid, $newAttribute = [], $attributeList = [], $form_type = 0)
     {
-        header("Content-type: text/html; charset=utf-8");
+        // The HTTP controller owns response headers; tag rendering also runs in CLI workers.
         $form_arr = array();
         foreach($attributeList as $key => $val)
         {

@@ -58,6 +58,15 @@ final class Migrations
             }
         }
         if ($guestbookChanged) $pending[] = '003_legacy_guestbook_ownership';
+        $table=$adminPrefix.'uploads';$upload=$columns($table);$changes=[];
+        if ($upload) {
+            if (!array_key_exists('storage_meta',$upload)) $changes[]='ADD COLUMN `storage_meta` text NULL COMMENT \'附件存储身份，不含凭据\'';
+            if ((int)($upload['url']??0)<2048) $changes[]='MODIFY COLUMN `url` varchar(2048) NOT NULL DEFAULT \'\'';
+            if ($changes) {
+                if (!$dryRun) $pdo->exec('ALTER TABLE `'.$table.'` '.implode(', ',$changes));
+                $pending[]='004_attachment_storage_metadata';
+            }
+        }
         return $pending;
     }
 }

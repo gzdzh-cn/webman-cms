@@ -92,6 +92,17 @@ $menus = [
         ['title' => '留言管理', 'key' => \plugin\admin\app\controller\GuestbookController::class, 'href' => '/web-admin/guestbook/index', 'type' => 1, 'weight' => 98],
     ]],
     ['title' => '系统管理', 'key' => 'common', 'icon' => 'layui-icon-set', 'type' => 0, 'weight' => 800, 'children' => [
+        ['title' => '插件市场', 'key' => \plugin\admin\app\controller\PluginController::class, 'href' => '/web-admin/plugin/index', 'type' => 1, 'weight' => 101, 'children' => [
+            ['title' => '读取已适配插件', 'key' => \plugin\admin\app\controller\PluginController::class.'@select', 'type' => 2, 'weight' => 10],
+            ['title' => '读取插件配置', 'key' => \plugin\admin\app\controller\PluginController::class.'@detail', 'type' => 2, 'weight' => 9],
+            ['title' => '添加插件', 'key' => \plugin\admin\app\controller\PluginController::class.'@add', 'type' => 2, 'weight' => 8],
+            ['title' => '保存插件配置', 'key' => \plugin\admin\app\controller\PluginController::class.'@save', 'type' => 2, 'weight' => 7],
+            ['title' => '启用插件', 'key' => \plugin\admin\app\controller\PluginController::class.'@enable', 'type' => 2, 'weight' => 6],
+            ['title' => '禁用插件', 'key' => \plugin\admin\app\controller\PluginController::class.'@disable', 'type' => 2, 'weight' => 5],
+            ['title' => '删除插件配置', 'key' => \plugin\admin\app\controller\PluginController::class.'@delete', 'type' => 2, 'weight' => 4],
+            ['title' => '预览旧 OSS 配置', 'key' => \plugin\admin\app\controller\PluginController::class.'@legacyPreview', 'type' => 2, 'weight' => 3],
+            ['title' => '导入旧 OSS 配置', 'key' => \plugin\admin\app\controller\PluginController::class.'@legacyImport', 'type' => 2, 'weight' => 2],
+        ]],
         ['title' => '附件管理', 'key' => \plugin\admin\app\controller\UploadController::class, 'href' => '/web-admin/upload/index', 'type' => 1, 'weight' => 100],
         ['title' => '操作日志', 'key' => \plugin\admin\app\controller\OperationlogController::class, 'href' => '/web-admin/operationlog/index', 'type' => 1, 'weight' => 99],
         ['title' => '后台外观', 'key' => \plugin\admin\app\controller\ConfigController::class, 'href' => '/web-admin/config/index', 'type' => 1, 'weight' => 98],

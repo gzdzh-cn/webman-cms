@@ -22,7 +22,7 @@ final class AdminRoutes
             if (isset($routes[$identity])) throw new \LogicException('Generated backend route conflicts with a built-in controller');
             $routes[$identity] = $definition;
         }
-        foreach (['PluginController', 'DevController', 'UisetController'] as $disabled) unset($routes['plugin\\admin\\app\\controller\\' . $disabled]);
+        foreach (['DevController', 'UisetController'] as $disabled) unset($routes['plugin\\admin\\app\\controller\\' . $disabled]);
         if (isset($routes['plugin\\admin\\app\\controller\\TableController'])) {
             $routes['plugin\\admin\\app\\controller\\TableController']['actions'] = array_values(array_diff($routes['plugin\\admin\\app\\controller\\TableController']['actions'], ['crud']));
         }

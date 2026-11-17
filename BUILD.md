@@ -46,6 +46,9 @@ php webman cms:build-bin --output=/absolute/releases --build-runtime=/absolute/b
 # 自定义二进制文件名，生成 bin/cms-<平台>/dzhcms
 php webman cms:build-bin --binary-name=dzhcms
 
+# 只内置后台及系统资源，public 根文件、主题和配置继续外置
+php webman cms:build-bin --target=linux-x86_64 --embedded-resources='["app/cms/resources/admin-assets"]'
+
 # 将系统公开资源及主题内置，配置继续外置
 php webman cms:build-bin --target=linux-aarch64 --embedded-resources='["public","template"]'
 
@@ -77,7 +80,8 @@ build:
   binary_name: cms # 自定义文件名，例如 dzhcms
   target: [] # 当前平台；多平台示例：[linux-aarch64, linux-x86_64]
   build-runtime: bin/build-runtime
-  embedded_resources: []
+  embed_admin_assets: true # 默认内嵌；false 关闭
+  embedded_resources: [] # 额外内嵌资源，不影响上方开关
 ```
 
 两个列表字段都支持分行写法，例如：
@@ -92,7 +96,21 @@ build:
     - template
 ```
 
-构建参数优先级为 CLI > 环境变量 > 所选 YAML > 默认值。对应环境变量为 `CMS_BUILD_OUTPUT`、`CMS_BUILD_BINARY_NAME`、`CMS_BUILD_TARGET`、`CMS_BUILD_RUNTIME`、`CMS_BUILD_EMBEDDED_RESOURCES`，列表环境变量必须写成 JSON 数组。相对输出路径和运行时缓存路径相对源码入口目录解析；修改输出目录不联动修改缓存目录。
+构建参数优先级为 CLI > 环境变量 > 所选 YAML > 默认值，环境变量内部沿用本地 .env > 进程环境。对应环境变量为 `CMS_BUILD_OUTPUT`、`CMS_BUILD_BINARY_NAME`、`CMS_BUILD_TARGET`、`CMS_BUILD_RUNTIME`、`CMS_BUILD_EMBED_ADMIN_ASSETS`、`CMS_BUILD_EMBEDDED_RESOURCES`，列表环境变量必须写成 JSON 数组。相对输出路径和运行时缓存路径相对源码入口目录解析；修改输出目录不联动修改缓存目录。
+
+`build.embed_admin_assets` 是独立布尔开关，默认 true，控制系统资源是否内嵌；`build.embedded_resources` 默认 []，只选择额外内嵌资源。两项互不替代：额外列表为空时仍默认内嵌 admin-assets，选择 template 时默认同时内嵌 admin-assets。关闭系统资源内嵌任选一种，下次构建生效：
+
+```yaml
+build:
+  embed_admin_assets: false
+  embedded_resources: []
+```
+
+```dotenv
+CMS_BUILD_EMBED_ADMIN_ASSETS=false
+```
+
+单次构建也可使用 `--embed-admin-assets=false`。`CMS_BUILD_EMBEDDED_RESOURCES='[]'` 或 `--embedded-resources='[]'` 仅清空额外资源列表。旧列表中的 app/cms/resources/admin-assets 条目兼容接受，最终是否内嵌仍以独立开关为准。
 
 `build.binary_name` 默认 `cms`，缺省、`null` 或空字符串也使用默认值。只改变平台目录内的二进制文件名，目录仍为 `cms-<平台>`。名称需以英文字母开头，1～64 位，仅含字母、数字、点、下划线或短横线，不允许路径及配置、资源目录和发布资料保留名称。
 
@@ -121,7 +139,7 @@ bin/
 
 ## 3. 二进制部署目录
 
-默认只打包程序代码、依赖及后台和系统模板，不复制外置资源到发布目录。部署者需要将匹配版本的系统资源、主题、配置及已有站点数据放到二进制旁边：
+默认打包程序代码、依赖、后台和系统模板及 admin-assets，不复制外置资源到发布目录。关闭系统资源内嵌时需部署同版外置系统资源；主题、配置及已有站点数据继续按所选内嵌项部署到二进制旁边：
 
 ```text
 站点目录/
@@ -129,8 +147,8 @@ bin/
 ├── config.yaml                 # 推荐的外置配置位置
 ├── .env                        # 可选，覆盖外置 YAML
 ├── config/                     # 站点私有状态
+├── app/cms/resources/admin-assets/ # 未内置时部署同版系统资源
 ├── public/
-│   ├── admin-assets/           # 与程序版本匹配的系统资源
 │   └── html/                   # 已生成页面
 ├── template/                   # 官网主题
 ├── uploads/                    # 上传文件
@@ -139,7 +157,9 @@ bin/
 
 实体目录固定相对二进制所在目录，不使用自定义 `paths`。程序连接已安装数据库，不会将数据库内容打进成品，也不会初始化数据库。部署及升级时保留配置、私有状态、上传、主题、生成页面和必要运行状态。
 
-可内置项只有 `public`、`template`、`config.yaml`、`config/config.yaml`、`config/manifest/config.yaml`。`uploads`、`runtime` 及其子目录禁止内置，填写后构建会报错停止。
+可内置项包括 `app/cms/resources/admin-assets`、`public`、`template`、`config.yaml`、`config/config.yaml`、`config/manifest/config.yaml`。`uploads`、`runtime` 及其子目录禁止内置，填写后构建会报错停止。
+
+独立内置 `app/cms/resources/admin-assets` 时，只读系统资源由程序响应，URL 仍为 `/admin-assets/...`；站点 favicon、robots.txt、其他 public 文件继续外置。`public` 只选择允许的 public 根文件，是否内嵌系统资源始终由 `embed_admin_assets` 决定；旧版二进制的 public 聚合记录继续按旧语义读取。
 
 内置 `public` 或 `template` 后，整个对应资源根使用内置版本，外置文件不参与补齐；对应资源只读。上传和生成 HTML 仍然外置。未内置的 YAML、主题或系统资源缺失时，二进制启动失败，错误同时输出到终端和 `runtime/logs/bootstrap.log`。
 
@@ -194,7 +214,7 @@ YAML 不强制为 `600`：原有 `400`、`600`、`640`、`660` 均可使用，�
 | 所选外置 YAML、有效 `.env` | 保留原有所有者/组的读写位，删除其他用户权限及执行位，确保所有者可读 |
 | `config` 私有状态、`runtime` 现有内容 | 目录 `700`，普通文件 `600`；未选中的三个候选 YAML 不调整 |
 | `uploads`、外置 `public/html` | 目录 `755`，普通文件 `644`，补齐必要目录 |
-| 外置 `template`、`public/admin-assets` | 确保可读和目录可遍历，移除特殊位、文件执行位及组/其他用户写入位；保留已有只读状态 |
+| 外置 `template`、`app/cms/resources/admin-assets` | 确保可读和目录可遍历，移除特殊位、文件执行位及组/其他用户写入位；保留已有只读状态 |
 | 站点根及必要父目录 | 仅整理受管路径的父目录；为创建必要子目录时补足所有者写入权限 |
 
 内置资源及被内置配置忽略的外置 YAML、`.env` 不参与修复。不会创建空主题、系统资源、安装、文件缓存或会话目录；不遍历站点根的备份、构建目录和其他未知文件。链接、硬链接和特殊文件明确拒绝。

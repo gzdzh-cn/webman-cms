@@ -16,6 +16,7 @@ use plugin\admin\app\model\Base;
  * @property integer $image_height 图片高度
  * @property string $ext 扩展名
  * @property string $storage 存储位置
+ * @property string|null $storage_meta 存储身份（不含凭据）
  * @property string $created_at 上传时间
  * @property string $category 类别
  * @property string $updated_at 更新时间

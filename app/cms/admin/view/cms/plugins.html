@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>插件市场</title>
+<link rel="stylesheet" href="<?= htmlspecialchars(\app\cms\AssetManifest::url('/admin-assets/css/cms-module-navigation.css'), ENT_QUOTES, 'UTF-8') ?>">
+<link rel="stylesheet" href="<?= htmlspecialchars(\app\cms\AssetManifest::url('/admin-assets/css/cms-page-layout.css'), ENT_QUOTES, 'UTF-8') ?>">
+<link rel="stylesheet" href="<?= htmlspecialchars(\app\cms\AssetManifest::url('/admin-assets/css/cms-page-adapters.css'), ENT_QUOTES, 'UTF-8') ?>">
+<link rel="stylesheet" href="<?= htmlspecialchars(\app\cms\AssetManifest::url('/admin-assets/css/cms-plugins.css?ui=20261116-plugin-ui-v3'), ENT_QUOTES, 'UTF-8') ?>">
+<script src="<?= htmlspecialchars(\app\cms\AssetManifest::url('/admin-assets/js/cms-module-navigation.js'), ENT_QUOTES, 'UTF-8') ?>"></script>
+<script defer src="<?= htmlspecialchars(\app\cms\AssetManifest::url('/admin-assets/js/cms-plugins.js?ui=20261116-plugin-ui-v3'), ENT_QUOTES, 'UTF-8') ?>"></script>
+</head>
+<body class="cms-module-page cms-workspace-page cms-page-adapted cms-plugins-page">
+<div data-cms-module-navigation></div>
+<main id="plugin-market" class="cms-page-panel" aria-label="插件市场">
+<header class="plugin-heading"><h1>插件市场</h1><p>管理已适配插件，添加并完成配置后即可启用。</p></header>
+<form id="plugin-search" class="cms-filterbar plugin-filterbar" data-cms-filter>
+<label for="plugin-query">插件名称／标识<input id="plugin-query" name="query" maxlength="100" placeholder="请输入名称或标识"></label>
+<label for="plugin-status">状态<select id="plugin-status" name="status"><option value="">全部状态</option><option value="available">未添加</option><option value="disabled">已禁用</option><option value="enabled">已启用</option></select></label>
+<div class="plugin-filter-actions"><button class="primary" type="submit">查询</button><button type="button" id="plugin-reset">重置</button></div>
+<button type="button" id="plugin-refresh" class="plugin-refresh" aria-label="刷新插件列表" title="刷新列表"><svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5M6.1 7a7 7 0 0 1 11.6-1L20 9M4 15l2.3 3A7 7 0 0 0 17.9 17" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+</form>
+<p id="plugin-message" class="plugin-message" role="status" aria-live="polite"></p>
+<div class="plugin-table-wrap" tabindex="0" role="region" aria-label="已适配插件列表">
+<table class="plugin-table"><thead><tr><th scope="col">插件名称</th><th scope="col">插件标识</th><th scope="col">适配版本</th><th scope="col">状态</th><th scope="col" class="plugin-operations">操作</th></tr></thead><tbody id="plugin-list" aria-busy="true"><tr><td colspan="5" class="plugin-empty">正在读取插件…</td></tr></tbody></table>
+</div>
+<footer class="plugin-list-footer"><span id="plugin-count" aria-live="polite"></span><span>仅管理随 CMS 发布的已适配插件</span></footer>
+</main>
+<dialog id="plugin-editor" data-cms-ui-owned="1" data-cms-ui-exempt aria-labelledby="plugin-title" aria-describedby="plugin-editor-note">
+<form id="plugin-form" autocomplete="off">
+<header class="plugin-dialog-header"><div><h2 id="plugin-title">编辑阿里云 OSS</h2><p id="plugin-editor-note">保存配置后，返回列表启用插件。</p></div><button type="button" id="plugin-close" aria-label="关闭编辑窗口">×</button></header>
+<div class="dialog-content">
+<section class="plugin-form-section" aria-labelledby="plugin-connection-title">
+<h3 id="plugin-connection-title">连接配置</h3><p class="plugin-section-help">启用前填写 Bucket 和公共 Endpoint；上传连接始终使用 HTTPS。</p>
+<div class="plugin-fields">
+<label for="plugin-bucket">Bucket<input id="plugin-bucket" name="bucket" maxlength="63" placeholder="例如 example-bucket" spellcheck="false" autocapitalize="off"></label>
+<label for="plugin-endpoint">公共 Endpoint<input id="plugin-endpoint" name="endpoint" maxlength="253" placeholder="oss-cn-guangzhou.aliyuncs.com" spellcheck="false" autocapitalize="off"></label>
+<label for="plugin-domain">访问域名 <span class="plugin-optional">选填</span><input id="plugin-domain" name="domain" maxlength="253" placeholder="例如 cdn.example.com" spellcheck="false" autocapitalize="off" aria-describedby="plugin-domain-help"><small id="plugin-domain-help">只填域名；留空使用 Bucket 官方域名。</small></label>
+<label for="plugin-protocol">访问协议<select id="plugin-protocol" name="protocol" aria-describedby="plugin-protocol-help"><option value="https">HTTPS（推荐）</option><option value="http">HTTP</option><option value="relative">跟随页面协议</option></select><small id="plugin-protocol-help">仅影响上传后返回的文件地址。</small></label>
+</div></section>
+<section class="plugin-form-section" aria-labelledby="plugin-credentials-title">
+<h3 id="plugin-credentials-title">访问凭据</h3><p class="plugin-section-help">不回显已保存凭据；输入留空会保留原值。</p>
+<div class="plugin-fields">
+<div class="plugin-credential"><label for="plugin-key-id">AccessKey ID<input id="plugin-key-id" name="key_id" type="password" maxlength="256" autocomplete="new-password" placeholder="输入新的 AccessKey ID" aria-describedby="key-id-status"></label><div class="plugin-credential-options"><small id="key-id-status"></small><label class="plugin-check"><input name="clear_key_id" type="checkbox">清除已保存 ID</label></div></div>
+<div class="plugin-credential"><label for="plugin-key-secret">AccessKey Secret<input id="plugin-key-secret" name="key_secret" type="password" maxlength="256" autocomplete="new-password" placeholder="输入新的 AccessKey Secret" aria-describedby="key-secret-status"></label><div class="plugin-credential-options"><small id="key-secret-status"></small><label class="plugin-check"><input name="clear_key_secret" type="checkbox">清除已保存 Secret</label></div></div>
+</div></section>
+<section class="plugin-form-section" aria-labelledby="plugin-storage-title"><h3 id="plugin-storage-title">存储策略</h3><label class="plugin-check plugin-retention"><input name="keep_local" type="checkbox" checked aria-describedby="plugin-retention-help">保留本地副本 <span class="plugin-optional">建议开启</span></label><p id="plugin-retention-help" class="plugin-section-help">关闭后，仅在 OSS 上传及附件记录保存成功后删除本次本地文件。历史文件与远端对象保持原样。</p></section>
+<section id="legacy-section" class="plugin-form-section plugin-legacy" aria-labelledby="plugin-legacy-title"><div class="plugin-section-heading"><h3 id="plugin-legacy-title">旧配置导入</h3><button type="button" id="legacy-preview">预览旧 OSS 配置</button></div><p class="plugin-section-help">从当前站点的旧配置导入；确认导入后保持禁用并保留本地副本。</p><div id="legacy-result" hidden><h4>旧配置预览</h4><dl id="legacy-values"></dl><p class="plugin-section-help">确认导入会替换已保存的插件配置。</p><button type="button" id="legacy-confirm">确认导入</button></div></section>
+<p id="plugin-form-message" class="plugin-message" role="alert"></p>
+</div>
+<footer class="plugin-dialog-footer"><span id="plugin-editor-status" class="plugin-editor-status"></span><div class="plugin-dialog-actions"><button type="button" id="plugin-cancel">取消</button><button type="button" id="plugin-form-reset">重置</button><button class="primary" type="submit">保存</button></div></footer>
+</form>
+</dialog>
+</body></html>

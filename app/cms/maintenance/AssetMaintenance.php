@@ -63,7 +63,7 @@ final class AssetMaintenance
             }
             if ($public) {
                 if (!is_string($url) || $url === '') throw new RuntimeException('公开资源缺少 URL：' . $target);
-                $canonical = str_starts_with($target, 'public/') ? substr($target, 6) : '/' . $target;
+                $canonical = Paths::PUBLIC_ASSET_URL . substr($target, strlen(Paths::PUBLIC_ASSETS));
                 if ($url !== $canonical) throw new RuntimeException('资源规范 URL 与实体目录不符：' . $target);
                 foreach (array_merge([$url], $record['aliases']) as $alias) {
                     $this->url($alias);

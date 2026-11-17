@@ -12,11 +12,13 @@ final class BinaryBuilder
     public function __construct(?callable $progress=null) { $this->progress=$progress===null?null:\Closure::fromCallable($progress); }
     private function report(string $message): void { if($this->progress!==null)($this->progress)($message); }
     private const CONFIG=['app','autoload','bootstrap','cms_admin','cms_cache','cms_language_pack','cms_site','cms_sms','container','database','dependence','event','exception','log','middleware','process','route','server','session','static','think-orm','translation','view'];
-    public function build(string $output,array $targets,string $runtimeDirectory,array $embedded=[],?string $runtime=null,string $binaryName='cms'): array
+    public function build(string $output,array $targets,string $runtimeDirectory,?array $embedded=null,?string $runtime=null,string $binaryName='cms',?bool $embedAdminAssets=null): array
     {
         if(EmbeddedResources::binary())throw new \RuntimeException('请在源码构建环境执行');
         $binaryName=ConfigSchema::coerce('build.binary_name',$binaryName);
         $embedded=ConfigSchema::coerce('build.embedded_resources',$embedded);
+        $embedAdminAssets=ConfigSchema::coerce('build.embed_admin_assets',$embedAdminAssets??ConfigSchema::fields()['build.embed_admin_assets'][0]);
+        $embedded=EmbeddedResources::forBuild($embedded,$embedAdminAssets);
         $targets=ConfigSchema::coerce('build.target',$targets)?:[RuntimeProvider::platform()];
         if($runtime!==null&&count($targets)!==1)throw new \RuntimeException('--runtime 文件参数仅允许单平台构建，请使用 --build-runtime 目录');
         if(ini_get('phar.readonly'))throw new \RuntimeException('构建子进程未开启 PHAR 写入');
@@ -48,7 +50,7 @@ final class BinaryBuilder
         $this->report('打包输入已确认：'.count($files).' 个文件。');
         $provider=new RuntimeProvider($this->progress);$locks=[];
         foreach($targets as$target)$locks[$target]=$provider->lock($target);
-        $buildId=hash('sha256',json_encode([$identity,$embedded,$locks,$binaryName],JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR));
+        $buildId=hash('sha256',json_encode([$identity,$embedded,$locks,$binaryName,$embedAdminAssets],JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR));
         $version=gmdate('Ymd\THis\Z').'-'.substr($buildId,0,12);
         Paths::ensureDirectory($output,0750);
         $names=[];
@@ -66,7 +68,7 @@ final class BinaryBuilder
             foreach($targets as$target) {
                 $this->report('['.(++$index).'/'.count($targets).'] '.$target.'：准备 PHP 运行时…');
                 $prepared=$provider->prepare($target,$runtimeDirectory,$runtime);$lock=$prepared['lock'];
-                $build=['format'=>2,'version'=>$version,'build_id'=>$buildId,'binary_name'=>$binaryName,'platform'=>$target,'php'=>$lock['php'],'extensions'=>$lock['extensions'],'ini'=>$lock['ini'],'runtime_sha256'=>$prepared['sha256'],'runtime_executed_on_build_host'=>$prepared['executed_on_build_host'],'runtime_lock_sha256'=>hash('sha256',json_encode($lock,JSON_THROW_ON_ERROR)),'composer_lock_sha256'=>$identity['composer.lock'],'asset_manifest_sha256'=>$identity['app/cms/resources/asset-manifest.json'],'embedded_resources'=>$embedded,'files'=>$identity];
+                $build=['format'=>2,'version'=>$version,'build_id'=>$buildId,'binary_name'=>$binaryName,'platform'=>$target,'php'=>$lock['php'],'extensions'=>$lock['extensions'],'ini'=>$lock['ini'],'runtime_sha256'=>$prepared['sha256'],'runtime_executed_on_build_host'=>$prepared['executed_on_build_host'],'runtime_lock_sha256'=>hash('sha256',json_encode($lock,JSON_THROW_ON_ERROR)),'composer_lock_sha256'=>$identity['composer.lock'],'asset_manifest_sha256'=>$identity['app/cms/resources/asset-manifest.json'],'embed_admin_assets'=>$embedAdminAssets,'embedded_resources'=>$embedded,'files'=>$identity];
                 $meta=$stage.'/code/app/cms/resources/binary-build.json';file_put_contents($meta,json_encode($build,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR)."\n");
                 $this->report($target.'：正在生成 PHAR 代码归档…');
                 $archive=$stage.'/'.$target.'.phar';$phar=new \Phar($archive,0,'webman');$phar->startBuffering();$phar->buildFromDirectory($stage.'/code');$phar->setSignatureAlgorithm(\Phar::SHA256);
@@ -85,7 +87,7 @@ final class BinaryBuilder
             }
             $this->report('所有目标构建通过，正在发布本批目录…');
             $this->publish($output,$stage,$names,$keepStage,$binaryName);
-            return ['ok'=>true,'version'=>$version,'build_id'=>$buildId,'binary_name'=>$binaryName,'embedded_resources'=>$embedded,'releases'=>$results];
+            return ['ok'=>true,'version'=>$version,'build_id'=>$buildId,'binary_name'=>$binaryName,'embed_admin_assets'=>$embedAdminAssets,'embedded_resources'=>$embedded,'releases'=>$results];
         }catch(\Throwable$error){$this->report('构建失败，正在撤回本批产物并清理暂存文件；有效运行时缓存保留。');if($keepStage)$this->report('自动恢复未完成，暂存备份已保留：'.$stage);throw$error;}
         finally{if(!$keepStage)$this->remove($stage);}
     }
@@ -148,14 +150,16 @@ final class BinaryBuilder
         foreach(self::CONFIG as$name)$result['config/'.$name.'.php']=$root.'/config/'.$name.'.php';
         foreach(['webman','start.php','composer.json','composer.lock','LICENSE','MIT-LICENSE.txt']as$name)if(is_file($root.'/'.$name))$result[$name]=$root.'/'.$name;
         foreach(['webman/console/app.php','webman/event/app.php','webman/event/bootstrap.php','webman/event/command.php']as$name)if(is_file($root.'/config/plugin/'.$name))$result['config/plugin/'.$name]=$root.'/config/plugin/'.$name;
+        if(in_array(Paths::PUBLIC_ASSETS,$embedded,true)) {
+            $manifest=json_decode((string)file_get_contents(Paths::resources('asset-manifest.json')),true,512,JSON_THROW_ON_ERROR);
+            foreach($manifest['files']as$asset)if(str_starts_with($asset['target'],Paths::PUBLIC_ASSETS.'/'))$result[$asset['target']]=Paths::logical($asset['target']);
+        }
         foreach($embedded as$entry) {
             if(in_array($entry,EmbeddedResources::YAML,true)) {
                 $source=$root.'/'.$entry;if(!is_file($source))throw new \RuntimeException('指定打包的 YAML 文件不存在：'.$entry);
                 \app\cms\config\DeploymentConfig::document($source);$result[$entry]=$source;
             }elseif($entry==='template')$this->collect(Paths::templates(),'template',$result);
             elseif($entry==='public') {
-                $manifest=json_decode((string)file_get_contents(Paths::resources('asset-manifest.json')),true,512,JSON_THROW_ON_ERROR);
-                foreach($manifest['files']as$asset)if(str_starts_with($asset['target'],'public/admin-assets/'))$result[$asset['target']]=Paths::logical($asset['target']);
                 // Root public files are deployment-independent resources; uploads and HTML never enter the archive.
                 foreach(scandir(Paths::publicRoot())?:[]as$name)if(preg_match('/^(?:robots\.txt|favicon\.(?:ico|png|svg)|[A-Za-z0-9_-]+\.(?:png|jpg|jpeg|webp|gif|svg|css|js|woff2?))$/D',$name)&&is_file(Paths::publicRoot($name)))$result['public/'.$name]=Paths::publicRoot($name);
             }

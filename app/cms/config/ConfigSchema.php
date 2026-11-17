@@ -14,6 +14,7 @@ final class ConfigSchema
             'build.binary_name'=>['cms','CMS_BUILD_BINARY_NAME','binary_name'],
             'build.target'=>[[],'CMS_BUILD_TARGET','targets'],
             'build.build-runtime'=>['bin/build-runtime','CMS_BUILD_RUNTIME','build_path'],
+            'build.embed_admin_assets'=>[true,'CMS_BUILD_EMBED_ADMIN_ASSETS','bool'],
             'build.embedded_resources'=>[[],'CMS_BUILD_EMBEDDED_RESOURCES','embedded'],
             'database.host'=>['127.0.0.1','DB_HOST','string'],
             'database.port'=>[3306,'DB_PORT','int',1,65535],

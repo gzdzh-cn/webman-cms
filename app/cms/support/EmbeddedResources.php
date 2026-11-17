@@ -6,7 +6,7 @@ namespace app\cms\support;
 final class EmbeddedResources
 {
     public const YAML = ['config.yaml', 'config/config.yaml', 'config/manifest/config.yaml'];
-    public const OPTIONAL = ['public', 'template', ...self::YAML];
+    public const OPTIONAL = ['public', \app\cms\Paths::PUBLIC_ASSETS, 'template', ...self::YAML];
     private static ?array $manifest = null;
     public static function binary(): bool { return \Phar::running(false) !== ''; }
     public static function code(): string { return dirname(__DIR__, 3); }
@@ -19,6 +19,20 @@ final class EmbeddedResources
         return self::$manifest;
     }
     public static function has(string $root): bool { return in_array($root,self::manifest()['embedded_resources']??[],true); }
+    /** Resolve the independent system-asset switch before collecting build inputs. */
+    public static function forBuild(array $resources, bool $embedAdminAssets): array
+    {
+        $resources=array_values(array_filter($resources,static fn(string $root)=>$root!==\app\cms\Paths::PUBLIC_ASSETS));
+        if($embedAdminAssets)array_unshift($resources,\app\cms\Paths::PUBLIC_ASSETS);
+        return $resources;
+    }
+    public static function hasAssets(): bool
+    {
+        // Older binaries used public as an aggregate; new manifests name the
+        // system-asset root explicitly and record its independent switch.
+        return self::has(\app\cms\Paths::PUBLIC_ASSETS)
+            || (!array_key_exists('embed_admin_assets',self::manifest())&&self::has('public'));
+    }
     public static function yaml(): ?string
     {
         foreach(self::YAML as $file) if(self::has($file)) return self::code().'/'.$file;

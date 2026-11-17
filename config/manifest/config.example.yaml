@@ -11,7 +11,7 @@
 version: 1
 
 # 实体目录固定在源码入口或二进制所在目录，不支持 paths 或 CMS_*_DIR 自定义。
-# config/、public/admin-assets/、template/、uploads/、public/html/、install/、runtime/。
+# config/、app/cms/resources/admin-assets/、template/、uploads/、public/html/、install/、runtime/。
 
 # 数据库及连接池；修改后完整重启，已有站点不要随意变更表布局或前缀。
 database:
@@ -243,11 +243,16 @@ build:
   # 运行时缓存根目录；相对入口目录解析，缺省/null/空值使用 bin/build-runtime，各平台分别缓存。
   # 环境变量：CMS_BUILD_RUNTIME；生效：下次构建。
   build-runtime: bin/build-runtime
-  # 可选内置资源的字符串列表；[] 表示全部外置，缺省/null 同样按 [] 处理。
+  # 是否内嵌 admin-assets；默认 true，设 false 后部署同版外置系统资源目录。
+  # 环境变量：CMS_BUILD_EMBED_ADMIN_ASSETS；命令行：--embed-admin-assets=false；生效：下次构建。
+  embed_admin_assets: true
+  # 额外内嵌资源的字符串列表；缺省/null/[] 均表示不额外内嵌，不影响上方独立开关。
   # 环境变量：CMS_BUILD_EMBEDDED_RESOURCES；生效：下次构建。
-  # 仅允许：public、template、config.yaml、config/config.yaml、config/manifest/config.yaml。
-  # 行内示例：[public, template]；也支持在 embedded_resources: 下使用 - 分行列表，禁止重复项。
-  # CMS_BUILD_EMBEDDED_RESOURCES 环境变量必须使用 JSON 数组，例如 '["public","template"]'。
+  # 仅允许：app/cms/resources/admin-assets、public、template 及三个精确 YAML 路径。
+  # 行内示例：[template]；也支持在 embedded_resources: 下使用 - 分行列表，禁止重复项。
+  # CMS_BUILD_EMBEDDED_RESOURCES 环境变量必须使用 JSON 数组；'[]' 表示不额外内嵌。
   # uploads、runtime 及其子路径禁止内置，填写后在下载、暂存和构建前停止；生成 HTML 也始终外置。
-  # 内置 public/template 后整根优先，不从外部补齐；内置 YAML 固定配置，外部参数不能覆盖。
-  embedded_resources: [] # public、template 及三个精确 YAML 路径；支持 - 分行列表
+  # public 仅选择允许的 public 根文件；admin-assets 始终由 embed_admin_assets 决定。
+  # 列表兼容旧版 app/cms/resources/admin-assets 条目，但该条目不能覆盖独立开关。
+  # 内置系统资源、public/template 各根优先，不从外部补齐；内置 YAML 固定，外部不能覆盖。
+  embedded_resources: []

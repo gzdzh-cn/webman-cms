@@ -187,7 +187,10 @@ class BasicSettingsService
         if($name==='web_status_url'&&preg_match('#^[a-z]+:#i',$value)&&!preg_match('#^https?://#i',$value))throw new InvalidArgumentException('关闭跳转链接仅支持HTTP/HTTPS');
         if($name==='web_status_tpl'&&$value!==''){$value=ltrim($value,'/');if(!preg_match('#^[\w/-]+\.html?$#iD',$value)||preg_match('#(?:^|/)\.\.(?:/|$)#',$value))throw new InvalidArgumentException('关闭页面必须是项目内HTML/HTM文件');}
         if($name==='web_mobile_domain'&&$value!==''&&(!preg_match('/^(?!-)[a-z0-9-]{1,63}(?<!-)$/iD',$value)||strtolower($value)==='www'))throw new InvalidArgumentException('手机站子域名格式错误');
-        if(in_array($name,['web_logo','web_mobile_logo','web_ico'],true)&&$value!==''&&!preg_match('#^/(?!/)[^\x00-\x20]*$#D',$value)&&!preg_match('#^https?://[^\x00-\x20]+$#iD',$value))throw new InvalidArgumentException('图片地址格式错误');
+        if(in_array($name,['web_logo','web_mobile_logo','web_ico'],true)&&$value!==''){
+            $relativeRemote=str_starts_with($value,'//')&&filter_var('https:'.$value,FILTER_VALIDATE_URL)&&!preg_match('/[\x00-\x20\x7f]/',$value);
+            if(!$relativeRemote&&!preg_match('#^/(?!/)[^\x00-\x20]*$#D',$value)&&!preg_match('#^https?://[^\x00-\x20]+$#iD',$value))throw new InvalidArgumentException('图片地址格式错误');
+        }
         if($name==='web_ico'&&$value!==''&&!preg_match('/\.ico(?:[?#]|$)/i',$value))throw new InvalidArgumentException('地址栏图标必须是ICO图片');
         if($name==='web_keywords')$value=str_replace('，',',',$value);
         if($name==='web_description')$value=str_replace(["\r","\n"],'',$value);

@@ -85,7 +85,11 @@ class UploadController extends \plugin\admin\app\controller\Crud
         if ($request->method() === 'GET') {
             return \app\cms\admin\support\AdminView::raw('upload/update');
         }
-        return parent::update($request);
+        [$id, $data] = $this->updateInput($request);
+        // Storage identity is server owned; attachment editing only changes its category.
+        $data = array_intersect_key($data, ['category' => true]);
+        $this->doUpdate($id, $data);
+        return $this->json(0);
     }
 
     /**
@@ -109,26 +113,7 @@ class UploadController extends \plugin\admin\app\controller\Crud
             $data=$this->processImageUpload($data);
             if($data instanceof Response)return $data;
         }
-        $upload = new Upload;
-        $upload->admin_id = admin_id();
-        $upload->name = $data['name'];
-        [
-            $upload->url,
-            $upload->name,
-            $_,
-            $upload->file_size,
-            $upload->mime_type,
-            $upload->image_width,
-            $upload->image_height,
-            $upload->ext
-        ] = array_values($data);
-        $upload->category = $request->post('category');
-        $upload->save();
-        return $this->json(0, '上传成功', [
-            'url' => $data['url'],
-            'name' => $data['name'],
-            'size' => $data['size'],
-        ]);
+        return $this->commitUpload($request, $data);
     }
 
     /**
@@ -157,11 +142,7 @@ class UploadController extends \plugin\admin\app\controller\Crud
         }
         $data = $this->receiveUpload($request, '/upload/files/' . date('Ymd'));
         if ($data instanceof Response) return $data;
-        return $this->json(0, '上传成功', [
-            'url' => $data['url'],
-            'name' => $data['name'],
-            'size' => $data['size'],
-        ]);
+        return $this->commitUpload($request, $data);
     }
 
     /**
@@ -176,16 +157,33 @@ class UploadController extends \plugin\admin\app\controller\Crud
         if ($data instanceof Response) return $data;
         $data=$this->processImageUpload($data);
         if($data instanceof Response)return $data;
-        return json([
-            'code' => 0,
-            'msg' => '上传成功',
-            'data' => [
-                'url' => $data['url'],
-                'name' => $data['name'],
-                'size' => $data['size'],
-                'image_processing' => $data['image_processing'],
-            ]
-        ]);
+        return $this->commitUpload($request, $data);
+    }
+
+    /** All business entry points commit once, after image processing. */
+    private function commitUpload(Request $request, array $data): Response
+    {
+        $category = $request->post('category', '');
+        if (!is_string($category) || strlen($category) > 128) return $this->json(1, '附件分类无效，本地文件已保留');
+        $localOnly = $request->post('purpose') === 'site-icon';
+        if ($localOnly && (!str_starts_with($data['mime_type'], 'image/') || !$data['image_with'])) return $this->json(1, '站点图标必须是有效图片');
+        try {
+            $stored = $this->storageService()->store($data, (int)admin_id(), $category, $localOnly);
+        } catch (Throwable $error) {
+            // SDK/driver exceptions can contain signed headers and connection details.
+            $message = $error instanceof \RuntimeException && in_array($error->getMessage(), [
+                '附件记录保存失败，本地文件已保留，请核对后重试',
+                'OSS 上传失败、配置已变化或结果未知，本地文件已保留，请核对后重试',
+            ], true) ? $error->getMessage() : '附件存储未完成，本地文件已保留，请检查迁移及插件配置';
+            return $this->json(1, $message);
+        }
+        return $this->json(0, $stored['storage_warning'] ?? '上传成功', array_intersect_key($stored,
+            array_flip(['url', 'name', 'size', 'id', 'image_processing', 'storage_warning'])));
+    }
+
+    protected function storageService(): \app\cms\service\AttachmentStorageService
+    {
+        return new \app\cms\service\AttachmentStorageService();
     }
 
     private function processImageUpload(array $data): array|Response
@@ -270,7 +268,17 @@ class UploadController extends \plugin\admin\app\controller\Crud
         $primary_key = $this->model->getKeyName();
         $files = $this->model->whereIn($primary_key, $ids)->get()->toArray();
         $file_list = array_map(function ($item) {
-            return $this->localUploadFile($item['url']);
+            $path = $this->localUploadFile($item['url']);
+            if (!$path && ($item['storage'] ?? 'local') === 'AliyunOss') {
+                $meta = json_decode($item['storage_meta'] ?? '', true);
+                if (is_array($meta) && preg_match('#^uploads/(?:img|files)/\d{8}/[a-f0-9]{32}\.[a-z0-9]+$#D', (string)($meta['local_path'] ?? ''))) {
+                    $path = $this->localUploadFile('/' . $meta['local_path']);
+                    if ($path && (!is_string($meta['sha256'] ?? null) || !hash_equals($meta['sha256'], hash_file('sha256', $path)))) $path = null;
+                }
+            }
+            if (!$path) return null;
+            $stat = lstat($path);
+            return ['path' => $path, 'dev' => $stat['dev'], 'ino' => $stat['ino']];
         }, $files);
         $file_list = array_filter($file_list, function ($item) {
             return !empty($item);
@@ -278,7 +286,9 @@ class UploadController extends \plugin\admin\app\controller\Crud
         $result = parent::delete($request);
         if (($res = json_decode($result->rawBody())) && $res->code === 0) {
             foreach ($file_list as $file) {
-                @unlink($file);
+                $path = $this->localUploadFile('/uploads/' . substr($file['path'], strlen(rtrim(\app\cms\Paths::uploads(), '/')) + 1));
+                $stat = $path ? lstat($path) : false;
+                if ($stat && $stat['dev'] === $file['dev'] && $stat['ino'] === $file['ino']) @unlink($path);
             }
         }
         return $result;
@@ -297,7 +307,10 @@ class UploadController extends \plugin\admin\app\controller\Crud
         } catch (\InvalidArgumentException $error) {
             return null;
         }
-        return $root && $resolved && str_starts_with($resolved, $root . DIRECTORY_SEPARATOR) && is_file($resolved) ? $resolved : null;
+        if (!$root || !$resolved || !str_starts_with($resolved, $root . DIRECTORY_SEPARATOR) || !is_file($resolved)) return null;
+        try { \app\cms\config\Entry::assertPath(UploadPaths::physical($path)); } catch (Throwable) { return null; }
+        $stat = lstat($resolved);
+        return $stat && $stat['nlink'] === 1 ? $resolved : null;
     }
 
     /**

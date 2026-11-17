@@ -51,8 +51,8 @@ final class DeploymentPermissions
                 $this->directory($path, 0755);
                 $this->tree($path, 'writable');
             }
-            foreach (['template'=>'template', 'public'=>'public/admin-assets'] as $embedded=>$relative) {
-                if (EmbeddedResources::has($embedded)) continue;
+            foreach (['template'=>'template', \app\cms\Paths::PUBLIC_ASSETS=>\app\cms\Paths::PUBLIC_ASSETS] as $embedded=>$relative) {
+                if ($embedded===\app\cms\Paths::PUBLIC_ASSETS ? EmbeddedResources::hasAssets() : EmbeddedResources::has($embedded)) continue;
                 $path = $root.'/'.$relative;
                 if (!$this->exists($path)) throw new \RuntimeException('外置资源目录不存在：'.$path.'；请部署资源，程序不会创建空资源目录');
                 $this->tree($path, 'resource');

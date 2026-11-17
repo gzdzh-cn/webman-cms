@@ -66,6 +66,10 @@ final class AssetResolver
         $base = rtrim((string)\app\cms\config\SiteSettings::get('base_path'), '/');
         if ($base !== '' && str_starts_with($path, $base . '/')) $path = substr($path, strlen($base));
         if (self::hasPrivateSegment($path)) return null;
+        // Registered system assets were resolved above. Never fall back to a
+        // stale public tree or expose their private implementation path.
+        if (preg_match('#^/(?:public/)?admin-assets(?:/|$)#', $path)
+            || preg_match('#^/app/(?:cms|view)(?:/|$)#', $path)) return null;
         $extension = strtolower(pathinfo($path, PATHINFO_EXTENSION));
         // Public widget HTML (including Ueditor's map iframe) is an asset;
         // files in the private template tree are still never served as HTML.

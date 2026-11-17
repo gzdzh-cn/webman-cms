@@ -33,6 +33,7 @@ return [
         $module('channeltype', '内容模型', [$page('Channeltype', '模型管理'), $page('Channelfield', '自定义字段')], 'layui-icon-template-1'),
     ]],
     ['id' => 'system', 'key' => 'common', 'title' => '系统管理', 'icon' => 'layui-icon-set', 'modules' => [
+        $module('plugins', '插件市场', [$page('Plugin', '插件市场')], 'layui-icon-app'),
         $module('admin', '账号权限', [$page('Admin', '管理员'), $page('Role', '角色权限')], 'layui-icon-user'),
         $module('systemtools', '系统维护', [$page('Rule', '菜单配置'), $page('Operationlog', '操作日志'), $page('Config', '后台外观')], 'layui-icon-set'),
         $module('account', '个人资料', [$page('Account', '个人资料')], 'layui-icon-username') + ['sidebar' => false],

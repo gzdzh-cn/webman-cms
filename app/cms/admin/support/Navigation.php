@@ -6,7 +6,7 @@ namespace app\cms\admin\support;
 /** A request-local display projection; this class never grants or persists permissions. */
 class Navigation
 {
-    public const VERSION = '20261106-basic-settings-v1';
+    public const VERSION = '20261115-reviewed-plugins-v1';
 
     public static function specification(): array
     {
@@ -135,6 +135,8 @@ class Navigation
                 $moduleId = 'cms-nav-' . $module['id'];
                 $modulePages = [];
                 foreach ($module['pages'] as $pageSpec) {
+                    // Plugin management cannot be delegated through historical rule grants.
+                    if ($pageSpec['key'] === 'plugin\\admin\\app\\controller\\PluginController' && !$super) continue;
                     $knownKeys[strtolower($pageSpec['key'])] = true;
                     $permissionKey = $pageSpec['permission_key'] ?? $pageSpec['key'];
                     $row = $byKey[strtolower($permissionKey)] ?? null;
