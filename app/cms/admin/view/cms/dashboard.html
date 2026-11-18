@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>工作台</title>
+    <link rel="stylesheet" href="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/admin/css/cms-dashboard.css'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>">
+    <script defer src="<?= htmlspecialchars(\app\cms\AssetManifest::url('/admin-assets/js/cms-dashboard.js'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>"></script>
+    <link rel="stylesheet" href="<?= htmlspecialchars(\app\cms\AssetManifest::url('/admin-assets/css/cms-update.css'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>">
+    <script defer src="<?= htmlspecialchars(\app\cms\AssetManifest::url('/admin-assets/js/cms-update.js'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>"></script>
+</head>
+<body class="cms-page-adapted cms-dashboard-page">
+    <section class="cms-dashboard-stats" aria-label="内容统计">
+        <article class="cms-dashboard-stat">网站栏目<strong><?= (int)$categories ?></strong><a href="/web-admin/arctype/index">管理栏目 →</a></article>
+        <article class="cms-dashboard-stat">内容文档<strong><?= (int)$documents ?></strong><a href="/web-admin/archive/index">管理内容 →</a></article>
+        <article class="cms-dashboard-stat">今日新增<strong><?= (int)$today ?></strong><a href="/web-admin/archive/insert">发布内容 →</a></article>
+        <article class="cms-dashboard-stat">未读留言<strong><?= (int)$messages ?></strong><a href="/web-admin/guestbook/index">处理留言 →</a></article>
+    </section>
+    <aside class="cms-dashboard-panel cms-dashboard-shortcuts" aria-labelledby="dashboard-shortcuts-title">
+        <h2 id="dashboard-shortcuts-title">快捷导航</h2>
+        <nav aria-label="网站管理快捷入口">
+            <a href="/web-admin/websiteconfig/index">基本设置</a>
+            <a href="/web-admin/ad/index">广告轮播</a>
+            <a href="/web-admin/links/index">友情链接</a>
+            <a href="/web-admin/form/index">表单管理</a>
+            <a href="/web-admin/recycle/index">回收站</a>
+            <a href="/" target="_blank" rel="noopener">预览官网 ↗</a>
+        </nav>
+    </aside>
+    <?php foreach (['system' => '系统信息', 'server' => '服务器信息'] as $group => $heading): ?>
+    <section class="cms-dashboard-panel cms-dashboard-info" aria-labelledby="dashboard-<?= $group ?>-title">
+        <div class="cms-dashboard-heading"><h2 id="dashboard-<?= $group ?>-title"><?= $heading ?></h2>
+        <?php if ($group === 'server'): ?><div class="cms-dashboard-actions"><button type="button" data-server-refresh>刷新</button><?php if (!empty($serverDetailsAllowed)): ?><button type="button" id="server-more">更多信息</button><?php endif; ?></div><?php endif; ?></div>
+        <?php if ($group === 'server'): ?><p class="cms-dashboard-sample" data-server-status role="status" aria-live="polite"></p><?php endif; ?>
+        <dl class="cms-dashboard-details"<?= $group === 'server' ? ' id="server-summary"' : '' ?>>
+            <?php foreach ($dashboardInfo[$group] ?? [] as $row): ?>
+            <div class="cms-dashboard-detail" data-info-key="<?= htmlspecialchars((string)($row['key'] ?? ''), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>">
+                <dt><?= htmlspecialchars((string)$row['label'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></dt>
+                <dd><?= htmlspecialchars((string)$row['value'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?><?php if (!empty($row['note'])): ?><small><?= htmlspecialchars((string)$row['note'], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?></small><?php endif; ?></dd>
+            </div>
+            <?php endforeach; ?>
+        </dl>
+    </section>
+    <?php endforeach; ?>
+    <?php if (!empty($serverDetailsAllowed)): ?>
+    <dialog id="server-details" class="cms-server-dialog" data-cms-ui-owned="1" aria-labelledby="server-dialog-title">
+        <div class="cms-dashboard-heading"><h2 id="server-dialog-title">服务器详细信息</h2><div class="cms-dashboard-actions"><button type="button" data-server-refresh>刷新</button><button type="button" id="server-close" aria-label="关闭服务器详细信息">关闭</button></div></div>
+        <p class="cms-dashboard-sample" data-server-status role="status" aria-live="polite"></p>
+        <div class="cms-server-tabs" role="tablist" aria-label="服务器信息分组">
+            <?php foreach (['memory'=>'内存与进程', 'resources'=>'服务器资源', 'environment'=>'运行环境'] as $key=>$label): ?>
+            <button type="button" role="tab" id="server-tab-<?= $key ?>" aria-controls="server-panel-<?= $key ?>" aria-selected="<?= $key === 'memory' ? 'true' : 'false' ?>" tabindex="<?= $key === 'memory' ? '0' : '-1' ?>"><?= $label ?></button>
+            <?php endforeach; ?>
+        </div>
+        <?php foreach (['memory', 'resources', 'environment'] as $key): ?>
+        <section role="tabpanel" id="server-panel-<?= $key ?>" aria-labelledby="server-tab-<?= $key ?>" tabindex="0"<?= $key !== 'memory' ? ' hidden' : '' ?>>
+            <dl class="cms-dashboard-details" id="server-group-<?= $key ?>"></dl>
+            <?php if ($key === 'memory'): ?>
+            <p id="server-process-note" class="cms-dashboard-sample"></p>
+            <div class="cms-server-table-wrap"><table class="cms-server-table"><caption>本站进程快照</caption><thead><tr><th scope="col">PID / 类别</th><th scope="col">PSS</th><th scope="col">RSS</th><th scope="col">私有常驻</th><th scope="col">运行时长</th></tr></thead><tbody id="server-processes"></tbody></table></div>
+            <?php endif; ?>
+        </section>
+        <?php endforeach; ?>
+    </dialog>
+    <?php endif; ?>
+    <script type="application/json" id="server-initial-snapshot"><?= json_encode($dashboardInfo['statistics'] ?? null, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE) ?></script>
+</body>
+</html>

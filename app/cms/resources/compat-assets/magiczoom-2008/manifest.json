@@ -1,0 +1,22 @@
+{
+  "kind": "magiczoom_2008_background_probe_correction",
+  "upstream_notice": "Copyright 2008 MagicToolBox.com; notice retained in each derived file.",
+  "behavior": "Skip hidden background-image probe when computed CSS is not a url(). Real background URLs retain the original loading behavior.",
+  "scope": "Exact source path and source/output SHA256; customized scripts and all other assets are served unchanged.",
+  "sources": {
+    "template/default/pc/skin/Lib/MagicZoom/mzp-packed.js": {
+      "source_sha256": "3052143e6c94accdc090a27c8e0e628e302be99af06d2fcf85a205a2de6d1c62",
+      "compat_file": "mzp-packed-3052143e6c94.js",
+      "compat_sha256": "7671cf197ecc0eda0275e1bf40bbd54fe7d5ed3f49a9a19475865ca14e75847a",
+      "source_bytes": 67745,
+      "compat_bytes": 67888
+    },
+    "template/default/mobile/skin/Lib/MagicZoom/mzp-packed.js": {
+      "source_sha256": "3052143e6c94accdc090a27c8e0e628e302be99af06d2fcf85a205a2de6d1c62",
+      "compat_file": "mzp-packed-3052143e6c94.js",
+      "compat_sha256": "7671cf197ecc0eda0275e1bf40bbd54fe7d5ed3f49a9a19475865ca14e75847a",
+      "source_bytes": 67745,
+      "compat_bytes": 67888
+    }
+  }
+}

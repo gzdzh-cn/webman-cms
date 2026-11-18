@@ -1,0 +1,276 @@
+{
+    "artifacts": {
+        "attr": {
+            "license": "LGPL-2.1-or-later",
+            "dumped-at": "2026-11-10 09:31:03"
+        },
+        "brotli": {
+            "license": "MIT",
+            "dumped-at": "2026-11-10 09:31:03"
+        },
+        "bzip2": {
+            "license": "bzip2-1.0.6",
+            "dumped-at": "2026-11-10 09:31:03"
+        },
+        "curl": {
+            "license": "curl",
+            "dumped-at": "2026-11-10 09:31:03"
+        },
+        "ext-apcu": {
+            "license": "PHP-3.01",
+            "dumped-at": "2026-11-10 09:31:03"
+        },
+        "ext-igbinary": {
+            "license": "BSD-3-Clause",
+            "dumped-at": "2026-11-10 09:31:03"
+        },
+        "ext-msgpack": {
+            "license": "BSD-3-Clause",
+            "dumped-at": "2026-11-10 09:31:03"
+        },
+        "ext-redis": {
+            "license": "PHP-3.01",
+            "dumped-at": "2026-11-10 09:31:03"
+        },
+        "ext-zip": {
+            "license": "PHP-3.01",
+            "dumped-at": "2026-11-10 09:31:03"
+        },
+        "freetype": {
+            "license": "FTL",
+            "dumped-at": "2026-11-10 09:31:03"
+        },
+        "gettext": {
+            "license": "LGPL-2.1-or-later",
+            "dumped-at": "2026-11-10 09:31:03"
+        },
+        "gmp": {
+            "license": "Custom",
+            "dumped-at": "2026-11-10 09:31:03"
+        },
+        "icu": {
+            "license": "ICU",
+            "dumped-at": "2026-11-10 09:31:03"
+        },
+        "idn2": {
+            "license": "LGPL-3.0-or-later",
+            "dumped-at": "2026-11-10 09:31:03"
+        },
+        "krb5": {
+            "license": "BSD-3-Clause",
+            "dumped-at": "2026-11-10 09:31:03"
+        },
+        "ldap": {
+            "license": "Custom",
+            "dumped-at": "2026-11-10 09:31:03"
+        },
+        "libacl": {
+            "license": "LGPL-2.1-or-later",
+            "dumped-at": "2026-11-10 09:31:03"
+        },
+        "libaom": {
+            "license": "Custom",
+            "dumped-at": "2026-11-10 09:31:03"
+        },
+        "libavif": {
+            "license": "BSD-2-Clause",
+            "dumped-at": "2026-11-10 09:31:03"
+        },
+        "libcares": {
+            "license": "Custom",
+            "dumped-at": "2026-11-10 09:31:03"
+        },
+        "libedit": {
+            "license": "BSD-3-Clause",
+            "dumped-at": "2026-11-10 09:31:03"
+        },
+        "libiconv": {
+            "license": "LGPL-2.0-or-later",
+            "dumped-at": "2026-11-10 09:31:03"
+        },
+        "libjpeg": {
+            "license": "IJG",
+            "dumped-at": "2026-11-10 09:31:03"
+        },
+        "liblz4": {
+            "license": "BSD-2-Clause",
+            "dumped-at": "2026-11-10 09:31:03"
+        },
+        "libpng": {
+            "license": "PNG",
+            "dumped-at": "2026-11-10 09:31:03"
+        },
+        "libsodium": {
+            "license": "Custom",
+            "dumped-at": "2026-11-10 09:31:03"
+        },
+        "libssh2": {
+            "license": "BSD-3-Clause",
+            "dumped-at": "2026-11-10 09:31:03"
+        },
+        "libunistring": {
+            "license": "LGPL-3.0-or-later",
+            "dumped-at": "2026-11-10 09:31:03"
+        },
+        "libwebp": {
+            "license": "BSD-3-Clause",
+            "dumped-at": "2026-11-10 09:31:03"
+        },
+        "libxml2": {
+            "license": "MIT",
+            "dumped-at": "2026-11-10 09:31:03"
+        },
+        "libxslt": {
+            "license": "MIT",
+            "dumped-at": "2026-11-10 09:31:03"
+        },
+        "libzip": {
+            "license": "BSD-3-Clause",
+            "dumped-at": "2026-11-10 09:31:03"
+        },
+        "llvm-compiler-rt": {
+            "license": "Apache-2.0-with-LLVM-exception",
+            "dumped-at": "2026-11-10 09:31:03"
+        },
+        "ncurses": {
+            "license": "Custom",
+            "dumped-at": "2026-11-10 09:31:03"
+        },
+        "nghttp2": {
+            "license": "Custom",
+            "dumped-at": "2026-11-10 09:31:03"
+        },
+        "nghttp3": {
+            "license": "MIT",
+            "dumped-at": "2026-11-10 09:31:03"
+        },
+        "ngtcp2": {
+            "license": "MIT",
+            "dumped-at": "2026-11-10 09:31:03"
+        },
+        "onig": {
+            "license": "Custom",
+            "dumped-at": "2026-11-10 09:31:03"
+        },
+        "openssl": {
+            "license": "OpenSSL",
+            "dumped-at": "2026-11-10 09:31:03"
+        },
+        "php-src": {
+            "license": "PHP-3.01",
+            "dumped-at": "2026-11-10 09:31:03"
+        },
+        "postgresql": {
+            "license": "PostgreSQL",
+            "dumped-at": "2026-11-10 09:31:03"
+        },
+        "sqlite": {
+            "license": "Unlicense",
+            "dumped-at": "2026-11-10 09:31:03"
+        },
+        "xz": {
+            "license": "0BSD",
+            "dumped-at": "2026-11-10 09:31:03"
+        },
+        "zlib": {
+            "license": "Zlib-Custom",
+            "dumped-at": "2026-11-10 09:31:03"
+        },
+        "zstd": {
+            "license": "BSD-3-Clause",
+            "dumped-at": "2026-11-10 09:31:03"
+        }
+    },
+    "summary": {
+        "license-types": {
+            "0BSD": [
+                "xz"
+            ],
+            "Apache-2.0-with-LLVM-exception": [
+                "llvm-compiler-rt"
+            ],
+            "BSD-2-Clause": [
+                "libavif",
+                "liblz4"
+            ],
+            "BSD-3-Clause": [
+                "ext-igbinary",
+                "ext-msgpack",
+                "krb5",
+                "libedit",
+                "libssh2",
+                "libwebp",
+                "libzip",
+                "zstd"
+            ],
+            "Custom": [
+                "gmp",
+                "ldap",
+                "libaom",
+                "libcares",
+                "libsodium",
+                "ncurses",
+                "nghttp2",
+                "onig"
+            ],
+            "FTL": [
+                "freetype"
+            ],
+            "ICU": [
+                "icu"
+            ],
+            "IJG": [
+                "libjpeg"
+            ],
+            "LGPL-2.0-or-later": [
+                "libiconv"
+            ],
+            "LGPL-2.1-or-later": [
+                "attr",
+                "gettext",
+                "libacl"
+            ],
+            "LGPL-3.0-or-later": [
+                "idn2",
+                "libunistring"
+            ],
+            "MIT": [
+                "brotli",
+                "libxml2",
+                "libxslt",
+                "nghttp3",
+                "ngtcp2"
+            ],
+            "OpenSSL": [
+                "openssl"
+            ],
+            "PHP-3.01": [
+                "ext-apcu",
+                "ext-redis",
+                "ext-zip",
+                "php-src"
+            ],
+            "PNG": [
+                "libpng"
+            ],
+            "PostgreSQL": [
+                "postgresql"
+            ],
+            "Unlicense": [
+                "sqlite"
+            ],
+            "Zlib-Custom": [
+                "zlib"
+            ],
+            "bzip2-1.0.6": [
+                "bzip2"
+            ],
+            "curl": [
+                "curl"
+            ]
+        },
+        "total-artifacts": 45,
+        "total-license-types": 20,
+        "last-updated": "2026-11-10 09:31:03"
+    }
+}

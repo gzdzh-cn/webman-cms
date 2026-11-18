@@ -12,9 +12,9 @@
  * @license   http://www.opensource.org/licenses/mit-license.php MIT License
  */
 
-use think\view\driver\Think;
+use app\cms\template\WebmanView;
 
 return [
-    // 使用自定义模板引擎渲染 eyou 模板（template/pc/*.htm）
-    'handler' => Think::class,
+    // 使用自定义模板引擎渲染 eyou 模板（template/default/pc/*.htm）
+    'handler' => WebmanView::class,
 ];

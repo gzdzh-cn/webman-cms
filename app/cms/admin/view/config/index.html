@@ -1,0 +1,356 @@
+﻿<!DOCTYPE html>
+<html lang="zh-cn">
+    <head>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+        <meta charset="UTF-8">
+        <title>后台外观设置</title>
+        <link rel="stylesheet" href="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/component/layui/css/layui.css?v=2.8.12'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>" />
+        <link rel="stylesheet" href="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/component/pear/css/pear.css'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>" />
+        <link rel="stylesheet" href="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/admin/css/reset.css'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>" />
+    <link rel="stylesheet" href="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/admin/css/cms-page-adapters.css?v=20261105-adapters1'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>">
+<link rel="stylesheet" href="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/admin/css/cms-module-navigation.css?v=20261106-basic2'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>"><script src="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/admin/js/cms-module-navigation.js?v=20261106-basic2'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>"></script>
+</head>
+    <body class="pear-container cms-classic-settings-page cms-page-adapted"><div data-cms-module-navigation></div>
+        <style>
+            body.cms-classic-settings-page .cms-settings-form .layui-input-block {min-width:0;}
+            body.cms-classic-settings-page .cms-settings-form .layui-input-block input:not([type="checkbox"]):not([type="radio"]) {box-sizing:border-box;width:300px;max-width:100%;}
+            @media(max-width:767px){
+                body.cms-classic-settings-page .layui-tab-content{padding:12px 0;}
+                body.cms-classic-settings-page .cms-settings-form{box-sizing:border-box;width:100%;min-width:0;}
+                body.cms-classic-settings-page .cms-settings-form .layui-form-label{box-sizing:border-box;float:none;width:auto;max-width:100%;padding:0 0 6px;text-align:left;}
+                body.cms-classic-settings-page .cms-settings-form .layui-input-block{box-sizing:border-box;margin-left:0;width:100%;min-width:0;max-width:100%;}
+                body.cms-classic-settings-page .cms-settings-form .layui-input-block input:not([type="checkbox"]):not([type="radio"]){width:100%;min-width:0;}
+                body.cms-classic-settings-page .cms-settings-form .layui-input-block:has(> button){display:flex;flex-wrap:wrap;align-items:center;gap:10px;}
+                body.cms-classic-settings-page .cms-settings-form .layui-input-block > button{margin:0;}
+                body.cms-classic-settings-page .cms-settings-form .layui-input-block > img{max-width:100%;height:auto;}
+            }
+        </style>
+
+        <div class="layui-card cms-page-panel">
+            <div class="layui-card-body">
+
+                <div class="layui-tab layui-tab-brief">
+                <ul class="layui-tab-title">
+                    <li class="layui-this">基本信息</li>
+                    <li>菜单配置</li>
+                    <li>页面配置</li>
+                </ul>
+                <div class="layui-tab-content">
+
+                    <!-- 基本信息 -->
+                    <div class="layui-tab-item layui-show">
+
+                        <form class="layui-form cms-settings-form" lay-filter="baseInfo">
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">后台标语</label>
+                                <div class="layui-input-block">
+                                    <input type="text" name="title" readonly value="后台管理" aria-describedby="backend-title-help" class="layui-input">
+                                    <div id="backend-title-help" class="cms-ui-help">后台统一显示“后台管理”，网站名称在基本设置中维护。</div>
+                                </div>
+                            </div>
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">网站Logo</label>
+                                <div class="layui-input-block">
+                                    <img class="img-3" src=""/>
+                                    <input type="text" style="display:none" name="image" value="/web-admin/avatar.png" />
+                                    <button type="button" class="pear-btn pear-btn-primary pear-btn-sm" id="image" permission="app.admin.upload.avatar">
+                                        <i class="layui-icon layui-icon-upload"></i>上传图片
+                                    </button>
+                                    <button type="button" class="pear-btn pear-btn-primary pear-btn-sm" id="attachment-choose-image" permission="app.admin.upload.attachment">
+                                        <i class="layui-icon layui-icon-align-left"></i>选择图片
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">ICP备案号</label>
+                                <div class="layui-input-block">
+                                    <input type="text" name="icp"  placeholder="请输入ICP备案号" autocomplete="off" class="layui-input">
+                                </div>
+                            </div>
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">公安网备</label>
+                                <div class="layui-input-block">
+                                    <input type="text" name="beian" placeholder="请输入公安网备号" autocomplete="off" class="layui-input">
+                                </div>
+                            </div>
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">其它</label>
+                                <div class="layui-input-block">
+                                    <input type="text" name="footer_txt" placeholder="其它展示在页面底部的内容" autocomplete="off" class="layui-input">
+                                </div>
+                            </div>
+
+                            <div class="layui-form-item">
+                                <div class="layui-input-block">
+                                    <button type="submit" class="pear-btn pear-btn-primary pear-btn-md cms-primary-action" lay-submit="" lay-filter="saveBaseInfo">
+                                        保存
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+
+                    </div>
+
+                    <!-- 菜单设置 -->
+                    <div class="layui-tab-item">
+
+                        <form class="layui-form cms-settings-form" lay-filter="menuInfo">
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">菜单url</label>
+                                <div class="layui-input-block">
+                                    <input type="text" name="data" required  lay-verify="required" placeholder="请输入菜单url" autocomplete="off" class="layui-input">
+                                </div>
+                            </div>
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">默认菜单ID</label>
+                                <div class="layui-input-block">
+                                    <input type="number" name="pearSelect" required  lay-verify="required" placeholder="请输入默认菜单ID" autocomplete="off" class="layui-input">
+                                </div>
+                            </div>
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">开启手风琴</label>
+                                <div class="layui-input-block">
+                                    <input type="checkbox" name="accordion" id="accordion" lay-skin="switch" />
+                                </div>
+                            </div>
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">折叠菜单</label>
+                                <div class="layui-input-block">
+                                    <input type="checkbox" id="collapse" name="collapse" lay-skin="switch" />
+                                </div>
+                            </div>
+
+                            <div class="layui-form-item">
+                                <div class="layui-input-block">
+                                    <button type="submit" class="pear-btn pear-btn-primary pear-btn-md cms-primary-action" lay-submit="" lay-filter="saveMenuInfo">
+                                        保存
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+
+                    </div>
+
+                    <!-- tab设置 -->
+                    <div class="layui-tab-item">
+
+                        <form class="layui-form cms-settings-form" lay-filter="tabInfo">
+
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">保持标签</label>
+                                <div class="layui-input-block">
+                                    <input type="checkbox" name="keepState" lay-skin="switch" />
+                                </div>
+                            </div>
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">记住标签</label>
+                                <div class="layui-input-block">
+                                    <input type="checkbox" name="session" lay-skin="switch" />
+                                </div>
+                            </div>
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">预加载标签</label>
+                                <div class="layui-input-block">
+                                    <input type="checkbox" name="preload" lay-skin="switch" />
+                                </div>
+                            </div>
+
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">最大标签数</label>
+                                <div class="layui-input-block">
+                                    <input type="number" name="max" required  lay-verify="required" placeholder="请输入最大标签数" autocomplete="off" class="layui-input">
+                                </div>
+                            </div>
+
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">主标签标题</label>
+                                <div class="layui-input-block">
+                                    <input type="text" name="title" required  lay-verify="required" placeholder="请输入主页标签标题" autocomplete="off" class="layui-input">
+                                </div>
+                            </div>
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">主标签URL</label>
+                                <div class="layui-input-block">
+                                    <input type="text" name="href" required  lay-verify="required" placeholder="请输入菜单url" autocomplete="off" class="layui-input">
+                                </div>
+                            </div>
+                            <div class="layui-form-item">
+                                <label class="layui-form-label">主标签ID</label>
+                                <div class="layui-input-block">
+                                    <input type="number" name="id" required  lay-verify="required" placeholder="请输入主页标签ID" autocomplete="off" class="layui-input">
+                                </div>
+                            </div>
+
+                            <div class="layui-form-item">
+                                <div class="layui-input-block">
+                                    <button type="submit" class="pear-btn pear-btn-primary pear-btn-md cms-primary-action" lay-submit="" lay-filter="saveTabInfo">
+                                        保存
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+
+                    </div>
+
+                </div>
+            </div>
+
+            </div>
+        </div>
+
+
+        <script src="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/component/layui/layui.js?v=2.13.12'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>"></script>
+        <script src="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/component/pear/pear.js'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>"></script>
+        <script src="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/admin/js/permission.js'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>"></script>
+        <script>
+
+            // 基础设置
+            layui.use(["upload", "layer", "pearPopup"], function() {
+                let $ = layui.$;
+                let form = layui.form;
+
+                // image
+                let input = $("#image").prev();
+                input.prev().attr("src", input.val());
+                layui.$("#attachment-choose-image").on("click", function() {
+                    window.CmsUI.layer({
+                        type: 2,
+                        title: "选择附件",
+                        content: "/web-admin/upload/attachment?ext=jpg,jpeg,png,gif,bmp",
+                        kind: "picker", area: ["1040px", "85vh"],
+                        success: function (layero, index) {
+                            layui.$("#layui-layer" + index).data("callback", function (data) {
+                                input.val(data.url).prev().attr("src", data.url);
+                                input[0]?.dispatchEvent(new Event('change', {bubbles:true}));
+                            });
+                        }
+                    });
+                });
+                layui.upload.render({
+                    elem: "#image",
+                    url: "/web-admin/upload/avatar",
+                    acceptMime: "image/gif,image/jpeg,image/jpg,image/png",
+                    done: function (res) {
+                        if (res.code) {
+                            return window.CmsUI.failure(res.msg);
+                        }
+                        this.item.prev().val(res.data.url).prev().attr("src", res.data.url);
+                        this.item.prev()[0]?.dispatchEvent(new Event('change', {bubbles:true}));
+                    }
+                });
+
+                // 保存
+                form.on("submit(saveBaseInfo)", function(data){
+                    var cmsForm=typeof data!=='undefined'&&data.form?data.form:document.querySelector('form');
+                    if(cmsForm.dataset.cmsSubmitting==='1')return false;
+                    cmsForm.dataset.cmsSubmitting='1';window.CmsUI.setBusy(cmsForm,true);
+                    $.ajax({
+                    error:function(){window.CmsUI.error(cmsForm,"保存失败，请检查网络或登录状态后重试");},
+                    complete:function(){delete cmsForm.dataset.cmsSubmitting;window.CmsUI.setBusy(cmsForm,false);},
+                        url: "/web-admin/config/update",
+                        dataType: "json",
+                        type: "POST",
+                        data: {logo: data.field},
+                        success: function (res) {
+                            if (res.code) {
+                                window.CmsUI.error(cmsForm,res.msg,res.fields||res.data?.fields);return false;
+                            }
+                            window.CmsModuleNavigation?.markClean(cmsForm);delete cmsForm.dataset.cmsDirty;return window.CmsUI.success("保存成功");
+                        }
+                    });
+                    return false;
+                });
+            });
+
+            // 菜单设置
+            layui.use(["upload", "layer", "pearPopup"], function() {
+                let $ = layui.$;
+                let form = layui.form;
+                // 保存
+                form.on("submit(saveMenuInfo)", function(data){
+                    var cmsForm=typeof data!=='undefined'&&data.form?data.form:document.querySelector('form');
+                    if(cmsForm.dataset.cmsSubmitting==='1')return false;
+                    cmsForm.dataset.cmsSubmitting='1';window.CmsUI.setBusy(cmsForm,true);
+                    $.ajax({
+                    error:function(){window.CmsUI.error(cmsForm,"保存失败，请检查网络或登录状态后重试");},
+                    complete:function(){delete cmsForm.dataset.cmsSubmitting;window.CmsUI.setBusy(cmsForm,false);},
+                        url: "/web-admin/config/update",
+                        dataType: "json",
+                        type: "POST",
+                        data: {menu: data.field},
+                        success: function (res) {
+                            if (res.code) {
+                                window.CmsUI.error(cmsForm,res.msg,res.fields||res.data?.fields);return false;
+                            }
+                            window.CmsModuleNavigation?.markClean(cmsForm);delete cmsForm.dataset.cmsDirty;return window.CmsUI.success("保存成功");
+                        }
+                    });
+                    return false;
+                });
+            });
+
+            // 标签设置
+            layui.use(["upload", "layer", "pearPopup"], function() {
+                let $ = layui.$;
+                let form = layui.form;
+                // 保存
+                form.on("submit(saveTabInfo)", function(data){
+                    let field = data.field;
+                    field.index = {
+                        id: field.id,
+                        href: field.href,
+                        title: field.title,
+                    };
+                    delete data.field;
+                    var cmsForm=typeof data!=='undefined'&&data.form?data.form:document.querySelector('form');
+                    if(cmsForm.dataset.cmsSubmitting==='1')return false;
+                    cmsForm.dataset.cmsSubmitting='1';window.CmsUI.setBusy(cmsForm,true);
+                    $.ajax({
+                    error:function(){window.CmsUI.error(cmsForm,"保存失败，请检查网络或登录状态后重试");},
+                    complete:function(){delete cmsForm.dataset.cmsSubmitting;window.CmsUI.setBusy(cmsForm,false);},
+                        url: "/web-admin/config/update",
+                        dataType: "json",
+                        type: "POST",
+                        data: {tab: field},
+                        success: function (res) {
+                            if (res.code) {
+                                window.CmsUI.error(cmsForm,res.msg,res.fields||res.data?.fields);return false;
+                            }
+                            window.CmsModuleNavigation?.markClean(cmsForm);delete cmsForm.dataset.cmsDirty;return window.CmsUI.success("保存成功");
+                        }
+                    });
+                    // 删除sessionStorage缓存
+                    sessionStorage.clear();
+                    return false;
+                });
+            });
+
+            layui.use(["form"], function () {
+                let form = layui.form;
+                let $ = layui.$;
+                $.ajax({
+                    url: "/web-admin/config/get",
+                    dataType: "json",
+                    success: function (res) {
+                        if (res.code) {
+                            return window.CmsUI.failure(res.msg);
+                        }
+                        form.val("baseInfo", res.logo);
+                        $("#image").prev().val(res.logo.image).prev().attr("src", res.logo.image);
+                        form.val("menuInfo", res.menu);
+                        let tab = res.tab;
+                        let index = tab.index;
+                        delete tab.index;
+                        tab.id = index.id;
+                        tab.title = index.title;
+                        tab.href= index.href;
+                        form.val("tabInfo", res.tab);
+                    }
+                });
+
+            });
+
+        </script>
+
+    </body>
+</html>

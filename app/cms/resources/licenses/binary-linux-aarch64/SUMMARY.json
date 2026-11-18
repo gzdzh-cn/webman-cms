@@ -1,0 +1,129 @@
+{
+    "artifacts": {
+        "curl": {
+            "license": "curl",
+            "dumped-at": "2026-11-10 14:22:52"
+        },
+        "ext-redis": {
+            "license": "PHP-3.01",
+            "dumped-at": "2026-11-10 14:22:52"
+        },
+        "ext-zip": {
+            "license": "PHP-3.01",
+            "dumped-at": "2026-11-10 14:22:52"
+        },
+        "freetype": {
+            "license": "FTL",
+            "dumped-at": "2026-11-10 14:22:52"
+        },
+        "libaom": {
+            "license": "Custom",
+            "dumped-at": "2026-11-10 14:22:52"
+        },
+        "libavif": {
+            "license": "BSD-2-Clause",
+            "dumped-at": "2026-11-10 14:22:52"
+        },
+        "libiconv": {
+            "license": "LGPL-2.0-or-later",
+            "dumped-at": "2026-11-10 14:22:52"
+        },
+        "libjpeg": {
+            "license": "IJG",
+            "dumped-at": "2026-11-10 14:22:52"
+        },
+        "libpng": {
+            "license": "PNG",
+            "dumped-at": "2026-11-10 14:22:52"
+        },
+        "libwebp": {
+            "license": "BSD-3-Clause",
+            "dumped-at": "2026-11-10 14:22:52"
+        },
+        "libxml2": {
+            "license": "MIT",
+            "dumped-at": "2026-11-10 14:22:52"
+        },
+        "libzip": {
+            "license": "BSD-3-Clause",
+            "dumped-at": "2026-11-10 14:22:52"
+        },
+        "llvm-compiler-rt": {
+            "license": "Apache-2.0-with-LLVM-exception",
+            "dumped-at": "2026-11-10 14:22:52"
+        },
+        "onig": {
+            "license": "Custom",
+            "dumped-at": "2026-11-10 14:22:52"
+        },
+        "openssl": {
+            "license": "OpenSSL",
+            "dumped-at": "2026-11-10 14:22:52"
+        },
+        "php-src": {
+            "license": "PHP-3.01",
+            "dumped-at": "2026-11-10 14:22:52"
+        },
+        "xz": {
+            "license": "0BSD",
+            "dumped-at": "2026-11-10 14:22:52"
+        },
+        "zlib": {
+            "license": "Zlib-Custom",
+            "dumped-at": "2026-11-10 14:22:52"
+        }
+    },
+    "summary": {
+        "license-types": {
+            "0BSD": [
+                "xz"
+            ],
+            "Apache-2.0-with-LLVM-exception": [
+                "llvm-compiler-rt"
+            ],
+            "BSD-2-Clause": [
+                "libavif"
+            ],
+            "BSD-3-Clause": [
+                "libwebp",
+                "libzip"
+            ],
+            "Custom": [
+                "libaom",
+                "onig"
+            ],
+            "FTL": [
+                "freetype"
+            ],
+            "IJG": [
+                "libjpeg"
+            ],
+            "LGPL-2.0-or-later": [
+                "libiconv"
+            ],
+            "MIT": [
+                "libxml2"
+            ],
+            "OpenSSL": [
+                "openssl"
+            ],
+            "PHP-3.01": [
+                "ext-redis",
+                "ext-zip",
+                "php-src"
+            ],
+            "PNG": [
+                "libpng"
+            ],
+            "Zlib-Custom": [
+                "zlib"
+            ],
+            "curl": [
+                "curl"
+            ]
+        },
+        "total-artifacts": 18,
+        "total-license-types": 14,
+        "last-updated": "2026-11-10 14:22:52"
+    }
+}

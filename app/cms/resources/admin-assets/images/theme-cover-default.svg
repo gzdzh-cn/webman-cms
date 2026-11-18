@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="500" viewBox="0 0 800 500" fill="none">
+  <rect width="800" height="500" fill="#F1F5FB"/>
+  <circle cx="648" cy="112" r="82" fill="#E8EFF9"/>
+  <circle cx="144" cy="348" r="66" fill="#E8EFF9"/>
+  <rect x="164" y="82" width="472" height="292" rx="14" fill="#FFFFFF" stroke="#C9D6E8" stroke-width="3"/>
+  <path d="M165 126H635" stroke="#DCE5F1" stroke-width="3"/>
+  <circle cx="191" cy="105" r="5" fill="#B1C3DD"/>
+  <circle cx="211" cy="105" r="5" fill="#C4D2E6"/>
+  <circle cx="231" cy="105" r="5" fill="#D8E2F0"/>
+  <rect x="283" y="98" width="217" height="13" rx="6.5" fill="#EEF3F9"/>
+  <rect x="190" y="151" width="83" height="195" rx="6" fill="#EDF2F9"/>
+  <rect x="205" y="169" width="49" height="7" rx="3.5" fill="#B6C8E1"/>
+  <rect x="205" y="194" width="41" height="6" rx="3" fill="#CCD8E9"/>
+  <rect x="205" y="215" width="45" height="6" rx="3" fill="#CCD8E9"/>
+  <rect x="205" y="236" width="36" height="6" rx="3" fill="#CCD8E9"/>
+  <rect x="295" y="151" width="313" height="100" rx="7" fill="#E5EDF8"/>
+  <path d="M356 229L400 184L432 214L459 190L505 229" stroke="#A8BEDD" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="499" cy="179" r="11" fill="#BCD0E9"/>
+  <rect x="295" y="271" width="143" height="75" rx="6" fill="#F0F4FA"/>
+  <rect x="457" y="271" width="151" height="75" rx="6" fill="#F0F4FA"/>
+  <path d="M310 288H390M310 303H420M310 318H400M472 288H552M472 303H590M472 318H563" stroke="#D1DDED" stroke-width="6" stroke-linecap="round"/>
+  <text x="400" y="425" text-anchor="middle" fill="#7D8FA9" font-family="system-ui,-apple-system,'Segoe UI',sans-serif" font-size="22">暂无预览图</text>
+</svg>

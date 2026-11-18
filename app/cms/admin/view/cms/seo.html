@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>URL设置 · SEO设置</title>
+<link rel="stylesheet" href="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/admin/css/cms-module-navigation.css?v=20261106-basic2'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>">
+<script src="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/admin/js/cms-module-navigation.js?v=20261106-basic2'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>"></script>
+<link rel="stylesheet" href="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/admin/css/cms-page-adapters.css?v=20261105-adapters1'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>">
+<link rel="stylesheet" href="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/admin/css/cms-seo.css?ui=20261111-robotstab3'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>">
+</head><body class="cms-module-page cms-page-adapted cms-seo-page">
+<div data-cms-module-navigation></div>
+<main class="cms-page-panel">
+
+<header class="cms-filterbar" data-cms-filter><label>后台语言 <select id="lang" name="lang" form="settings" aria-label="后台语言"><option value="">加载中</option></select></label></header>
+<p class="cms-seo-note" id="scope-note">加载当前URL与SEO配置…</p>
+<p id="status" role="status" aria-live="polite"></p>
+<div class="cms-seo-layout" id="seo-layout"><form id="settings" class="cms-settings-form" aria-label="SEO配置">
+<fieldset><legend>URL配置</legend>
+<div class="cms-seo-field"><span class="cms-seo-label" id="label-seo_pseudo">页面URL</span><div class="cms-seo-choices cms-seo-modes" role="radiogroup" aria-labelledby="label-seo_pseudo" id="seo_pseudo"><label><input type="radio" name="seo_pseudo" id="seo_pseudo_1" value="1"><span>动态URL</span></label><label><input type="radio" name="seo_pseudo" id="seo_pseudo_3" value="3"><span>伪静态化</span></label><label><input type="radio" name="seo_pseudo" id="seo_pseudo_2" value="2"><span>静态页面</span></label></div><p class="cms-seo-help" id="static-note"></p></div>
+<div class="cms-seo-field" data-mode="1"><label for="seo_dynamic_format">动态格式</label><select id="seo_dynamic_format" name="seo_dynamic_format"><option value="1">标准动态链接</option><option value="2" id="legacy-dynamic">原兼容格式：home/Lists/index.html?tid=1</option></select><p class="cms-seo-help">标准格式：index.php?m=home&amp;c=Lists&amp;a=index&amp;tid=1；原PATH_INFO格式配置会保留。</p></div>
+<div class="cms-seo-field" data-mode="3"><span class="cms-seo-label" id="label-seo_rewrite_format">栏目URL</span><div class="cms-seo-choices" role="radiogroup" aria-labelledby="label-seo_rewrite_format" id="seo_rewrite_format"><label><input type="radio" name="seo_rewrite_format" id="seo_rewrite_format_1" value="1"><span>目录名称：/news/</span></label><label><input type="radio" name="seo_rewrite_format" id="seo_rewrite_format_2" value="2"><span>模型标识：/article/news.html</span></label></div></div>
+<div class="cms-seo-field" data-mode="3" id="rewrite-view"><span class="cms-seo-label" id="label-seo_rewrite_view_format">文档URL</span><div class="cms-seo-choices" role="radiogroup" aria-labelledby="label-seo_rewrite_view_format" id="seo_rewrite_view_format"><label><input type="radio" name="seo_rewrite_view_format" id="seo_rewrite_view_format_1" value="1"><span>顶级目录：/news/20.html</span></label><label><input type="radio" name="seo_rewrite_view_format" id="seo_rewrite_view_format_3" value="3"><span>当前目录：/lol/20.html</span></label><label><input type="radio" name="seo_rewrite_view_format" id="seo_rewrite_view_format_4" value="4"><span>父级/当前目录：/news/lol/20.html</span></label></div></div>
+<div class="cms-seo-field"><label for="seo_force_inlet">去除index.php</label><select id="seo_force_inlet" name="seo_force_inlet"><option value="0">关闭强制去除</option><option value="1">强制去除</option></select><p class="cms-seo-help" id="inlet-note"></p></div>
+<p class="cms-seo-help" data-mode="3">Webman处理伪静态链接；使用反向代理时，请将网站请求转交本服务。</p>
+</fieldset>
+<fieldset data-mode="2"><legend>静态文件命名</legend>
+<div class="cms-seo-field"><label for="seo_showmod">首页浏览方式</label><select id="seo_showmod" name="seo_showmod"><option value="0">动态浏览</option><option value="1">生成静态</option></select></div>
+<div class="cms-seo-field"><label for="seo_html_templet">首页模板</label><input id="seo_html_templet" name="seo_html_templet" maxlength="200" placeholder="index.htm"><p class="cms-seo-help">当前主题PC目录下的HTM文件；移动端由当前主题对应终端模板处理。</p></div>
+<div class="cms-seo-field"><label for="seo_html_position">首页保存位置</label><input id="seo_html_position" name="seo_html_position" maxlength="200" placeholder="index.html"><p class="cms-seo-help">站点内的HTML路径，例如 index.html 或 html/home.html；留空使用 index.html。</p></div>
+<div class="cms-seo-field" id="secondary-mode"><label for="seo_pseudo_lang">其它语言URL</label><select id="seo_pseudo_lang" name="seo_pseudo_lang"><option value="1">动态URL</option><option value="3">伪静态化</option></select><p class="cms-seo-help">主体语言生成静态，其它语言统一使用此URL模式。</p></div>
+<div class="cms-seo-field"><label for="seo_html_arcdir">页面保存目录</label><input id="seo_html_arcdir" name="seo_html_arcdir" maxlength="200" placeholder="留空使用html，例如 html"><p class="cms-seo-help">只使用英文字母、数字、下划线、连字符和目录分隔符；不能与系统目录、一级栏目或语言标识重名。</p></div>
+<div class="cms-seo-field"><span class="cms-seo-label" id="label-seo_html_showdir">网址显示保存目录</span><div class="cms-seo-choices cms-seo-modes" role="radiogroup" aria-labelledby="label-seo_html_showdir" id="seo_html_showdir"><label><input type="radio" name="seo_html_showdir" id="seo_html_showdir_1" value="1"><span>显示</span></label><label><input type="radio" name="seo_html_showdir" id="seo_html_showdir_0" value="0"><span>隐藏</span></label></div><p class="cms-seo-help">文件始终保存在 public/html 或配置的目录内；隐藏仅移除网址中的保存目录前缀。保存后需重新生成页面。</p></div>
+<div class="cms-seo-field"><span class="cms-seo-label" id="label-seo_html_listname">栏目页面名称</span><div class="cms-seo-choices" role="radiogroup" aria-labelledby="label-seo_html_listname" id="seo_html_listname"><label><input type="radio" name="seo_html_listname" id="seo_html_listname_1" value="1"><span>顶级目录/lists_ID.html</span></label><label><input type="radio" name="seo_html_listname" id="seo_html_listname_2" value="2"><span>父级目录/子目录/</span></label><label><input type="radio" name="seo_html_listname" id="seo_html_listname_3" value="3"><span>当前目录/</span></label><label><input type="radio" name="seo_html_listname" id="seo_html_listname_4" value="4"><span>自定义栏目目录与列表命名规则</span></label></div></div>
+<div class="cms-seo-field"><span class="cms-seo-label" id="label-seo_html_pagename">文档页面名称</span><div class="cms-seo-choices" role="radiogroup" aria-labelledby="label-seo_html_pagename" id="seo_html_pagename"><label><input type="radio" name="seo_html_pagename" id="seo_html_pagename_1" value="1"><span>顶级目录/ID.html</span></label><label><input type="radio" name="seo_html_pagename" id="seo_html_pagename_2" value="2"><span>父级目录/子目录/ID.html</span></label><label><input type="radio" name="seo_html_pagename" id="seo_html_pagename_3" value="3"><span>当前目录/ID.html</span></label><label><input type="radio" name="seo_html_pagename" id="seo_html_pagename_4" value="4"><span>自定义栏目目录与文档命名规则</span></label></div></div>
+<p class="cms-seo-help">自定义目录和命名规则在栏目编辑中设置。保存URL模式后，前往“静态生成”生成页面。</p>
+</fieldset>
+<fieldset><legend>页面标题</legend>
+<div class="cms-seo-field"><span class="cms-seo-label" id="label-seo_liststitle_format">栏目标题</span><div class="cms-seo-choices" role="radiogroup" aria-labelledby="label-seo_liststitle_format" id="seo_liststitle_format"><label><input type="radio" name="seo_liststitle_format" id="seo_liststitle_format_3" value="3"><span>栏目名称</span></label><label><input type="radio" name="seo_liststitle_format" id="seo_liststitle_format_1" value="1"><span>栏目名称 _ 网站名称</span></label><label><input type="radio" name="seo_liststitle_format" id="seo_liststitle_format_4" value="4"><span>栏目名称 _ 第N页</span></label><label><input type="radio" name="seo_liststitle_format" id="seo_liststitle_format_2" value="2"><span>栏目名称 _ 第N页 _ 网站名称</span></label></div></div>
+<div class="cms-seo-field"><span class="cms-seo-label" id="label-seo_viewtitle_format">文档标题</span><div class="cms-seo-choices" role="radiogroup" aria-labelledby="label-seo_viewtitle_format" id="seo_viewtitle_format"><label><input type="radio" name="seo_viewtitle_format" id="seo_viewtitle_format_1" value="1"><span>内容标题</span></label><label><input type="radio" name="seo_viewtitle_format" id="seo_viewtitle_format_2" value="2"><span>内容标题 _ 网站名称</span></label><label><input type="radio" name="seo_viewtitle_format" id="seo_viewtitle_format_3" value="3"><span>内容标题 _ 栏目名称 _ 网站名称</span></label></div></div>
+<div class="cms-seo-field"><label for="seo_title_symbol">标题连接符</label><input id="seo_title_symbol" name="seo_title_symbol" maxlength="20" placeholder="例如 _，允许留空"><p class="cms-seo-help">留空时标题之间不添加连接符。</p></div>
+<p class="cms-seo-example" id="title-example"></p>
+<p class="cms-seo-help">首页标题、关键词和描述在基本设置中管理；栏目和文档的独立SEO标题、关键词及描述在各自编辑页设置。</p>
+</fieldset>
+<fieldset data-mode="2"><legend>静态页面更新</legend>
+<div class="cms-seo-checks"><span>发布文档后</span><label><input type="checkbox" name="seo_uphtml_after_home" value="1">更新首页</label><label><input type="checkbox" name="seo_uphtml_after_channel" value="1">更新相关栏目</label><label><input type="checkbox" name="seo_uphtml_after_pernext" value="1">更新上下篇</label></div>
+<div class="cms-seo-checks"><span>编辑文档后</span><label><input type="checkbox" name="seo_uphtml_editafter_home" value="1">更新首页</label><label><input type="checkbox" name="seo_uphtml_editafter_channel" value="1">更新相关栏目</label><label><input type="checkbox" name="seo_uphtml_editafter_pernext" value="1">更新上下篇</label></div>
+</fieldset>
+<fieldset data-mode="1 3"><legend>runtime / Redis 模式缓存</legend>
+<div class="cms-seo-checks" id="cache-options"><span>发布/编辑文档后</span><label><input type="checkbox" name="seo_uphtml_after_home13" value="1">清除首页缓存</label><label><input type="checkbox" name="seo_uphtml_after_channel13" value="1">清除相关栏目缓存</label><label><input type="checkbox" name="seo_uphtml_after_pernext13" value="1">清除上下篇缓存</label></div>
+<p class="cms-seo-help" id="operation-note"></p>
+</fieldset>
+<div class="cms-seo-actions"><button type="submit" id="save" class="cms-primary-action" disabled>保存SEO设置</button><button type="button" id="reset" title="恢复最近读取或保存的配置" disabled>重置</button><span id="permission-note"></span></div>
+</form>
+<aside id="seo-quick-panel" class="cms-seo-quick" aria-labelledby="seo-quick-title" hidden>
+ <header class="cms-quick-heading"><h2 id="seo-quick-title">静态页面生成</h2><span>快速操作</span></header>
+ <p class="cms-seo-help">使用已保存的设置生成页面，任务将在后台继续。</p>
+ <form id="quick-generation" data-cms-filter aria-label="快捷静态生成">
+  <label class="cms-quick-device">生成终端<select id="quick-device" aria-label="生成终端"><option value="pc">电脑端</option><option value="mobile">手机端</option><option value="both">电脑端和手机端</option></select></label>
+  <div class="cms-quick-row"><span>整站页面</span><button type="button" data-quick-scope="all">一键生成</button></div>
+  <div class="cms-quick-row"><span>首页</span><button type="button" data-quick-scope="home">生成首页</button></div>
+  <div class="cms-quick-row cms-quick-range"><label for="quick-category">栏目页</label><select id="quick-category" aria-label="生成栏目页的栏目"><option value="">所有栏目</option></select><button type="button" data-quick-scope="categories">生成</button></div>
+  <div class="cms-quick-row cms-quick-range"><label for="quick-document">文档页</label><select id="quick-document" aria-label="生成文档页的栏目"><option value="">所有文档</option></select><button type="button" data-quick-scope="documents">生成</button></div>
+ </form>
+ <p id="quick-status" role="status" aria-live="polite"></p><button id="quick-retry" type="button" hidden>重新读取生成配置</button>
+ <section id="quick-progress-panel" aria-label="快捷生成任务进度" hidden><progress id="quick-progress" value="0" max="1"></progress><p id="quick-progress-text"></p><ul id="quick-failures"></ul></section>
+ <a id="quick-details" class="cms-quick-details" href="/web-admin/staticgenerate/index" data-cms-navigation>更多静态生成配置与任务 →</a>
+</aside></div>
+</main>
+<script src="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/admin/js/cms-seo-quick.js?v=20261106-rows1'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>"></script>
+<script>
+(()=>{
+'use strict';
+const $=id=>document.getElementById(id),form=$('settings'),status=$('status');
+let state=null,busy=false,currentLang=new URLSearchParams(location.search).get('lang')||'';
+const flags=Array.from(form.querySelectorAll('input[type=checkbox]')).map(input=>input.name);
+function message(text,error=false){status.textContent=text;status.dataset.error=error?'1':'0';}
+const pendingWrites=new WeakMap();
+async function withPendingWrite(enabled,run){if(!enabled)return run();const roots=[document.body,...document.querySelectorAll('dialog[open]')];roots.forEach(root=>{pendingWrites.set(root,(pendingWrites.get(root)||0)+1);root.setAttribute('data-cms-submit-busy','');root.setAttribute('aria-busy','true')});try{return await run()}finally{roots.forEach(root=>{const count=(pendingWrites.get(root)||1)-1;if(count)pendingWrites.set(root,count);else{pendingWrites.delete(root);root.removeAttribute('data-cms-submit-busy');root.removeAttribute('aria-busy')}})}}
+async function api(...args){return args[2]===true&&args[0]==='save'?window.CmsUI.persist(()=>rawSaveRequest(...args)):rawSaveRequest(...args);}
+async function rawSaveRequest(action,data,post=false){return withPendingWrite(post,async()=>{
+ const response=await fetch('/web-admin/seo/'+action+(post?'':'?'+new URLSearchParams(data)),{method:post?'POST':'GET',headers:{Accept:'application/json'},body:post?data:undefined,credentials:'same-origin'});
+ let result;try{result=await response.json();}catch{throw Error('请求失败，请检查登录状态');}
+ if(result.code!==0)throw Error(result.msg||'操作失败');return result;
+})}
+function quickState(){queueMicrotask(()=>{window.CmsSeoQuickGeneration?.update({state,mode:form.elements.seo_pseudo.value,dirty:form.dataset.cmsDirty==='1',busy});});}
+function update(){
+ const mode=form.elements.seo_pseudo.value;
+ $('seo-layout').classList.toggle('has-quick-panel',mode==='2');
+ quickState();
+ form.querySelectorAll('[data-mode]').forEach(node=>node.hidden=!node.dataset.mode.split(' ').includes(mode));
+ $('rewrite-view').hidden=mode!=='3'||form.elements.seo_rewrite_format.value==='2';
+ $('secondary-mode').hidden=!state?.multilingual;
+ const symbol=form.elements.seo_title_symbol.value;
+ const lists={1:['栏目名称','网站名称'],2:['栏目名称','第N页','网站名称'],3:['栏目名称'],4:['栏目名称','第N页']};
+ const views={1:['内容标题'],2:['内容标题','网站名称'],3:['内容标题','栏目名称','网站名称']};
+ $('title-example').textContent='栏目示例：'+(lists[form.elements.seo_liststitle_format.value]||[]).join(symbol)+'　文档示例：'+(views[form.elements.seo_viewtitle_format.value]||[]).join(symbol);
+}
+function controls(){
+ quickState();
+ const canSave=!!state?.permissions.save;
+ for(const input of form.elements)input.disabled=busy||!state||(!canSave&&input.id!=='lang');
+ $('lang').disabled=busy||!state;
+ $('reset').disabled=busy;
+ if(state){
+  $('seo_pseudo_2').disabled=busy||!canSave||!state.static_allowed;
+  for(const input of $('cache-options').querySelectorAll('input'))input.disabled=busy||!canSave||!state.operation_mode;
+ }
+}
+function fill(data){
+ state=data;currentLang=data.lang;
+ $('lang').replaceChildren(...data.languages.map(item=>{const option=document.createElement('option');option.value=item.mark;option.textContent=item.title+' ('+item.mark+')';option.selected=item.mark===data.lang;return option;}));
+ for(const [name,value]of Object.entries(data.config)){
+  const input=form.elements[name];if(!input)continue;
+  if(input.type==='checkbox')input.checked=String(value)==='1';else input.value=value;
+ }
+ // The legacy combined rewrite field also records the document path choice.
+ form.elements.seo_rewrite_format.value=data.config.seo_rewrite_format==='2'?'2':'1';
+ $('legacy-dynamic').hidden=data.config.seo_dynamic_format!=='2';
+ $('scope-note').textContent=data.multilingual?'仅主体语言可调整SEO；保存会同步所有语言的URL及标题规则。':'当前为单语言设置，保存只更新当前语言。';
+ $('static-note').textContent=data.static_unavailable_reason||'动态URL与伪静态按请求显示；静态页面需保存设置后执行生成。';
+ $('operation-note').textContent=data.operation_mode?'当前使用 runtime 或 Redis 缓存模式。':'当前 app.debug 已开启；以上业务缓存选项在关闭调试后生效。';
+ $('inlet-note').textContent='当前入口配置：'+(data.config.seo_inlet==='1'?'隐藏index.php':'保留index.php')+'。修改强制选项会同步入口配置。';
+ $('permission-note').textContent=data.permissions.save?'':'当前账号可查看，保存需要独立的SEO保存权限。';
+ window.CmsModuleNavigation?.remember({lang:data.lang});window.CmsModuleNavigation?.markClean(form);update();
+}
+async function load(){
+ if(busy)return;
+ if(form.dataset.cmsDirty==='1'){if(!await window.CmsUI.confirm('当前配置尚未保存，放弃修改并重新读取？',{title:'未保存的修改',confirmText:'放弃修改',cancelText:'继续编辑'})){$('lang').value=currentLang;return;}window.CmsUI.clean(form);}
+ busy=true;controls();message('加载中…');
+ try{fill((await api('select',currentLang?{lang:currentLang}:{})).data);message('');}
+ catch(error){if(state){currentLang=state.lang;$('lang').value=currentLang;}message(error.message,true);}
+ finally{busy=false;controls();}
+}
+form.addEventListener('input',update);form.addEventListener('change',update);
+$('lang').addEventListener('change',async()=>{const target=$('lang').value;if(form.dataset.cmsDirty==='1'){if(!await window.CmsUI.confirm('当前配置尚未保存，放弃修改并切换语言？',{title:'切换语言',confirmText:'放弃修改并切换',cancelText:'继续编辑'})){$('lang').value=currentLang;return;}window.CmsUI.clean(form);}currentLang=target;load();});
+$('reset').addEventListener('click',async()=>{if(busy)return;if(!state){load();return;}if(form.dataset.cmsDirty==='1'&&!await window.CmsUI.confirm('放弃本次未保存的修改，恢复到最近读取的配置？',{title:'重置配置',confirmText:'确认重置',cancelText:'继续编辑'}))return;fill(state);controls();message('已恢复最近读取或保存的配置。');});
+form.addEventListener('submit',async event=>{
+ event.preventDefault();if(busy||!state?.permissions.save)return;
+ const body=new FormData(form);body.set('lang',currentLang);
+ for(const name of flags)body.set(name,!form.elements[name].disabled&&form.elements[name].checked?'1':'0');
+ busy=true;controls();message('正在保存…');
+ try{const result=await api('save',body,true);fill({...result.data,permissions:state.permissions});message('');}
+ catch(error){message(error.message,true);}finally{busy=false;controls();}
+});
+load();
+})();
+</script></body></html>

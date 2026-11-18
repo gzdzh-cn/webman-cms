@@ -1,0 +1,76 @@
+{
+  "schema_version": 1,
+  "purpose": "Supplement missing asset references while preserving all original template/source bytes. Does not claim recovery of original missing SVG bytes or all upstream dependency gaps.",
+  "font": {
+    "kind": "derived_from_identical_shipped_font",
+    "source": "template/default/pc/skin/font/DINCondensedC.ttf",
+    "source_sha256": "5efc9c9d43a9c4c1599db4ae0c011d06d1ee2249f21b247b2a2b0d5f1813673a",
+    "copyright": "Copyright (c) ParaType, 1999. All rights reserved.",
+    "generator": "scripts/restore_template_assets.py",
+    "sha256": "1226b773091a62e339f404f850b56a4e36eff8a6f2f2210155ce557aa416d5ce",
+    "bytes": 104846,
+    "metrics": {
+      "encoded_characters": 223,
+      "source_glyphs": 234,
+      "kerning_pairs": 995,
+      "fonttools": "4.60.2"
+    },
+    "destinations": [
+      "template/default/pc/skin/font/DINCondensedC.svg",
+      "template/default/mobile/skin/font/DINCondensedC.svg"
+    ],
+    "limits": "Legacy SVG font converted from the bundled TTF; original absent SVG cannot be byte-compared. Existing TTF/WOFF/EOT files and CSS remain unchanged. No font license grant is implied by conversion."
+  },
+  "owl": {
+    "kind": "upstream_exact_version_asset",
+    "version": "2.2.1",
+    "repository": "https://github.com/OwlCarousel2/OwlCarousel2",
+    "commit": "716474f2335242aa24b2d79c554b3496922c22bd",
+    "source": "https://api.github.com/repos/OwlCarousel2/OwlCarousel2/contents/dist/assets/owl.video.play.png?ref=716474f2335242aa24b2d79c554b3496922c22bd",
+    "git_blob_sha": "5d0218d4665113fc6cbde7126edf9662cc56108e",
+    "sha256": "0436045686fddf10ccbbe2568e0cbffb457e7de7d43d1115c0056e81e97149ff",
+    "bytes": 4976,
+    "license_file": "resources/compat-assets/owl-carousel-2.2.1/LICENSE",
+    "license_source": "https://api.github.com/repos/OwlCarousel2/OwlCarousel2/contents/LICENSE?ref=716474f2335242aa24b2d79c554b3496922c22bd",
+    "destinations": [
+      "template/default/pc/skin/Lib/OwlCarousel2.21/owl.video.play.png",
+      "template/default/mobile/skin/Lib/OwlCarousel2.21/owl.video.play.png"
+    ]
+  },
+  "unresolved": [
+    "Two original remote HTTPS content images return 404.",
+    "The missing historical MagicZoom 2008 cursor bytes remain unidentified; served current-vendor zoom-out CUR is a documented compatibility substitution."
+  ],
+  "magiczoom_compatibility": {
+    "manifest": "resources/compat-assets/magiczoom-2008/manifest.json",
+    "evidence": [
+      "docs/eyoucms/evidence/magiczoom-assets.json",
+      "docs/eyoucms/evidence/magiczoom-browser.json"
+    ],
+    "policy": "Four exact original script paths and source/output hashes permit derived HTTP bodies; physical original scripts remain unchanged.",
+    "scope": "Fresh localhost desktop aid27 verified; earlier 127.0.0.1 tab still probed none after reload, cache cause and all old-cache invalidation unverified."
+  },
+  "magiczoom_cursor": {
+    "kind": "official_vendor_cursor_compatibility_substitution",
+    "source": "resources/compat-assets/magictoolbox-cursor/zoomout.cur",
+    "source_url": "https://magictoolbox.sirv.com/graphics/magic360/zoomout.cur",
+    "source_document": "https://www.magictoolbox.com/magic360/integration/",
+    "source_document_sha256": "8c4b43b354e1de99371d8426b215a7c0e0c1895c72f1c2877d28aa2eb52c8006",
+    "sha256": "112d6f1a60b6d4abc7164e61c37815ca4ae00b1d38610acea1e3591374c119c4",
+    "bytes": 4286,
+    "dimensions": [
+      32,
+      32
+    ],
+    "hotspot": [
+      0,
+      0
+    ],
+    "attribution": "MagicToolbox; vendor copyright retained. No new license grant is implied.",
+    "destinations": [
+      "template/default/pc/skin/Lib/MagicZoom/cursor/zoomout.cur",
+      "template/default/mobile/skin/Lib/MagicZoom/cursor/zoomout.cur"
+    ],
+    "limits": "Functional zoom-out CUR from the same vendor current documented integration. The absent 2008 original bytes and visual identity cannot be established; this is an explicit compatibility substitution, not recovery of that historical file."
+  }
+}

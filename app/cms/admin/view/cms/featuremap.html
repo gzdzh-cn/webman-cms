@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>功能地图</title>
+    <link rel="stylesheet" href="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/component/layui/css/layui.css'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>">
+    <link rel="stylesheet" href="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/admin/css/cms-featuremap.css?v=20261106-map1'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>">
+</head>
+<body class="cms-featuremap-page">
+    <section class="map-toolbar map-panel" aria-label="功能查找">
+        <label for="map-search">查找功能</label>
+        <input id="map-search" type="search" placeholder="输入功能名称，如模板、Sitemap" autocomplete="off">
+        <button id="map-reset" type="button">恢复默认导航</button>
+        <span class="map-hint">常用导航按账号保存在当前浏览器</span>
+    </section>
+    <section id="map-switches" class="map-panel map-switches" aria-label="模块开关">
+        <div class="map-module-switch">
+            <span id="map-language-label">多语言</span>
+            <button id="map-language-toggle" type="button" class="map-switch" role="switch" aria-checked="false" aria-labelledby="map-language-label" aria-describedby="map-language-state" disabled><span aria-hidden="true"></span></button>
+            <span id="map-language-state" class="map-switch-state" role="status" aria-live="polite">读取中…</span>
+        </div>
+    </section>
+    <p id="map-status" class="map-status" role="status" aria-live="polite">正在加载功能地图…</p>
+    <section id="map-current-panel" class="map-panel map-current-panel" aria-labelledby="map-current-title" hidden>
+        <header><h2 id="map-current-title">当前导航</h2><span>点击功能进入，使用 − 移出导航</span></header>
+        <nav id="map-current" aria-label="当前常用导航"></nav>
+    </section>
+    <div id="map-groups" class="map-groups"></div>
+    <p id="map-empty" class="map-panel map-empty" hidden>没有匹配的功能，请尝试其他名称。</p>
+    <script src="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/admin/js/cms-shortcuts.js?v=20261106-featuremap1'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>"></script>
+    <script src="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/admin/js/cms-featuremap.js?v=20261106-basic2'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>"></script>
+</body>
+</html>

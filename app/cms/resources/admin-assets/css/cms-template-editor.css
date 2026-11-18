@@ -1,0 +1,68 @@
+/* Template code editor; white backend chrome and a dark source workspace. */
+body.cms-template-page #editor .cms-ui-editor-heading{max-width:none;margin-bottom:16px;align-items:center}
+#editor .cms-ui-editor-heading h1{font-size:16px;margin:0;min-width:0;overflow-wrap:anywhere}
+body.cms-template-page #editor #source-form{max-width:none;padding:16px 16px 88px;display:block;min-width:0}
+#editor #filename-label{margin:0 0 14px;color:#526177}
+#editor #filename{width:min(360px,100%)}
+#editor .cms-code-toolbar{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+#editor .cms-code-toolbar label{display:flex;align-items:center;gap:8px;margin:0}
+#editor .cms-code-toolbar select{min-width:150px}
+#editor .cms-code-help{margin:0 0 12px;font-size:12px;color:#768398;line-height:1.7}
+#editor .CodeMirror{height:calc(100dvh - 300px);min-height:260px;border:1px solid #272c36;border-radius:6px;font:13px/1.7 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;text-align:left}
+#editor .CodeMirror textarea{min-height:0!important;height:auto!important;border:0!important;border-radius:0!important;box-shadow:none!important;outline:none!important;padding:0!important;color:inherit!important;background:transparent!important}
+#editor .CodeMirror pre{padding:0 8px;font-family:inherit}
+#editor .CodeMirror-focused{border-color:#678bd4;outline:2px solid #2563eb24}
+#editor .CodeMirror-gutters{background:#181b21;border-right:1px solid #303540}
+#editor .CodeMirror-linenumber{color:#737d8c}
+#editor .cm-s-cms-dark.CodeMirror{background:#15181e;color:#e2e7ef}
+#editor .cm-s-cms-dark .CodeMirror-cursor{border-left:1px solid #f1f5f9}
+#editor .cm-s-cms-dark div.CodeMirror-selected{background:#34435f}
+#editor .cm-s-cms-dark .CodeMirror-activeline-background{background:#202631}
+#editor .cm-s-cms-dark .cm-keyword{color:#c792ea}
+#editor .cm-s-cms-dark .cm-atom,#editor .cm-s-cms-dark .cm-number{color:#f5ac78}
+#editor .cm-s-cms-dark .cm-def,#editor .cm-s-cms-dark .cm-variable{color:#e2e7ef}
+#editor .cm-s-cms-dark .cm-property{color:#82c5f4}
+#editor .cm-s-cms-dark .cm-variable-2{color:#f4ce73}
+#editor .cm-s-cms-dark .cm-variable-3,#editor .cm-s-cms-dark .cm-type{color:#9fd6cb}
+#editor .cm-s-cms-dark .cm-operator{color:#86cfe9}
+#editor .cm-s-cms-dark .cm-comment{color:#7b8b9f}
+#editor .cm-s-cms-dark .cm-string,#editor .cm-s-cms-dark .cm-string-2{color:#a8d99b}
+#editor .cm-s-cms-dark .cm-tag{color:#7fc5f0}
+#editor .cm-s-cms-dark .cm-attribute{color:#d7b3ec}
+#editor .cm-s-cms-dark .cm-meta,#editor .cm-s-cms-dark .cm-qualifier{color:#f0c683}
+#editor .cm-s-cms-dark .cm-error{color:#ff9d9d}
+#editor .cm-s-cms-dark .CodeMirror-matchingbracket{color:#fff!important;background:#3f566c}
+#editor .CodeMirror-dialog{background:#242a35;color:#e2e7ef;border-color:#3b4657;font-size:13px;padding:8px}
+#editor .CodeMirror-dialog input{background:#15181e;color:#fff;border:1px solid #59677d;padding:4px;max-width:65vw}
+#editor .cms-code-status{display:flex;justify-content:space-between;gap:12px;margin-top:10px;color:#768398;font-size:12px;flex-wrap:wrap}
+#editor #code-dirty{color:#a1660a}
+#editor #editor-message{margin-right:auto;color:#b42318;font-size:13px;white-space:pre-wrap}
+.CodeMirror-hints{z-index:2147483647;background:#242a35;color:#e2e7ef;border:1px solid #46526a;max-width:min(680px,85vw);font:13px/1.7 ui-monospace,monospace}
+li.CodeMirror-hint{color:#e2e7ef;max-width:none}
+li.CodeMirror-hint-active{background:#2855a2;color:#fff}
+@media(max-width:767px){#editor .CodeMirror{height:calc(100dvh - 370px)}#editor .cms-code-help{font-size:11px}#editor .cms-code-toolbar{gap:6px}#editor .cms-code-toolbar button{padding:6px 8px;font-size:12px}}
+
+#editor .cms-code-toolbar label{white-space:nowrap;flex-shrink:0;width:auto}
+
+/* The editor fills its content area, then expands to the full workspace on demand. */
+body.cms-template-page dialog#editor[open]{display:flex!important;flex-direction:column;overflow:hidden!important;padding:0!important}
+body.cms-template-page #editor .cms-ui-editor-heading{flex:0 0 auto;gap:12px;width:100%;box-sizing:border-box;margin:0;padding:14px 20px;border:0;border-bottom:1px solid #e5eaf1;border-radius:0;background:#fff}
+#editor .cms-ui-editor-heading h1{flex:1}
+#editor #editor-fullscreen{display:inline-flex;align-items:center;justify-content:center;gap:6px;flex-shrink:0;min-height:34px;padding:6px 12px;border:1px solid #dce3ec;border-radius:6px;background:#fff;color:#526177;font:inherit;font-size:13px;line-height:1.5;cursor:pointer}
+#editor #editor-fullscreen:hover,#editor #editor-fullscreen[aria-pressed=true]{border-color:#a4bdec;background:#eff5ff;color:#2563eb}
+#editor #editor-fullscreen>span:first-child{font:20px/1 sans-serif}
+body.cms-template-page #editor #source-form{display:flex;flex:1;flex-direction:column;min-height:0;width:100%;margin:0;border-radius:0;padding:16px 20px 86px;overflow:auto}
+#editor .cms-code-toolbar,#editor .cms-code-help,#editor .cms-code-status,#editor #filename-label{flex-shrink:0}
+#editor .CodeMirror{flex:1;min-height:160px;height:auto}
+body.cms-template-page #editor #source-form>.cms-code-actions{padding:12px 20px!important;min-height:68px;box-sizing:border-box;align-items:center;gap:16px;flex-wrap:nowrap}
+#editor #editor-message{min-width:0;max-height:48px;overflow:auto;line-height:1.6}
+#editor #editor-message:empty{display:none}
+#editor .cms-code-action-buttons{display:flex;align-items:center;gap:10px;margin-left:auto;flex-shrink:0}
+#editor .cms-code-action-buttons button{display:inline-flex;align-items:center;justify-content:center;min-width:88px;min-height:38px;padding:8px 22px;border:1px solid #dce3ec;border-radius:6px;background:#fff;color:#526177;box-shadow:0 1px 2px #0f172a06;font:500 14px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",sans-serif;cursor:pointer;transition:background .15s,border-color .15s,box-shadow .15s}
+#editor .cms-code-action-buttons .cms-code-reset:hover{background:#f5f8fc;border-color:#b7c7dc;color:#334155}
+#editor .cms-code-action-buttons .cms-code-save{background:#2563eb;border-color:#2563eb;color:#fff;box-shadow:0 2px 4px #2563eb26}
+#editor .cms-code-action-buttons .cms-code-save:hover{background:#1d4ed8;border-color:#1d4ed8}
+#editor .cms-code-action-buttons button:disabled{opacity:.55;cursor:wait;box-shadow:none}
+#editor .cms-code-action-buttons button:focus-visible,#editor #editor-fullscreen:focus-visible{outline:3px solid #2563eb33;outline-offset:2px}
+@media(max-width:767px){body.cms-template-page #editor .cms-ui-editor-heading{padding:12px;gap:8px}#editor .cms-ui-editor-heading h1{font-size:14px}body.cms-template-page #editor #source-form{padding:12px 12px 86px}body.cms-template-page #editor #source-form>.cms-code-actions{padding:12px!important;gap:10px}#editor .cms-code-action-buttons button{min-width:72px;padding:8px 16px}#editor .cms-code-action-buttons{gap:8px}#editor #editor-fullscreen{padding:5px 8px}#editor .CodeMirror{height:auto;min-height:140px}}
+@media(prefers-reduced-motion:reduce){#editor .cms-code-action-buttons button{transition:none}}

@@ -1,0 +1,84 @@
+/* Compact only the document query bar; tree, tables and embedded editors keep their sizing. */
+body.cms-archive-page > .query-form-container.cms-archive-query > .layui-card {
+    margin: 0;
+    border: 0;
+    border-radius: inherit;
+}
+body.cms-archive-page > .query-form-container.cms-archive-query > .layui-card > .layui-card-body {
+    padding: 12px 16px;
+}
+body.cms-archive-page .cms-archive-query .cms-filterbar {
+    display: block;
+    margin: 0;
+}
+body.cms-archive-page .cms-archive-query .cms-filterbar > .layui-form-item {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+    margin: 0;
+}
+body.cms-archive-page .cms-archive-query .layui-form-item.layui-inline {
+    display: flex;
+    align-items: center;
+    flex-wrap: nowrap;
+    gap: 8px;
+    margin: 0;
+}
+/* Layui clearfix pseudo-elements would become extra flex items and consume gaps. */
+body.cms-archive-page .cms-archive-query .cms-filterbar .layui-form-item::before,
+body.cms-archive-page .cms-archive-query .cms-filterbar .layui-form-item::after {
+    display: none;
+}
+body.cms-archive-page .cms-archive-query .layui-form-label {
+    float: none;
+    flex: 0 0 auto;
+    width: auto;
+    padding: 0;
+    line-height: 32px;
+    font-size: 13px;
+}
+body.cms-archive-page .cms-archive-query .layui-input-inline {
+    float: none;
+    width: 220px;
+    min-width: 0;
+    margin: 0;
+}
+body.cms-archive-page .cms-archive-query .cms-archive-status-filter .layui-input-inline {
+    width: 140px;
+}
+body.cms-archive-page .query-form-container.cms-archive-query form.cms-filterbar input.layui-input,
+body.cms-archive-page .query-form-container.cms-archive-query form.cms-filterbar button.pear-btn {
+    box-sizing: border-box;
+    height: 32px;
+    min-height: 32px;
+    line-height: 30px;
+    font-size: 13px;
+}
+body.cms-archive-page .cms-archive-query .pear-btn {
+    margin: 0;
+    padding: 0 12px;
+}
+@media (max-width: 767px) {
+    body.cms-archive-page .cms-archive-query .cms-filterbar > .layui-form-item {
+        gap: 8px 6px;
+    }
+    body.cms-archive-page .cms-archive-query .layui-form-item.layui-inline {
+        gap: 6px;
+    }
+    body.cms-archive-page .cms-archive-query .cms-archive-title-filter {
+        flex: 1 1 100%;
+    }
+    body.cms-archive-page .cms-archive-query .cms-archive-title-filter .layui-input-inline {
+        flex: 1;
+        width: auto;
+    }
+    body.cms-archive-page .cms-archive-query .cms-archive-status-filter .layui-input-inline {
+        flex: 0 0 96px;
+        width: 96px;
+        max-width: 96px;
+    }
+    body.cms-archive-page .cms-archive-query .cms-archive-query-actions .pear-btn {
+        padding: 0 8px;
+    }
+}

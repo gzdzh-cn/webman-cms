@@ -1,0 +1,14 @@
+{
+  "kind": "navbar_scroll_empty_selection_guard",
+  "behavior": "Skip initialization for an empty item collection; ignore an absent default selection. Existing nonempty navigation behavior is unchanged.",
+  "scope": "Exact copied source path and SHA256; all other themes and modified resources are unchanged.",
+  "sources": {
+    "template/default/mobile/skin/menu/navbarscroll.js": {
+      "source_sha256": "4215d9d1f1c1deb2bd947caa74fbfd5703cb13511fb26590dceaa1afcc0e4b18",
+      "compat_file": "navbarscroll-4215d9d1f1c1.js",
+      "compat_sha256": "397c628f1f16df003fa1276bae7ed2634333cf795125ff90df99b90268274b13",
+      "source_bytes": 5295,
+      "compat_bytes": 5463
+    }
+  }
+}

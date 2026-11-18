@@ -45,16 +45,13 @@ if ($worker) {
     }, time());
 }
 
-if (class_exists('Dotenv\Dotenv') && file_exists(base_path(false) . '/.env')) {
-    if (method_exists('Dotenv\Dotenv', 'createUnsafeMutable')) {
-        Dotenv::createUnsafeMutable(base_path(false))->load();
-    } else {
-        Dotenv::createMutable(base_path(false))->load();
-    }
-}
+\app\cms\config\Environment::initialize();
+\app\cms\config\Environment::refresh();
+// Preserve the compatibility Request::env() source without changing the captured process overrides.
+// Environment is parsed without mutating the captured process or filesystem selection.
 
 Config::clear();
-support\App::loadAllConfig(['route']);
+\app\cms\secure\App::loadAllConfig(['route']);
 if ($timezone = config('app.default_timezone')) {
     date_default_timezone_set($timezone);
 }
@@ -131,12 +128,5 @@ foreach (config('plugin', []) as $firm => $projects) {
     }
 }
 
-$directory = base_path() . '/plugin';
-$paths = [config_path()];
-foreach (Util::scanDir($directory) as $path) {
-    if (is_dir($path = "$path/config")) {
-        $paths[] = $path;
-    }
-}
-Route::load($paths);
+Route::load([config_path()]);
 

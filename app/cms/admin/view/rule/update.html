@@ -1,0 +1,221 @@
+﻿
+<!DOCTYPE html>
+<html lang="zh-cn">
+    <head>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+        <meta charset="UTF-8">
+        <title>编辑菜单</title>
+        <link rel="stylesheet" href="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/component/pear/css/pear.css'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>" />
+        <link rel="stylesheet" href="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/admin/css/reset.css'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>" />
+        <style>
+            .layui-iconpicker .layui-anim {
+                bottom: 42px !important;
+                top: inherit !important;
+            }
+        </style>
+    </head>
+    <body>
+
+        <form class="layui-form">
+
+            <div class="mainBox">
+                <div class="main-container mr-5">
+
+                    <div class="layui-form-item">
+                        <label class="layui-form-label required">标题</label>
+                        <div class="layui-input-block">
+                            <input type="text" name="title" required lay-verify="required" value="" class="layui-input">
+                        </div>
+                    </div>
+
+                    <div class="layui-form-item">
+                        <label class="layui-form-label required">标识</label>
+                        <div class="layui-input-block">
+                            <input type="text" name="key" required lay-verify="required" value="" class="layui-input">
+                        </div>
+                    </div>
+
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">上级菜单</label>
+                        <div class="layui-input-block">
+                            <div name="pid" id="pid" value="0" ></div>
+                        </div>
+                    </div>
+
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">url</label>
+                        <div class="layui-input-block">
+                            <input type="text" name="href" value="" class="layui-input">
+                        </div>
+                    </div>
+
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">图标</label>
+                        <div class="layui-input-block">
+                            <input name="icon" id="icon" />
+                        </div>
+                    </div>
+
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">类型</label>
+                        <div class="layui-input-block">
+                            <div name="type" id="type" value="1" ></div>
+                        </div>
+                    </div>
+
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">排序</label>
+                        <div class="layui-input-block">
+                            <input type="number" name="weight" value="0" class="layui-input">
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="bottom">
+                <div class="button-container">
+                    <button type="submit" class="pear-btn pear-btn-primary pear-btn-md" lay-submit="" lay-filter="save">
+                        保存
+                    </button>
+                    <button type="button" class="pear-btn pear-btn-md" onclick="cmsCancelEditor()">取消</button>
+                </div>
+            </div>
+        </form>
+
+        <script src="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/component/layui/layui.js?v=2.13.12'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>"></script>
+        <script src="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/component/pear/pear.js'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>"></script>
+        <script src="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/admin/js/permission.js'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>"></script>
+        <script>
+
+            // 相关接口
+            let PRIMARY_KEY = "id";
+            const SELECT_API = "/web-admin/rule/select" + location.search;
+            const UPDATE_API = "/web-admin/rule/update";
+
+            // 获取行数据
+            layui.use(["form", "util", "pearPopup"], function () {
+                let $ = layui.$;
+                $.ajax({
+                    url: SELECT_API,
+                    dataType: "json",
+                    success: function (res) {
+
+                        // 赋值表单
+                        layui.each(res.data[0], function (key, value) {
+                            let obj = $('*[name="'+key+'"]');
+                            if (key === "password") {
+                                obj.attr("placeholder", "不更新密码请留空");
+                                return;
+                            }
+                            if (typeof obj[0] === "undefined" || !obj[0].nodeName) return;
+                            if (obj[0].nodeName.toLowerCase() === "textarea") {
+                                obj.html(layui.util.escape(value));
+                            } else {
+                                obj.attr("value", value);
+                            }
+                        });
+
+                        // 图标选择
+                        layui.use(["pearIconPicker"], function() {
+                            layui.pearIconPicker.render({
+                                elem: "#icon",
+                                type: "fontClass",
+                                page: false,
+                            });
+                        });
+
+                        // 获取上级菜单
+                        layui.use(["jquery", "xmSelect", "pearPopup"], function() {
+                            layui.$.ajax({
+                                url: "/web-admin/rule/select?format=tree&type=0,1",
+                                dataType: "json",
+                                success: function (res) {
+                                    let value = layui.$("#pid").attr("value");
+                                    let initValue = value ? value.split(",") : [];
+                                    layui.xmSelect.render({
+                                        el: "#pid",
+                                        name: "pid",
+                                        initValue: initValue,
+                                        tips: "无",
+                                        toolbar: {show: true, list: ["CLEAR"]},
+                                        data: res.data,
+                                        model: {"icon":"hidden","label":{"type":"text"}},
+                                        clickClose: true,
+                                        radio: true,
+                                        tree: {show: true,"strict":false,"clickCheck":true,"clickExpand":false,expandedKeys: initValue},
+                                    });
+                                    if (res.code) {
+                                        return window.CmsUI.failure(res.msg);
+                                    }
+                                }
+                            });
+                        });
+
+                        // 菜单类型下拉选择
+                        layui.use(["jquery", "xmSelect"], function() {
+                            let value = layui.$("#type").attr("value");
+                            let initValue = value ? value.split(",") : [];
+                            layui.xmSelect.render({
+                                el: "#type",
+                                name: "type",
+                                initValue: initValue,
+                                data: [{"value":"0","name":"目录"},{"value":"1","name":"菜单"},{"value":"2","name":"权限"}],
+                                model: {"icon":"hidden","label":{"type":"text"}},
+                                clickClose: true,
+                                radio: true,
+                            })
+                        });
+
+                        // ajax产生错误
+                        if (res.code) {
+                            window.CmsUI.failure(res.msg);
+                        }
+
+                    }
+                });
+            });
+
+            // 提交事件
+            layui.use(["form", "pearPopup"], function () {
+                layui.form.on("submit(save)", function (data) {
+                    data.field[PRIMARY_KEY] = layui.url().search[PRIMARY_KEY];
+                    var cmsForm=typeof data!=='undefined'&&data.form?data.form:document.querySelector('form');
+                    if(cmsForm.dataset.cmsSubmitting==='1')return false;
+                    cmsForm.dataset.cmsSubmitting='1';window.CmsUI.setBusy(cmsForm,true);
+                    layui.$.ajax({
+                    error:function(){window.CmsUI.error(cmsForm,"保存失败，请检查网络或登录状态后重试");},
+                    complete:function(){delete cmsForm.dataset.cmsSubmitting;window.CmsUI.setBusy(cmsForm,false);},
+                        url: UPDATE_API,
+                        type: "POST",
+                        dateType: "json",
+                        data: data.field,
+                        success: function (res) {
+                            if (res.code) {
+                                window.CmsUI.error(cmsForm,res.msg,res.fields||res.data?.fields);return false;
+                            }
+                            window.CmsModuleNavigation?.markClean(cmsForm);delete cmsForm.dataset.cmsDirty;return window.CmsUI.success("保存成功", function () {
+                                parent.refreshTable();
+                                window.CmsUI.clean();
+                                parent.layer.close(parent.layer.getFrameIndex(window.name));
+                            });
+                        }
+                    });
+                    return false;
+                });
+            });
+
+        </script>
+
+    <script>
+function cmsCancelEditor(){
+    window.CmsUI.leave(function(){
+        window.CmsUI.clean();
+        if(parent!==window && parent.layer)parent.layer.close(parent.layer.getFrameIndex(window.name));
+        else window.CmsUI.back();
+    });
+}
+</script>
+</body>
+
+</html>

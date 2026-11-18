@@ -1,0 +1,340 @@
+﻿
+<!DOCTYPE html>
+<html lang="zh-cn">
+    <head>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+        <meta charset="utf-8">
+        <title>字典管理</title>
+        <link rel="stylesheet" href="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/component/pear/css/pear.css'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>" />
+        <link rel="stylesheet" href="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/admin/css/reset.css'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>" />
+    <style>
+@media(max-width:767px){
+    body.cms-classic-filter-page .cms-filterbar.top-search-from{width:100%;min-width:0;box-sizing:border-box;}
+    body.cms-classic-filter-page .cms-filterbar.top-search-from > .layui-form-item{box-sizing:border-box;display:block;flex:1 1 100%;width:100%;min-width:0;max-width:100%;margin-right:0;}
+    body.cms-classic-filter-page .cms-filterbar.top-search-from .layui-input-block{box-sizing:border-box;float:none;width:100%;min-width:0;max-width:100%;margin-left:0;margin-right:0;}
+    body.cms-classic-filter-page .cms-filterbar.top-search-from .layui-form-label{box-sizing:border-box;float:none;width:auto;max-width:100%;padding:0 0 6px;text-align:left;}
+    body.cms-classic-filter-page .cms-filterbar.top-search-from .layui-input{box-sizing:border-box;width:100%;max-width:100%;min-width:0;}
+    body.cms-classic-filter-page .cms-filterbar.top-search-from #created_at{display:flex;gap:6px;align-items:center;min-width:0;}
+    body.cms-classic-filter-page .cms-filterbar.top-search-from #created_at > input{flex:1 1 0;min-width:0;max-width:none;}
+    body.cms-classic-filter-page .cms-filterbar.top-search-from > .layui-form-item:has(> button[lay-submit]){display:flex;flex-wrap:wrap;gap:8px;align-items:center;}
+    body.cms-classic-filter-page .cms-filterbar.top-search-from > .layui-form-item:has(> button[lay-submit]) > .layui-form-label{display:none;}
+    body.cms-classic-filter-page .cms-filterbar.top-search-from > .layui-form-item > button{margin:0;}
+    body.cms-classic-filter-page #category,body.cms-classic-filter-page #category xm-select{box-sizing:border-box;min-width:0;max-width:100%;}
+}
+</style>
+</head>
+    <body class="pear-container cms-classic-filter-page">
+    
+        <!-- 顶部查询表单 -->
+        <div class="layui-card">
+            <div class="layui-card-body">
+                <form class="layui-form top-search-from cms-filterbar" data-cms-filter>
+                    
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">名称</label>
+                        <div class="layui-input-block">
+                            <input type="text" name="name" value="" class="layui-input">
+                        </div>
+                    </div>
+                    
+                    <div class="layui-form-item layui-inline">
+                        <label class="layui-form-label"></label>
+                        <button class="pear-btn pear-btn-xs pear-btn-primary" lay-submit lay-filter="table-query">
+                            <i class="layui-icon layui-icon-search"></i>查询
+                        </button>
+                        <button type="reset" class="pear-btn pear-btn-xs" lay-submit lay-filter="table-reset">
+                            <i class="layui-icon layui-icon-refresh"></i>重置
+                        </button>
+                    </div>
+                    <div class="toggle-btn">
+                        <a class="layui-hide">展开<i class="layui-icon layui-icon-down"></i></a>
+                        <a class="layui-hide">收起<i class="layui-icon layui-icon-up"></i></a>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- 数据表格 -->
+        <div class="layui-card">
+            <div class="layui-card-body">
+                <table id="data-table" lay-filter="data-table"></table>
+            </div>
+        </div>
+
+        <!-- 表格顶部工具栏 -->
+        <script type="text/html" id="table-toolbar">
+            <button class="pear-btn pear-btn-primary pear-btn-xs" lay-event="add" permission="app.admin.dict.insert">
+                <i class="layui-icon layui-icon-add-1"></i>新增
+            </button>
+            <button class="pear-btn pear-btn-danger pear-btn-xs" lay-event="batchRemove" permission="app.admin.dict.delete">
+                <i class="layui-icon layui-icon-delete"></i>删除
+            </button>
+        </script>
+
+        <!-- 表格行工具栏 -->
+        <script type="text/html" id="table-bar">
+            <button class="pear-btn pear-btn-xs tool-btn" lay-event="edit" permission="app.admin.dict.update">编辑</button>
+            <button class="pear-btn pear-btn-xs tool-btn" lay-event="remove" permission="app.admin.dict.delete">删除</button>
+        </script>
+
+        <script src="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/component/layui/layui.js?v=2.13.12'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>"></script>
+        <script src="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/component/pear/pear.js'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>"></script>
+        <script src="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/admin/js/permission.js'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>"></script>
+        <script src="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/admin/js/common.js'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>"></script>
+        <script>
+
+            // 相关接口
+            const SELECT_API = "/web-admin/dict/select";
+            const UPDATE_API = "/web-admin/dict/update";
+            const DELETE_API = "/web-admin/dict/delete";
+            const INSERT_URL = "/web-admin/dict/insert";
+            const UPDATE_URL = "/web-admin/dict/update";
+
+            // 表格渲染
+            layui.use(["table", "form", "pearCommon", "pearPopup", "util"], function() {
+                let table = layui.table;
+                let form = layui.form;
+                let $ = layui.$;
+                let common = layui.pearCommon;
+                let util = layui.util;
+                
+				// 表头参数
+				let cols = [
+          {
+            type: "checkbox",
+          }, {
+            title  : "名称",
+            field  : "name",
+            width  : 200,
+            templet: function (d) {
+              let field = "name";
+              if (typeof d[field] == "undefined") return "";
+              let items = [];
+              layui.each((
+                d[field] + ""
+              ).split(","), function (k, v) {
+                items.push(apiResults[field][v] || v);
+              });
+              return util.escape(items.join(","));
+            },
+          }, {
+            title  : "值",
+            field  : "value",
+            templet: function (d) {
+              const dicts = JSON.parse(d.value)
+              return dicts.map(dict => `<span class="layui-badge layui-bg-blue">${dict.name}: ${dict.value}</span>`).join(' ');
+            },
+          }, {
+            title: "创建时间",
+            field: "created_at",
+            width: 180,
+            hide : true,
+          }, {
+            title: "更新时间",
+            field: "updated_at",
+            width: 180,
+            hide : true,
+          }, {
+            title  : "操作",
+            toolbar: "#table-bar",
+            align  : "center",
+            width  : 130,
+            fixed  : window.matchMedia("(max-width: 767px)").matches ? false : "right",
+          },
+        ];
+
+        let apiResults = {};
+        let tableInited = false;
+        const loadDictNames = () => {
+          let apis = [];
+          apis.push(["name", "/web-admin/dict/get/dict_name"]);
+          apiResults["name"] = [];
+          let count = apis.length;
+          layui.each(apis, function (k, item) {
+            let [field, url] = item;
+            $.ajax({
+              url     : url,
+              dateType: "json",
+              success : function (res) {
+                if (res.code) {
+                  return window.CmsUI.failure(res.msg);
+                }
+
+                function travel(items) {
+                  for (let k in items) {
+                    let item = items[k];
+                    apiResults[field][item.value] = `${item.name}: ${item.value}`;
+                    if (item.children) {
+                      travel(item.children);
+                    }
+                  }
+                }
+
+                travel(res.data);
+              },
+              complete: function () {
+                if (--count === 0 && !tableInited) {
+                  // 首次加载字典名称完毕后再渲染表格
+                  render();
+                  tableInited = true;
+                }
+              },
+            });
+          });
+        }
+        loadDictNames();
+				// 渲染表格
+				function render()
+				{
+				    table.render({
+				        elem: "#data-table",
+				        url: SELECT_API,
+				        page: true,
+				        cols: [cols],
+				        skin: "line",
+				        size: "lg",
+				        toolbar: "#table-toolbar",
+				        autoSort: false,
+                        // 设置唯一 ID，便于 reload / reloadData 正常工作
+                        id: "data-table",
+				        defaultToolbar: [{
+				            title: "刷新",
+				            layEvent: "refresh",
+				            icon: "layui-icon-refresh",
+				        }, "filter", "print", "exports"]
+				    });
+				}
+
+                // 编辑或删除行事件
+                table.on("tool(data-table)", function(obj) {
+                    if (obj.event === "remove") {
+                        remove(obj);
+                    } else if (obj.event === "edit") {
+                        edit(obj);
+                    }
+                });
+
+                // 表格顶部工具栏事件
+                table.on("toolbar(data-table)", function(obj) {
+                    if (obj.event === "add") {
+                        add();
+                    } else if (obj.event === "refresh") {
+                        refreshTable();
+                    } else if (obj.event === "batchRemove") {
+                        batchRemove(obj);
+                    }
+                });
+
+                // 表格顶部搜索事件
+                form.on("submit(table-query)", function(data) {
+                    table.reload("data-table", {
+                        page: {
+                            curr: 1
+                        },
+                        where: data.field
+                    })
+                    return false;
+                });
+                
+                // 表格顶部搜索重置事件
+                form.on("submit(table-reset)", function(data) {
+                    table.reload("data-table", {
+                        where: []
+                    })
+                });
+
+                // 表格排序事件
+                table.on("sort(data-table)", function(obj){
+                    table.reload("data-table", {
+                        initSort: obj,
+                        scrollPos: "fixed",
+                        where: {
+                            field: obj.field,
+                            order: obj.type
+                        }
+                    });
+                });
+
+                // 表格新增数据
+                let add = function() {
+                    window.CmsUI.layer({
+                        type: 2,
+                        title: "新增字典",
+                        shade: 0.1,
+                        kind: "edit", area: ["720px", "85vh"],
+                        content: INSERT_URL
+                    });
+                }
+
+                // 表格编辑数据
+                let edit = function(obj) {
+                    let value = obj.data["name"];
+                    window.CmsUI.layer({
+                        type: 2,
+                        title: "编辑字典",
+                        shade: 0.1,
+                        kind: "edit", area: ["720px", "85vh"],
+                        content: UPDATE_URL + "?name=" + value
+                    });
+                }
+
+                // 删除一行
+                let remove = function(obj) {
+                    return doRemove(obj.data["name"]);
+                }
+
+                // 删除多行
+                let batchRemove = function(obj) {
+                    let checkIds = common.checkField(obj, "name");
+                    if (checkIds === "") {
+                        window.CmsUI.warning("未选中数据");
+                        return false;
+                    }
+                    doRemove(checkIds.split(","));
+                }
+
+                // 执行删除
+                let doRemove = function (ids) {
+                    let data = {};
+                    data["name"] = ids;
+                    window.CmsUI.confirm("确认删除所选记录？请核对选择；删除后的恢复方式以该模块规则为准。", {title: "确认删除", confirmText: "确认删除"}).then(function(approved) {
+                        if(!approved)return;
+                        let loading = layer.load();
+                        $.ajax({
+                            url: DELETE_API,
+                            data: data,
+                            dataType: "json",
+                            type: "post",
+                            success: function(res) {
+                                layer.close(loading);
+                                if (res.code) {
+                                    return window.CmsUI.failure(res.msg);
+                                }
+                                return window.CmsUI.success("操作成功", refreshTable);
+                            }
+                        })
+                    });
+                }
+
+                // 刷新表格数据
+                window.refreshTable = function() {
+                    table.reloadData("data-table", {
+                        scrollPos: "fixed",
+                        done: function (res, curr) {
+                            if (curr > 1 && res.data && !res.data.length) {
+                                curr = curr - 1;
+                                table.reloadData("data-table", {
+                                    page: {
+                                        curr: curr
+                                    },
+                                })
+                            }
+                            loadDictNames()
+                        }
+                    });
+                }
+            })
+
+        </script>
+    </body>
+</html>

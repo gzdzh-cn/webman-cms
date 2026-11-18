@@ -1,0 +1,140 @@
+﻿<!DOCTYPE html>
+<html lang="zh-cn">
+    <head>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+        <meta charset="UTF-8">
+        <title>生成管理模块</title>
+        <link rel="stylesheet" href="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/component/pear/css/pear.css'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>" />
+        <link rel="stylesheet" href="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/admin/css/reset.css'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>" />
+        <style>
+            .layui-iconpicker .layui-anim {
+                top: 42px !important;
+                bottom: inherit !important;
+            }
+        </style>
+    </head>
+    <body class="cms-editor-page" data-cms-return-url="/web-admin/table/index"><header class="cms-editor-heading"><button type="button" data-cms-back aria-label="返回数据表列表">←</button><div><h1>生成管理模块</h1><p>开发维护操作，请先核对目标；保存后返回列表。</p></div></header>
+
+        <form data-cms-page-editor class="layui-form" action="">
+
+            <div class="mainBox">
+                <div class="main-container mr-5">
+                    <input type="hidden" name="table" value="<?=htmlspecialchars($table)?>">
+                    <div class="layui-form-item">
+                        <label class="layui-form-label required">菜单名</label>
+                        <div class="layui-input-block">
+                            <input type="text" name="title" value="" required lay-verify="required" class="layui-input">
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">图标</label>
+                        <div class="layui-input-block">
+                            <input name="icon" id="icon" value="" />
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">上级菜单</label>
+                        <div class="layui-input-block">
+                            <div name="pid" id="pid"></div>
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label required">控制器</label>
+                        <div class="layui-input-block">
+                            <input type="text" name="controller" value="<?=$controller?>" class="layui-input" required lay-verify="required">
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label required">模型</label>
+                        <div class="layui-input-block">
+                            <input type="text" name="model" value="<?=$model?>" class="layui-input" required lay-verify="required">
+                        </div>
+                    </div>
+                    <div class="layui-form-item">
+                        <label class="layui-form-label">强制覆盖</label>
+                        <div class="layui-input-block">
+                            <input type="checkbox" name="overwrite" lay-skin="primary">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bottom">
+                <div class="button-container">
+                    <button type="submit" class="pear-btn pear-btn-primary pear-btn-md" lay-submit=""
+                        lay-filter="save">
+                        保存
+                    </button>
+                    <button type="button" class="pear-btn pear-btn-md" data-cms-back>返回列表</button>
+                </div>
+            </div>
+        </form>
+
+        <script src="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/component/layui/layui.js?v=2.13.12'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>"></script>
+        <script src="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/component/pear/pear.js'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>"></script>
+        <script src="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/admin/js/permission.js'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>"></script>
+        <script>
+
+            const CRUD_API = "/web-admin/table/crud";
+
+            layui.use(["jquery", "xmSelect", "pearPopup"], function() {
+                layui.$.ajax({
+                    url: "/web-admin/rule/select?format=tree&type=0,1",
+                    dataType: "json",
+                    success: function (res) {
+                        let value = layui.$("#pid").attr("value");
+                        let initValue = value ? value.split(",") : [];
+                        layui.xmSelect.render({
+                            el: "#pid",
+                            name: "pid",
+                            initValue: initValue,
+                            tips: "无",
+                            data: res.data,
+                            toolbar: {show: true, list: ["CLEAR"]},
+                            model: {"icon":"hidden","label":{"type":"text"}},
+                            clickClose: true,
+                            radio: true,
+                            tree: {show:true, strict:false, clickCheck:true, clickExpand:false},
+                        });
+                        if (res.code) {
+                            return window.CmsUI.failure(res.msg);
+                        }
+                    }
+                });
+            });
+
+            layui.use(["pearIconPicker"], function() {
+                layui.pearIconPicker.render({
+                    elem: "#icon",
+                    type: "fontClass",
+                    page: false
+                });
+            });
+
+            layui.use(["form", "pearPopup"], function () {
+                //提交事件
+                layui.form.on("submit(save)", function (data) {
+                    const cmsForm=document.querySelector('form[data-cms-page-editor]');if(cmsForm.dataset.cmsSubmitting==='1')return false;cmsForm.dataset.cmsSubmitting='1';window.CmsUI.setBusy(cmsForm,true);
+                    layui.$.ajax({
+                        error:function(){window.CmsUI.error(cmsForm,'保存失败，请检查网络或登录状态后重试');},complete:function(){delete cmsForm.dataset.cmsSubmitting;window.CmsUI.setBusy(cmsForm,false);},
+                    url: CRUD_API,
+                        type: "POST",
+                        dateType: "json",
+                        data: data.field,
+                        success: function (res) {
+                            if (res.code) {
+                                window.CmsUI.error(cmsForm,res.msg,res.fields||res.data?.fields);return false;
+                            }
+                            return window.CmsUI.success("操作成功", function () {
+                                window.CmsUI.saved();
+                            });
+                        }
+                    });
+                    return false;
+                });
+            });
+
+        </script>
+
+    </body>
+</html>

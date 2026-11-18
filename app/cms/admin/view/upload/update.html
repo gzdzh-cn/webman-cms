@@ -1,0 +1,153 @@
+﻿<!DOCTYPE html>
+<html lang="zh-cn">
+    <head>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+        <meta charset="UTF-8">
+        <title>编辑附件</title>
+        <link rel="stylesheet" href="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/component/pear/css/pear.css'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>" />
+        <link rel="stylesheet" href="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/admin/css/reset.css'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>" />
+    </head>
+    <body>
+
+        <form class="layui-form">
+
+            <div class="mainBox">
+                <div class="main-container mr-5">
+
+                    <div class="layui-form-item">
+                        <label class="layui-form-label" style="width:inherit">类别</label>
+                        <div class="layui-input-block" style="margin-left:60px;">
+                            <div name="category" id="category" value="" ></div>
+                        </div>
+                    </div>
+                    
+                </div>
+            </div>
+
+            <div class="bottom">
+                <div class="button-container">
+                    <button type="submit" class="pear-btn pear-btn-primary pear-btn-md" lay-submit="" lay-filter="save">
+                        保存
+                    </button>
+                    <button type="button" class="pear-btn pear-btn-md" onclick="cmsCancelEditor()">取消</button>
+                </div>
+            </div>
+            
+        </form>
+
+        <script src="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/component/layui/layui.js?v=2.13.12'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>"></script>
+        <script src="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/component/pear/pear.js'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>"></script>
+        <script src="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/admin/js/permission.js'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>"></script>
+        <script>
+
+            // 相关接口
+            const PRIMARY_KEY = "id";
+            const SELECT_API = "/web-admin/upload/select" + location.search;
+            const UPDATE_API = "/web-admin/upload/update";
+
+            // 获取数据库记录
+            layui.use(["form", "util", "pearPopup"], function () {
+                let $ = layui.$;
+                $.ajax({
+                    url: SELECT_API,
+                    dataType: "json",
+                    success: function (res) {
+                        
+                        // 给表单初始化数据
+                        layui.each(res.data[0], function (key, value) {
+                            let obj = $('*[name="'+key+'"]');
+                            if (typeof obj[0] === "undefined" || !obj[0].nodeName) return;
+                            obj.attr("value", value);
+                        });
+                        
+                        // 字段 文件 url
+                        layui.use(["upload", "layer", "pearPopup", "util"], function() {
+                            let input = layui.$("#url").prev();
+                            input.prev().html(layui.util.escape(input.val()));
+                            layui.upload.render({
+                                elem: "#url",
+                                url: "/web-admin/upload/update",
+                                accept: "file",
+                                field: "__file__",
+                                done: function (res) {
+                                    if (res.code) return window.CmsUI.failure(res.msg);
+                                    this.item.prev().val(res.data.url).prev().html(layui.util.escape(res.data.url));
+                                }
+                            });
+                        });
+                        
+                        // 字段 类别 category
+                        layui.use(["jquery", "xmSelect", "pearPopup"], function() {
+                            layui.$.ajax({
+                                url: "/web-admin/dict/get/upload",
+                                dataType: "json",
+                                success: function (res) {
+                                    let value = layui.$("#category").attr("value");
+                                    let initValue = value ? value.split(",") : [];
+                                    layui.xmSelect.render({
+                                        el: "#category",
+                                        name: "category",
+                                        initValue: initValue,
+                                        data: res.data,
+                                        model: {"icon":"hidden","label":{"type":"text"}},
+                                        clickClose: true,
+                                        radio: true,
+                                    });
+                                    if (res.code) {
+                                        window.CmsUI.failure(res.msg);
+                                    }
+                                }
+                            });
+                        });
+
+                        // ajax产生错误
+                        if (res.code) {
+                            window.CmsUI.failure(res.msg);
+                        }
+                    }
+                });
+            });
+
+            //提交事件
+            layui.use(["form", "pearPopup"], function () {
+                layui.form.on("submit(save)", function (data) {
+                    data.field[PRIMARY_KEY] = layui.url().search[PRIMARY_KEY];
+                    var cmsForm=typeof data!=='undefined'&&data.form?data.form:document.querySelector('form');
+                    if(cmsForm.dataset.cmsSubmitting==='1')return false;
+                    cmsForm.dataset.cmsSubmitting='1';window.CmsUI.setBusy(cmsForm,true);
+                    layui.$.ajax({
+                    error:function(){window.CmsUI.error(cmsForm,"保存失败，请检查网络或登录状态后重试");},
+                    complete:function(){delete cmsForm.dataset.cmsSubmitting;window.CmsUI.setBusy(cmsForm,false);},
+                        url: UPDATE_API,
+                        type: "POST",
+                        dateType: "json",
+                        data: data.field,
+                        success: function (res) {
+                            if (res.code) {
+                                window.CmsUI.error(cmsForm,res.msg,res.fields||res.data?.fields);return false;
+                            }
+                            window.CmsModuleNavigation?.markClean(cmsForm);delete cmsForm.dataset.cmsDirty;return window.CmsUI.success("保存成功", function () {
+                                parent.refreshTable();
+                                window.CmsUI.clean();
+                                parent.layer.close(parent.layer.getFrameIndex(window.name));
+                            });
+                        }
+                    });
+                    return false;
+                });
+            });
+
+        </script>
+
+    <script>
+function cmsCancelEditor(){
+    window.CmsUI.leave(function(){
+        window.CmsUI.clean();
+        if(parent!==window && parent.layer)parent.layer.close(parent.layer.getFrameIndex(window.name));
+        else window.CmsUI.back();
+    });
+}
+</script>
+</body>
+
+</html>

@@ -18,11 +18,14 @@ use app\process\Http;
 
 global $argv;
 
+$highPerformance = \app\cms\config\DeploymentConfig::get('performance.separate_task_processes');
+$fileMonitor = !\Phar::running() && \app\cms\config\DeploymentConfig::get('app.debug') && !in_array('-d', $argv ?? [], true) && DIRECTORY_SEPARATOR === '/';
+
 return [
     'webman' => [
         'handler' => Http::class,
-        'listen' => 'http://0.0.0.0:8787',
-        'count' => cpu_count() * 4,
+        'listen' => \app\cms\config\DeploymentConfig::listener(),
+        'count' => \app\cms\config\DeploymentConfig::get('server.workers'),
         'user' => '',
         'group' => '',
         'reusePort' => false,
@@ -35,27 +38,48 @@ return [
             'publicPath' => public_path()
         ]
     ],
-    // File update detection and automatic reload
+    'cms-baidu-push' => [
+        'enable' => $highPerformance,
+        'handler' => app\process\BaiduPushWorker::class,
+        'count' => 1,
+        'reloadable' => true,
+    ],
+    'cms-generation' => [
+        'enable' => $highPerformance,
+        'handler' => app\process\StaticGenerationWorker::class,
+        'count' => 1,
+        'reloadable' => true,
+    ],
+    'cms-background' => [
+        'enable' => !$highPerformance,
+        'handler' => app\cms\process\BackgroundWorker::class,
+        'count' => 1,
+        'reloadable' => true,
+    ],
+    // High-performance memory watchdog; source development also watches files.
     'monitor' => [
+        'enable' => DIRECTORY_SEPARATOR === '/' && ($highPerformance || $fileMonitor),
         'handler' => app\process\Monitor::class,
+        'count' => 1,
         'reloadable' => false,
         'constructor' => [
             // Monitor these directories
-            'monitorDir' => array_merge([
+            'monitorDir' => [
                 app_path(),
                 config_path(),
                 base_path() . '/process',
                 base_path() . '/support',
                 base_path() . '/resource',
                 base_path() . '/.env',
-            ], glob(base_path() . '/plugin/*/app'), glob(base_path() . '/plugin/*/config'), glob(base_path() . '/plugin/*/api')),
+            ],
             // Files with these suffixes will be monitored
             'monitorExtensions' => [
                 'php', 'html', 'htm', 'env'
             ],
             'options' => [
-                'enable_file_monitor' => !in_array('-d', $argv) && DIRECTORY_SEPARATOR === '/',
-                'enable_memory_monitor' => DIRECTORY_SEPARATOR === '/',
+                'enable_file_monitor' => $fileMonitor,
+                'enable_memory_monitor' => $highPerformance,
+                'memory_limit' => \app\cms\config\DeploymentConfig::get('app.memory_limit'),
             ]
         ]
     ]

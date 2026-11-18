@@ -1,71 +1,63 @@
 #!/usr/bin/env php
 <?php
-
-use Webman\Config;
-use Webman\Console\Command;
-use Webman\Console\Util;
-use support\Container;
-use Dotenv\Dotenv;
-
-if (!Phar::running()) {
-    chdir(__DIR__);
+declare(strict_types=1);
+// The frozen runner is intentionally dispatched before deployment discovery:
+// its executable lives outside the site and must never select that directory's config.
+if (($argv[1] ?? '') === 'cms:update-executor') {
+    $runner=$argv[2]??'';
+    if (!is_string($runner) || basename($runner)!=='runner.php' || realpath($runner)!==$runner || !is_file($runner) || (fileperms($runner)&0077)!==0 || fileowner($runner)!==posix_geteuid()) exit(1);
+    require $runner;
+    exit;
 }
-require_once __DIR__ . '/vendor/autoload.php';
-
-if (!$appConfigFile = config_path('app.php')) {
-    throw new RuntimeException('Config file not found: app.php');
-}
-
-if (class_exists(Dotenv::class) && file_exists(run_path('.env'))) {
-    if (method_exists(Dotenv::class, 'createUnsafeImmutable')) {
-        Dotenv::createUnsafeImmutable(run_path())->load();
-    } else {
-        Dotenv::createMutable(run_path())->load();
+require_once __DIR__.'/support/deployment.php';
+require_once __DIR__.'/vendor/autoload.php';
+ini_set('zend.exception_ignore_args', '1');
+try {
+    $action = $argv[1] ?? 'list';
+    if ($action === 'cms:release-identity') {
+        echo json_encode(['version'=>\app\cms\admin\support\BackendVersion::version(),'build'=>\app\cms\support\EmbeddedResources::manifest()], JSON_THROW_ON_ERROR), PHP_EOL;
+        exit;
     }
-}
-
-$appConfig = require $appConfigFile;
-if ($timezone = $appConfig['default_timezone'] ?? '') {
-    date_default_timezone_set($timezone);
-}
-
-if ($errorReporting = $appConfig['error_reporting'] ?? '') {
-    error_reporting($errorReporting);
-}
-
-if (!in_array($argv[1] ?? '', ['start', 'restart', 'stop', 'status', 'reload', 'connections'])) {
-    require_once __DIR__ . '/support/bootstrap.php';
-} else {
-    if (class_exists('Support\App')) {
-        Support\App::loadAllConfig(['route']);
-    } else {
-        Config::reload(config_path(), ['route', 'container']);
+    if (in_array($action, ['start','restart','cms:container','cms:restart-executor'], true)) \app\cms\support\BinaryStartup::prepare();
+    // Permission repair must be able to run before an unreadable .env is parsed.
+    if ($action !== 'cms:permissions') \app\cms\config\Environment::initialize();
+    if(\app\cms\support\EmbeddedResources::binary()) {
+        if(str_starts_with($action,'cms:install')||in_array($action,['cms:database-init','cms:admin-bootstrap'],true))throw new RuntimeException('二进制不提供安装、初始化或安装交接功能');
+        if($action !== 'cms:permissions' && !is_file(\app\cms\config\DeploymentConfig::file()))\app\cms\support\BinaryStartup::check(false);
     }
-}
-
-$cli = new Command();
-$cli->setName('webman cli');
-$cli->installInternalCommands();
-if (is_dir($command_path = Util::guessPath(app_path(), '/command', true))) {
-    $cli->installCommands($command_path);
-}
-
-foreach (config('plugin', []) as $firm => $projects) {
-    if (isset($projects['app'])) {
-        foreach (['', '/app'] as $app) {
-            if ($command_str = Util::guessPath(base_path() . "/plugin/$firm{$app}", 'command')) {
-                $command_path = base_path() . "/plugin/$firm{$app}/$command_str";
-                $cli->installCommands($command_path, "plugin\\$firm" . str_replace('/', '\\', $app) . "\\$command_str");
-            }
+    if ($action === 'cms:restart-executor') {
+        \app\cms\secure\App::loadAllConfig(['route']);
+        \app\cms\support\ProcessLauncher::detached($argv[2] ?? '', array_slice($argv, 3));
+    }
+    if ($action === 'cms:legacy-executor') {
+        $files = ['navigation'=>'migrate_admin_navigation.php', 'engines'=>'migrate_table_engines.php', 'single-pages'=>'repair_single_pages.php'];
+        $file = $files[$argv[2] ?? ''] ?? throw new RuntimeException('Unknown internal command');
+        $argv = array_merge([__FILE__], array_slice($argv, 3));
+        require __DIR__.'/app/cms/console/legacy/'.$file;
+        exit;
+    }
+    if (in_array($action, ['start','restart','stop','status','reload','connections'], true)) {
+        \app\cms\config\DeploymentConfig::initialize();
+        if(in_array($action,['start','restart'],true)) \app\cms\support\BinaryStartup::check();
+        if (in_array($action, ['start','restart'], true) && \app\cms\support\ProcessLauncher::managed()) {
+            \app\cms\support\ProcessLauncher::assertManaged();
+            if (in_array('-d', $argv, true) || $action === 'restart') throw new RuntimeException('systemd must start the program in the foreground; restart through its service');
         }
+        \app\cms\secure\App::run();
+        exit;
     }
-    foreach ($projects as $name => $project) {
-        if (!is_array($project)) {
-            continue;
-        }
-        $project['command'] ??= [];
-        array_walk($project['command'], [$cli, 'createCommandInstance']);
+    if(\app\cms\support\EmbeddedResources::binary()&&str_starts_with($action,'cms:install'))throw new RuntimeException('二进制不提供安装或安装交接功能');
+    $offline = ['cms:permissions','cms:deployment','cms:config','cms:config-migrate','cms:paths','cms:runtime','cms:build-bin','cms:assets','cms:container','cms:release','cms:update','cms:update-probe','list','help'];
+    if (!in_array($action, $offline, true)) require_once __DIR__.'/support/bootstrap.php';
+    $cli = new \Symfony\Component\Console\Application('CMS', '1');
+    foreach (scandir(__DIR__.'/app/command') as $file) {
+        if (!preg_match('/^(Cms[A-Za-z0-9]+)\.php$/D', $file, $match)) continue;
+        $class = 'app\\command\\'.$match[1];
+        $cli->add(new $class());
     }
+    exit($cli->run());
+} catch (Throwable $error) {
+    if(\app\cms\support\EmbeddedResources::binary()) \app\cms\support\BinaryStartup::report($error);
+    else fwrite(STDERR, ($error instanceof PDOException ? 'Database operation failed' : $error->getMessage()).PHP_EOL);
+    exit(1);
 }
-
-$cli->run();

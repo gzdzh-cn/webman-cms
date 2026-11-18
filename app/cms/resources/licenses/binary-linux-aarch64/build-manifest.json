@@ -1,0 +1,339 @@
+{
+    "schema-version": 1,
+    "spc-version": "3.0.0-alpha1",
+    "target": {
+        "platform": "linux-aarch64",
+        "os": "Linux",
+        "architecture": "aarch64",
+        "libc": "musl",
+        "libc-version": null,
+        "spc-target": "aarch64-linux-musl",
+        "toolchain": "StaticPHP\\Toolchain\\ZigToolchain"
+    },
+    "requested-packages": {
+        "build": [
+            "php"
+        ],
+        "install": [
+            "php-cli",
+            "php-micro"
+        ]
+    },
+    "packages": [
+        {
+            "name": "zig",
+            "type": "tool",
+            "artifact": "zig"
+        },
+        {
+            "name": "llvm-compiler-rt",
+            "type": "target",
+            "artifact": "llvm-compiler-rt"
+        },
+        {
+            "name": "ext-bcmath",
+            "type": "php-extension",
+            "artifact": null
+        },
+        {
+            "name": "ext-ctype",
+            "type": "php-extension",
+            "artifact": null
+        },
+        {
+            "name": "zlib",
+            "type": "library",
+            "artifact": "zlib"
+        },
+        {
+            "name": "openssl",
+            "type": "library",
+            "artifact": "openssl"
+        },
+        {
+            "name": "libiconv",
+            "type": "library",
+            "artifact": "libiconv"
+        },
+        {
+            "name": "xz",
+            "type": "library",
+            "artifact": "xz"
+        },
+        {
+            "name": "libxml2",
+            "type": "library",
+            "artifact": "libxml2"
+        },
+        {
+            "name": "curl",
+            "type": "target",
+            "artifact": "curl"
+        },
+        {
+            "name": "ext-curl",
+            "type": "php-extension",
+            "artifact": null
+        },
+        {
+            "name": "ext-libxml",
+            "type": "php-extension",
+            "artifact": null
+        },
+        {
+            "name": "ext-xml",
+            "type": "php-extension",
+            "artifact": null
+        },
+        {
+            "name": "ext-dom",
+            "type": "php-extension",
+            "artifact": null
+        },
+        {
+            "name": "ext-exif",
+            "type": "php-extension",
+            "artifact": null
+        },
+        {
+            "name": "ext-fileinfo",
+            "type": "php-extension",
+            "artifact": null
+        },
+        {
+            "name": "ext-filter",
+            "type": "php-extension",
+            "artifact": null
+        },
+        {
+            "name": "libpng",
+            "type": "library",
+            "artifact": "libpng"
+        },
+        {
+            "name": "ext-zlib",
+            "type": "php-extension",
+            "artifact": null
+        },
+        {
+            "name": "libaom",
+            "type": "library",
+            "artifact": "libaom"
+        },
+        {
+            "name": "libwebp",
+            "type": "library",
+            "artifact": "libwebp"
+        },
+        {
+            "name": "libjpeg",
+            "type": "library",
+            "artifact": "libjpeg"
+        },
+        {
+            "name": "libavif",
+            "type": "library",
+            "artifact": "libavif"
+        },
+        {
+            "name": "freetype",
+            "type": "library",
+            "artifact": "freetype"
+        },
+        {
+            "name": "ext-gd",
+            "type": "php-extension",
+            "artifact": null
+        },
+        {
+            "name": "ext-iconv",
+            "type": "php-extension",
+            "artifact": null
+        },
+        {
+            "name": "onig",
+            "type": "library",
+            "artifact": "onig"
+        },
+        {
+            "name": "ext-mbstring",
+            "type": "php-extension",
+            "artifact": null
+        },
+        {
+            "name": "ext-mbregex",
+            "type": "php-extension",
+            "artifact": null
+        },
+        {
+            "name": "ext-mysqlnd",
+            "type": "php-extension",
+            "artifact": null
+        },
+        {
+            "name": "ext-openssl",
+            "type": "php-extension",
+            "artifact": null
+        },
+        {
+            "name": "ext-pcntl",
+            "type": "php-extension",
+            "artifact": null
+        },
+        {
+            "name": "ext-pdo",
+            "type": "php-extension",
+            "artifact": null
+        },
+        {
+            "name": "ext-pdo_mysql",
+            "type": "php-extension",
+            "artifact": null
+        },
+        {
+            "name": "ext-phar",
+            "type": "php-extension",
+            "artifact": null
+        },
+        {
+            "name": "ext-posix",
+            "type": "php-extension",
+            "artifact": null
+        },
+        {
+            "name": "ext-session",
+            "type": "php-extension",
+            "artifact": null
+        },
+        {
+            "name": "ext-redis",
+            "type": "php-extension",
+            "artifact": "ext-redis"
+        },
+        {
+            "name": "ext-simplexml",
+            "type": "php-extension",
+            "artifact": null
+        },
+        {
+            "name": "ext-sockets",
+            "type": "php-extension",
+            "artifact": null
+        },
+        {
+            "name": "ext-tokenizer",
+            "type": "php-extension",
+            "artifact": null
+        },
+        {
+            "name": "ext-xmlreader",
+            "type": "php-extension",
+            "artifact": null
+        },
+        {
+            "name": "ext-xmlwriter",
+            "type": "php-extension",
+            "artifact": null
+        },
+        {
+            "name": "libzip",
+            "type": "library",
+            "artifact": "libzip"
+        },
+        {
+            "name": "ext-zip",
+            "type": "php-extension",
+            "artifact": "ext-zip"
+        },
+        {
+            "name": "php",
+            "type": "target",
+            "artifact": "php-src"
+        },
+        {
+            "name": "php-cli",
+            "type": "virtual-target",
+            "artifact": null
+        },
+        {
+            "name": "php-micro",
+            "type": "virtual-target",
+            "artifact": "php-micro"
+        }
+    ],
+    "targets": {
+        "php": {
+            "version": "8.4.27",
+            "thread-safety": "nts",
+            "sapis": [
+                "cli",
+                "micro"
+            ],
+            "extensions": {
+                "all": [
+                    "bcmath",
+                    "ctype",
+                    "curl",
+                    "libxml",
+                    "xml",
+                    "dom",
+                    "exif",
+                    "fileinfo",
+                    "filter",
+                    "zlib",
+                    "gd",
+                    "iconv",
+                    "mbstring",
+                    "mbregex",
+                    "mysqlnd",
+                    "openssl",
+                    "pcntl",
+                    "pdo",
+                    "pdo_mysql",
+                    "phar",
+                    "posix",
+                    "session",
+                    "redis",
+                    "simplexml",
+                    "sockets",
+                    "tokenizer",
+                    "xmlreader",
+                    "xmlwriter",
+                    "zip"
+                ],
+                "static": [
+                    "bcmath",
+                    "ctype",
+                    "curl",
+                    "libxml",
+                    "xml",
+                    "dom",
+                    "exif",
+                    "fileinfo",
+                    "filter",
+                    "zlib",
+                    "gd",
+                    "iconv",
+                    "mbstring",
+                    "mbregex",
+                    "mysqlnd",
+                    "openssl",
+                    "pcntl",
+                    "pdo",
+                    "pdo_mysql",
+                    "phar",
+                    "posix",
+                    "session",
+                    "redis",
+                    "simplexml",
+                    "sockets",
+                    "tokenizer",
+                    "xmlreader",
+                    "xmlwriter",
+                    "zip"
+                ],
+                "shared": []
+            }
+        }
+    }
+}

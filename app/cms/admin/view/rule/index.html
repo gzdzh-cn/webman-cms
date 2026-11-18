@@ -1,0 +1,495 @@
+﻿
+<!DOCTYPE html>
+<html lang="zh-cn">
+    <head>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+        <meta charset="utf-8">
+        <title>菜单管理</title>
+        <link rel="stylesheet" href="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/component/pear/css/pear.css'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>" />
+        <link rel="stylesheet" href="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/admin/css/reset.css'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>" />
+    <link rel="stylesheet" href="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/admin/css/cms-page-adapters.css?v=20261105-adapters1'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>">
+<link rel="stylesheet" href="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/admin/css/cms-module-navigation.css?v=20261106-basic2'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>"><script src="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/admin/js/cms-module-navigation.js?v=20261106-basic2'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>"></script>
+</head>
+    <body class="pear-container cms-page-adapted"><div data-cms-module-navigation></div>
+
+        <!-- 数据表格 -->
+        <div class="layui-card cms-page-panel">
+            <div class="layui-card-body">
+                <table id="data-table" lay-filter="data-table"></table>
+            </div>
+        </div>
+
+        <!-- 表格顶部工具栏 -->
+        <script type="text/html" id="table-toolbar">
+            <button class="pear-btn pear-btn-primary pear-btn-xs cms-primary-action" lay-event="add" permission="app.admin.rule.insert">
+                <i class="layui-icon layui-icon-add-1"></i>新增
+            </button>
+            <button class="pear-btn pear-btn-danger pear-btn-xs" lay-event="batchRemove" permission="app.admin.rule.delete">
+                <i class="layui-icon layui-icon-delete"></i>删除
+            </button>
+            <button class="pear-btn pear-btn-normal pear-btn-xs" lay-event="expandFold" id="expand-fold-btn">
+                <i class="layui-icon layui-icon-spread-left"></i><span class="btn-text">展开</span>
+            </button>
+        </script>
+
+        <!-- 表格行工具栏 -->
+        <script type="text/html" id="table-bar">
+            <button class="pear-btn pear-btn-xs tool-btn" lay-event="edit" permission="app.admin.rule.update">编辑</button>
+            <button class="pear-btn pear-btn-xs tool-btn" lay-event="remove" permission="app.admin.rule.delete">删除</button>
+        </script>
+
+        <script src="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/component/layui/layui.js?v=2.13.12'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>"></script>
+        <script src="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/component/pear/pear.js'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>"></script>
+        <script src="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/admin/js/permission.js'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>"></script>
+        <script src="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/admin/js/common.js'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>"></script>
+
+        <script>
+
+            // 相关常量
+            const PRIMARY_KEY = "id";
+            const SELECT_API = "/web-admin/rule/select?limit=5000";
+            const DELETE_API = "/web-admin/rule/delete";
+            const UPDATE_API = "/web-admin/rule/update";
+            const INSERT_URL = "/web-admin/rule/insert";
+            const UPDATE_URL = "/web-admin/rule/update";
+
+            // 表格渲染
+            layui.use(["table", "pearTreetable", "form", "pearCommon", "pearPopup", "util"], function() {
+                let table = layui.table;
+                let form = layui.form;
+                let $ = layui.$;
+                let common = layui.pearCommon;
+                let treeTable = layui.pearTreetable;
+                let util = layui.util;
+                
+                // 树形表格展开/折叠状态（true=展开，false=折叠）
+                let isExpanded = false; // 初始状态为折叠（因为 treeDefaultClose: true）
+                
+                // 保存展开的节点 ID 集合（用于刷新后恢复部分展开状态）
+                let expandedNodeIds = new Set();
+                
+                // 获取当前所有展开的节点 ID
+                function getExpandedNodeIds() {
+                    var ids = new Set();
+                    var $table = $('#data-table').next('.treeTable');
+                    if ($table.length > 0) {
+                        var openIcons = $table.find('.treeTable-icon.open');
+                        openIcons.each(function() {
+                            var nodeId = $(this).attr('lay-tid');
+                            if (nodeId) {
+                                ids.add(nodeId);
+                            }
+                        });
+                    }
+                    return ids;
+                }
+                
+                // 展开指定的节点
+                function expandNodes(nodeIds) {
+                    if (!nodeIds || nodeIds.size === 0) {
+                        return;
+                    }
+                    var $table = $('#data-table').next('.treeTable');
+                    if ($table.length === 0) {
+                        return;
+                    }
+                    
+                    // 需要多次尝试，因为节点可能还没有完全渲染
+                    var attempts = 0;
+                    var maxAttempts = 10;
+                    var expandInterval = setInterval(function() {
+                        attempts++;
+                        var expanded = 0;
+                        $table.find('.treeTable-icon').each(function() {
+                            var $icon = $(this);
+                            var nodeId = $icon.attr('lay-tid');
+                            var ttype = $icon.attr('lay-ttype');
+                            var isOpen = $icon.hasClass('open');
+                            
+                            if (nodeId && nodeIds.has(nodeId) && ttype === 'dir' && !isOpen) {
+                                $icon.trigger('click');
+                                expanded++;
+                            }
+                        });
+                        
+                        // 如果所有节点都已展开，或者达到最大尝试次数，停止
+                        if (expanded === 0 || attempts >= maxAttempts) {
+                            clearInterval(expandInterval);
+                        }
+                    }, 50);
+                }
+                
+                // 更新展开/折叠按钮显示
+                function updateExpandFoldButton(expanded) {
+                    var $btn = $('#expand-fold-btn');
+                    var $icon = $btn.find('i');
+                    var $text = $btn.find('.btn-text');
+                    if (expanded) {
+                        $icon.removeClass('layui-icon-spread-left').addClass('layui-icon-shrink-right');
+                        $text.text('折叠');
+                    } else {
+                        $icon.removeClass('layui-icon-shrink-right').addClass('layui-icon-spread-left');
+                        $text.text('展开');
+                    }
+                }
+                
+
+                // 表格头部列数据
+                let cols = [
+                    {
+                        type: "checkbox"
+                    },{
+                        title: "菜单名称",
+                        field: "title",
+                        minWidth: 180,
+                    },{
+                        title: "图标",
+                        field: "icon",
+                        templet: function (d) {
+                            return '<i class="layui-icon ' + util.escape(d["icon"]) + '"></i>';
+                        }
+                    },{
+                        title: "ID",
+                        field: "id",
+                        hide: true,
+                    },{
+                        title: "key",
+                        field: "key",
+                    },{
+                        title: "上级菜单",
+                        field: "pid",
+                        hide: true,
+                        templet: function (d) {
+                            let field = "pid";
+                            if (typeof d[field] == "undefined") return "";
+                            let items = [];
+                            layui.each((d[field] + "").split(","), function (k , v) {
+                                items.push(apiResults[field][v] || v);
+                            });
+                            return util.escape(items.join(","));
+                        }
+                    },{
+                        title: "创建时间",
+                        field: "created_at",
+                        hide: true,
+                    },{
+                        title: "更新时间",
+                        field: "updated_at",
+                        hide: true,
+                    },{
+                        title: "url",
+                        field: "href",
+                    },{
+                        title: "类型",
+                        field: "type",
+                        width: 80,
+                        templet: function (d) {
+                            let field = "type";
+                            let value = apiResults["type"][d["type"]] || d["type"];
+                            let css = {"目录":"layui-bg-blue", "菜单": "layui-bg-green", "权限": "layui-bg-orange"}[value];
+                            return '<span class="layui-badge '+css+'">'+util.escape(value)+'</span>';
+                        }
+                    },{
+                        title: "显示", align: "center",
+                        field: "status",
+                        templet: function (d) {
+                            const isShow = d.status == 1;
+                            const cls = isShow ? "status-show" : "status-hide";
+                            const icon = isShow ? "layui-icon-ok-circle" : "layui-icon-close-fill";
+                            const text = isShow ? "是" : "否";
+                            const val = isShow ? "1" : "0";
+                            return '<span class="status-badge ' + cls + '" data-id="' + util.escape(d.id) + '" data-field="status" data-value="' + val + '"><i class="layui-icon ' + icon + '"></i>' + text + '</span>';
+                        },
+                        width: 80,
+                    },{
+                        title: "排序",
+                        field: "weight",
+                        width: 80,
+                    },{
+                        title: "操作",
+                        toolbar: "#table-bar",
+                        align: "center",
+                        fixed: window.matchMedia("(max-width: 767px)").matches ? false : "right",
+                        width: 130,
+                    }
+                ];
+
+                // 渲染表格
+                function render()
+                {
+                    treeTable.render({
+                        elem: "#data-table",
+                        id: "data-table",
+                        url: SELECT_API,
+                        treeColIndex: 1,
+                        treeIdName: "id",
+                        treePidName: "pid",
+                        treeDefaultClose: true,
+                        treeSortField: "weight", // 排序字段
+                        treeSortOrder: "asc", // 排序方向：asc 升序，desc 降序
+                        cols: [cols],
+                        skin: "line",
+                        size: "lg",
+                        toolbar: "#table-toolbar",
+                        defaultToolbar: [{
+                            title: "刷新",
+                            layEvent: "refresh",
+                            icon: "layui-icon-refresh",
+                        }, "filter", "print", "exports"],
+                    
+                    });
+                }
+
+                // 获取下拉菜单及树形组件数据
+                let apis = [];
+                let apiResults = {};
+                apiResults["pid"] = [];
+                apis.push(["pid", "/web-admin/rule/select?format=tree&type=0,1"]);
+                apiResults["type"] = ["目录","菜单","权限"];
+                let count = apis.length;
+                layui.each(apis, function (k, item) {
+                    let [field, url] = item;
+                    $.ajax({
+                        url: url,
+                        dateType: "json",
+                        success: function (res) {
+                            if (res.code) {
+                                return window.CmsUI.failure(res.msg);
+                            }
+                            function travel(items) {
+                                for (let k in items) {
+                                    let item = items[k];
+                                    apiResults[field][item.value] = item.name;
+                                    if (item.children) {
+                                        travel(item.children);
+                                    }
+                                }
+                            }
+                            travel(res.data);
+                        },
+                        complete: function () {
+                            if (--count === 0) {
+                                render();
+                            }
+                        }
+                    });
+                });
+                if (!count) {
+                    render();
+                }
+
+                // 删除或编辑行事件
+                table.on("tool(data-table)", function(obj) {
+                    if (obj.event === "remove") {
+                        remove(obj);
+                    } else if (obj.event === "edit") {
+                        edit(obj);
+                    }
+                });
+
+                // 添加 批量删除 刷新事件
+                table.on("toolbar(data-table)", function(obj) {
+                    if (obj.event === "add") {
+                        add();
+                    } else if (obj.event === "refresh") {
+                        refreshTable();
+                    } else if (obj.event === "batchRemove") {
+                        batchRemove(obj);
+                    } else if (obj.event === "expandFold") {
+                        // 切换展开/折叠状态
+                        if (isExpanded) {
+                            treeTable.foldAll("#data-table");
+                            isExpanded = false;
+                            expandedNodeIds.clear(); // 清空展开节点集合
+                            updateExpandFoldButton(false);
+                        } else {
+                            treeTable.expandAll("#data-table");
+                            isExpanded = true;
+                            expandedNodeIds.clear(); // 全部展开时清空，因为所有节点都展开了
+                            updateExpandFoldButton(true);
+                        }
+                    }
+                });
+
+                // 添加行
+                let add = function() {
+                    window.CmsUI.layer({
+                        type: 2,
+                        title: "新增菜单",
+                        shade: 0.1,
+                        kind: "edit", area: ["720px", "85vh"],
+                        content: INSERT_URL
+                    });
+                }
+
+                // 编辑行
+                let edit = function(obj) {
+                    let value = obj.data[PRIMARY_KEY];
+                    window.CmsUI.layer({
+                        type: 2,
+                        title: "编辑菜单",
+                        shade: 0.1,
+                        kind: "edit", area: ["720px", "85vh"],
+                        content: UPDATE_URL + "?" + PRIMARY_KEY + "=" + value
+                    });
+                }
+
+                // 删除行
+                let remove = function(obj) {
+                    return doRemove(obj.data[PRIMARY_KEY], obj);
+                }
+
+                // 删除多行
+                let batchRemove = function(obj) {
+                    let checkIds = common.checkField(obj, PRIMARY_KEY);
+                    if (checkIds === "") {
+                        window.CmsUI.warning("未选中数据");
+                        return false;
+                    }
+                    doRemove(checkIds.split(","));
+                }
+
+                // 执行删除
+                let doRemove = function (ids, obj) {
+                    let data = {};
+                    data[PRIMARY_KEY] = ids;
+                    window.CmsUI.confirm("确认删除所选记录？请核对选择；删除后的恢复方式以该模块规则为准。", {title: "确认删除", confirmText: "确认删除"}).then(function(approved) {
+                        if(!approved)return;
+                        let loading = layer.load();
+                        $.ajax({
+                            url: DELETE_API,
+                            data: data,
+                            dataType: "json",
+                            type: "post",
+                            success: function(res) {
+                                layer.close(loading);
+                                if (res.code) {
+                                    return window.CmsUI.failure(res.msg);
+                                }
+                                return window.CmsUI.success("操作成功", function () {
+                                    return obj ? obj.del() : refreshTable();
+                                });
+                            }
+                        })
+                    });
+                }
+
+                // 刷新表格
+                window.refreshTable = function() {
+                    // 保存当前展开状态
+                    var wasExpanded = isExpanded;
+                    // 保存当前展开的节点 ID（在 reload 之前保存，因为 reload 会重新渲染）
+                    var savedExpandedNodeIds = getExpandedNodeIds();
+                    
+                    // 重新加载表格
+                    treeTable.reload("#data-table");
+                    
+                    // 重新加载完成后，恢复展开状态
+                    // 使用 setTimeout 确保表格渲染完成后再执行展开操作
+                    setTimeout(function() {
+                        if (wasExpanded) {
+                            // 如果之前是全部展开，则展开所有
+                            treeTable.expandAll("#data-table");
+                            isExpanded = true;
+                            expandedNodeIds.clear(); // 全部展开时清空节点集合
+                            updateExpandFoldButton(true);
+                        } else if (savedExpandedNodeIds.size > 0) {
+                            // 如果之前是部分展开，则恢复部分展开的节点
+                            expandedNodeIds = savedExpandedNodeIds;
+                            expandNodes(expandedNodeIds);
+                            // 部分展开时，按钮状态根据实际展开的节点数量决定
+                            setTimeout(function() {
+                                var $table = $('#data-table').next('.treeTable');
+                                if ($table.length > 0) {
+                                    var totalDirs = $table.find('.treeTable-icon[lay-ttype="dir"]').length;
+                                    var openDirs = $table.find('.treeTable-icon[lay-ttype="dir"].open').length;
+                                    // 只有当所有节点都展开时，才认为是全部展开
+                                    isExpanded = (totalDirs > 0 && openDirs === totalDirs);
+                                    // 如果所有节点都展开了，清空节点集合（因为已经是全部展开状态）
+                                    if (isExpanded) {
+                                        expandedNodeIds.clear();
+                                    }
+                                    updateExpandFoldButton(isExpanded);
+                                }
+                            }, 200);
+                        } else {
+                            isExpanded = false;
+                            expandedNodeIds.clear();
+                            updateExpandFoldButton(false);
+                        }
+                    }, 50);
+                }
+                
+                // 监听节点展开/折叠事件，更新展开节点集合
+                $(document).on('click', '.treeTable .treeTable-icon', function() {
+                    // 延迟执行，确保 DOM 状态已更新
+                    setTimeout(function() {
+                        var $table = $('#data-table').next('.treeTable');
+                        if ($table.length > 0) {
+                            var totalDirs = $table.find('.treeTable-icon[lay-ttype="dir"]').length;
+                            var openDirs = $table.find('.treeTable-icon[lay-ttype="dir"].open').length;
+                            
+                            // 更新展开节点集合
+                            expandedNodeIds = getExpandedNodeIds();
+                            
+                            // 只有当所有节点都展开时，才认为是全部展开
+                            var allExpanded = (totalDirs > 0 && openDirs === totalDirs);
+                            if (allExpanded) {
+                                // 如果所有节点都展开了，清空节点集合（因为已经是全部展开状态）
+                                expandedNodeIds.clear();
+                                isExpanded = true;
+                            } else {
+                                // 部分展开时，保持 isExpanded 为 false（除非之前是全部展开状态）
+                                // 这里不改变 isExpanded，只根据实际展开的节点更新按钮显示
+                                isExpanded = false;
+                            }
+                            updateExpandFoldButton(isExpanded);
+                        }
+                    }, 50);
+                });
+                
+                // 点击切换显示/隐藏状态
+                $(document).on('click', '.status-badge', function () {
+                    var $this = $(this);
+                    var id = $this.data('id');
+                    var currentValue = parseInt($this.data('value'));
+                    var newValue = currentValue === 1 ? 0 : 1;
+
+                    // 更新字段到数据库
+                    let data = {};
+                    data[PRIMARY_KEY] = id;
+                    data['status'] = newValue;
+                    $.ajax({
+                        url: UPDATE_API,
+                        type: "POST",
+                        dataType: "json",
+                        data: data,
+                        success: function (res) {
+                            if (res.code) {
+                                window.CmsUI.failure(res.msg);
+                                return;
+                            }
+                            // 更新UI - 只改变类名和属性
+                            $this.data('value', newValue);
+                            var $icon = $this.find('.layui-icon');
+                            if (newValue === 1) {
+                                $this.removeClass('status-hide').addClass('status-show');
+                                $icon.removeClass('layui-icon-close-fill').addClass('layui-icon-ok-circle');
+                                $icon[0].nextSibling.nodeValue = '是';
+                            } else {
+                                $this.removeClass('status-show').addClass('status-hide');
+                                $icon.removeClass('layui-icon-ok-circle').addClass('layui-icon-close-fill');
+                                $icon[0].nextSibling.nodeValue = '否';
+                            }
+                            window.CmsUI.success('更新成功');
+                        },
+                        error: function () {
+                            window.CmsUI.failure("请求失败");
+                        }
+                    });
+                });
+            })
+
+        </script>
+    </body>
+</html>

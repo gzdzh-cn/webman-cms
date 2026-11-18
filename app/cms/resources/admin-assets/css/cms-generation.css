@@ -1,0 +1,28 @@
+body.cms-generation-page{margin:0;padding:20px;background:#f5f7fb;color:#243247;font:14px/1.6 system-ui,-apple-system,"Segoe UI",sans-serif}
+.cms-generation-page *{box-sizing:border-box}.cms-generation-page main{padding:20px;border:1px solid #e5eaf1;border-radius:8px;background:#fff}
+.cms-generation-page header{display:flex;align-items:end;gap:12px;flex-wrap:wrap;margin-bottom:20px}.cms-generation-page label{display:flex;align-items:center;gap:8px}.cms-generation-page fieldset{margin:0 0 20px;padding:16px;border:1px solid #e5eaf1;border-radius:6px}.cms-generation-page legend{padding:0 8px;font-weight:600}
+.cms-generation-page .fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:16px}.cms-generation-page .fields>label{align-items:flex-start;flex-direction:column}.cms-generation-page .checks{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+.cms-generation-page input,.cms-generation-page select,.cms-generation-page button{font:inherit;border:1px solid #dce3ec;border-radius:5px;background:#fff;color:inherit;padding:7px 10px;min-height:36px;max-width:100%}.cms-generation-page input[type=checkbox]{min-height:initial;accent-color:#2563eb}.cms-generation-page select[multiple]{width:100%;min-height:150px}.cms-generation-page button{cursor:pointer}.cms-generation-page button:disabled{color:#8a96a7;background:#f8fafc;cursor:default}.cms-generation-page button.primary:not(:disabled){background:var(--cms-page-blue,#2563eb);border-color:var(--cms-page-blue,#2563eb);color:#fff}
+.cms-generation-page .actions{display:flex;gap:12px;flex-wrap:wrap;margin:16px 0}.cms-generation-page .note{color:#768398;font-size:13px}.cms-generation-page [data-error="1"]{color:#b42318}.cms-generation-page #status{white-space:pre-wrap}.cms-generation-page progress{width:100%;height:18px}.cms-generation-page .table-wrap{overflow:auto}.cms-generation-page table{border-collapse:collapse;width:100%}.cms-generation-page td,.cms-generation-page th{text-align:left;padding:10px;border-bottom:1px solid #e5eaf1;overflow-wrap:anywhere}.cms-generation-page th{color:#526177;background:#f8fafc}.cms-generation-page #failures{color:#b42318;overflow-wrap:anywhere}.cms-generation-page pre{white-space:pre-wrap;overflow-wrap:anywhere}.cms-generation-page a{color:#2563eb;text-decoration:none}.cms-generation-page :focus-visible{outline:2px solid #6b9afa;outline-offset:3px}.cms-generation-page [hidden]{display:none!important}
+@media(max-width:767px){body.cms-generation-page{padding:12px}.cms-generation-page main{padding:16px}.cms-generation-page fieldset{padding:12px}}
+
+body.cms-generation-page main,body.cms-workspace-page.cms-generation-page>main{padding:16px 20px}
+.cms-generation-page header{gap:8px;margin-bottom:12px}
+.cms-generation-page fieldset{padding:12px 16px;margin-bottom:14px}
+.cms-generation-page legend{font-size:14px}
+.cms-generation-page .fields{grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));gap:10px 16px}
+.cms-generation-page .fields>label{gap:4px;font-size:13px}
+.cms-generation-page .fields :is(input,select){width:100%}
+.cms-generation-page .checks{gap:8px 16px;margin-bottom:10px;font-size:13px}
+.cms-generation-page .note{font-size:12px;line-height:1.5;margin:8px 0}
+.cms-generation-page .actions{gap:8px;margin:12px 0}
+body.cms-generation-page :is(input:not([type=checkbox]),select,button),body.cms-workspace-page.cms-generation-page>main :is(input:not([type=checkbox]),select,button){min-height:32px;padding:5px 10px;font-size:13px}
+.cms-generation-page select[multiple]{min-height:116px;font-size:13px}
+.cms-generation-page h2{font-size:14px;margin:16px 0 8px}
+.cms-generation-page #properties>div{display:grid;gap:8px}
+.cms-generation-page #properties label{display:grid;grid-template-columns:100px minmax(0,1fr);gap:8px;font-size:13px}
+.cms-generation-page #properties input,.cms-generation-page #properties select{min-width:0}
+body.cms-workspace-page.cms-generation-page>main :is(td,th){padding:8px 10px;font-size:13px}
+.cms-generation-page #status{margin:6px 0 10px;font-size:13px}
+.cms-generation-page progress{height:10px;accent-color:var(--cms-page-blue,#2563eb)}
+@media(max-width:767px){body.cms-generation-page main,body.cms-workspace-page.cms-generation-page>main{padding:12px}.cms-generation-page fieldset{padding:10px 12px}.cms-generation-page .fields{grid-template-columns:1fr}.cms-generation-page #properties label{grid-template-columns:116px minmax(0,1fr)}}

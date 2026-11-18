@@ -1,0 +1,522 @@
+[
+  {
+    "source": "core/library/think/Template.php",
+    "target": "app/cms/compat/Template.php"
+  },
+  {
+    "source": "core/library/think/template/TagLib.php",
+    "target": "app/cms/compat/template/TagLib.php"
+  },
+  {
+    "source": "core/library/think/template/taglib/Cx.php",
+    "target": "app/cms/compat/template/taglib/Cx.php"
+  },
+  {
+    "source": "core/library/think/template/taglib/Eyou.php",
+    "target": "app/cms/compat/template/taglib/Eyou.php"
+  },
+  {
+    "source": "core/library/think/template/driver/File.php",
+    "target": "app/cms/compat/template/driver/File.php"
+  },
+  {
+    "source": "core/library/think/Page.php",
+    "target": "app/cms/compat/Page.php"
+  },
+  {
+    "source": "core/library/think/template/taglib/eyou/TagUiarclist.php",
+    "target": "app/cms/compat/template/taglib/eyou/TagUiarclist.php"
+  },
+  {
+    "source": "core/library/think/template/taglib/eyou/TagUitext.php",
+    "target": "app/cms/compat/template/taglib/eyou/TagUitext.php"
+  },
+  {
+    "source": "core/library/think/template/taglib/eyou/TagSpsubmitorder.php",
+    "target": "app/cms/compat/template/taglib/eyou/TagSpsubmitorder.php"
+  },
+  {
+    "source": "core/library/think/template/taglib/eyou/TagPrenext.php",
+    "target": "app/cms/compat/template/taglib/eyou/TagPrenext.php"
+  },
+  {
+    "source": "core/library/think/template/taglib/eyou/TagUiupload.php",
+    "target": "app/cms/compat/template/taglib/eyou/TagUiupload.php"
+  },
+  {
+    "source": "core/library/think/template/taglib/eyou/TagType.php",
+    "target": "app/cms/compat/template/taglib/eyou/TagType.php"
+  },
+  {
+    "source": "core/library/think/template/taglib/eyou/TagFaq.php",
+    "target": "app/cms/compat/template/taglib/eyou/TagFaq.php"
+  },
+  {
+    "source": "core/library/think/template/taglib/eyou/TagSporderlist.php",
+    "target": "app/cms/compat/template/taglib/eyou/TagSporderlist.php"
+  },
+  {
+    "source": "core/library/think/template/taglib/eyou/TagFreebuynum.php",
+    "target": "app/cms/compat/template/taglib/eyou/TagFreebuynum.php"
+  },
+  {
+    "source": "core/library/think/template/taglib/eyou/TagLoad.php",
+    "target": "app/cms/compat/template/taglib/eyou/TagLoad.php"
+  },
+  {
+    "source": "core/library/think/template/taglib/eyou/TagDowncount.php",
+    "target": "app/cms/compat/template/taglib/eyou/TagDowncount.php"
+  },
+  {
+    "source": "core/library/think/template/taglib/eyou/TagNavigation.php",
+    "target": "app/cms/compat/template/taglib/eyou/TagNavigation.php"
+  },
+  {
+    "source": "core/library/think/template/taglib/eyou/TagSearchform.php",
+    "target": "app/cms/compat/template/taglib/eyou/TagSearchform.php"
+  },
+  {
+    "source": "core/library/think/template/taglib/eyou/TagSearchurl.php",
+    "target": "app/cms/compat/template/taglib/eyou/TagSearchurl.php"
+  },
+  {
+    "source": "core/library/think/template/taglib/eyou/TagLanguage.php",
+    "target": "app/cms/compat/template/taglib/eyou/TagLanguage.php"
+  },
+  {
+    "source": "core/library/think/template/taglib/eyou/TagLang.php",
+    "target": "app/cms/compat/template/taglib/eyou/TagLang.php"
+  },
+  {
+    "source": "core/library/think/template/taglib/eyou/TagMemberlist.php",
+    "target": "app/cms/compat/template/taglib/eyou/TagMemberlist.php"
+  },
+  {
+    "source": "core/library/think/template/taglib/eyou/TagDiyurl.php",
+    "target": "app/cms/compat/template/taglib/eyou/TagDiyurl.php"
+  },
+  {
+    "source": "core/library/think/template/taglib/eyou/TagNotice.php",
+    "target": "app/cms/compat/template/taglib/eyou/TagNotice.php"
+  },
+  {
+    "source": "core/library/think/template/taglib/eyou/TagCollect.php",
+    "target": "app/cms/compat/template/taglib/eyou/TagCollect.php"
+  },
+  {
+    "source": "core/library/think/template/taglib/eyou/TagList.php",
+    "target": "app/cms/compat/template/taglib/eyou/TagList.php"
+  },
+  {
+    "source": "core/library/think/template/taglib/eyou/TagUser.php",
+    "target": "app/cms/compat/template/taglib/eyou/TagUser.php"
+  },
+  {
+    "source": "core/library/think/template/taglib/eyou/TagUichannel.php",
+    "target": "app/cms/compat/template/taglib/eyou/TagUichannel.php"
+  },
+  {
+    "source": "core/library/think/template/taglib/eyou/TagUihtml.php",
+    "target": "app/cms/compat/template/taglib/eyou/TagUihtml.php"
+  },
+  {
+    "source": "core/library/think/template/taglib/eyou/TagSpcart.php",
+    "target": "app/cms/compat/template/taglib/eyou/TagSpcart.php"
+  },
+  {
+    "source": "core/library/think/template/taglib/eyou/TagSpecnode.php",
+    "target": "app/cms/compat/template/taglib/eyou/TagSpecnode.php"
+  },
+  {
+    "source": "core/library/think/template/taglib/eyou/TagDiyfield.php",
+    "target": "app/cms/compat/template/taglib/eyou/TagDiyfield.php"
+  },
+  {
+    "source": "core/library/think/template/taglib/eyou/TagUi.php",
+    "target": "app/cms/compat/template/taglib/eyou/TagUi.php"
+  },
+  {
+    "source": "core/library/think/template/taglib/eyou/TagWeapplist.php",
+    "target": "app/cms/compat/template/taglib/eyou/TagWeapplist.php"
+  },
+  {
+    "source": "core/library/think/template/taglib/eyou/TagHotwords.php",
+    "target": "app/cms/compat/template/taglib/eyou/TagHotwords.php"
+  },
+  {
+    "source": "core/library/think/template/taglib/eyou/TagAttribute.php",
+    "target": "app/cms/compat/template/taglib/eyou/TagAttribute.php"
+  },
+  {
+    "source": "core/library/think/template/taglib/eyou/TagVideoplay.php",
+    "target": "app/cms/compat/template/taglib/eyou/TagVideoplay.php"
+  },
+  {
+    "source": "core/library/think/template/taglib/eyou/TagSpsearch.php",
+    "target": "app/cms/compat/template/taglib/eyou/TagSpsearch.php"
+  },
+  {
+    "source": "core/library/think/template/taglib/eyou/TagArcview.php",
+    "target": "app/cms/compat/template/taglib/eyou/TagArcview.php"
+  },
+  {
+    "source": "core/library/think/template/taglib/eyou/TagFormreply.php",
+    "target": "app/cms/compat/template/taglib/eyou/TagFormreply.php"
+  },
+  {
+    "source": "core/library/think/template/taglib/eyou/TagTagarclist.php",
+    "target": "app/cms/compat/template/taglib/eyou/TagTagarclist.php"
+  },
+  {
+    "source": "core/library/think/template/taglib/eyou/TagAsklist.php",
+    "target": "app/cms/compat/template/taglib/eyou/TagAsklist.php"
+  },
+  {
+    "source": "core/library/think/template/taglib/eyou/TagTag.php",
+    "target": "app/cms/compat/template/taglib/eyou/TagTag.php"
+  },
+  {
+    "source": "core/library/think/template/taglib/eyou/TagUimap.php",
+    "target": "app/cms/compat/template/taglib/eyou/TagUimap.php"
+  },
+  {
+    "source": "core/library/think/template/taglib/eyou/TagSql.php",
+    "target": "app/cms/compat/template/taglib/eyou/TagSql.php"
+  },
+  {
+    "source": "core/library/think/template/taglib/eyou/TagArcpagelist.php",
+    "target": "app/cms/compat/template/taglib/eyou/TagArcpagelist.php"
+  },
+  {
+    "source": "core/library/think/template/taglib/eyou/TagUibackground.php",
+    "target": "app/cms/compat/template/taglib/eyou/TagUibackground.php"
+  },
+  {
+    "source": "core/library/think/template/taglib/eyou/TagMemberinfos.php",
+    "target": "app/cms/compat/template/taglib/eyou/TagMemberinfos.php"
+  },
+  {
+    "source": "core/library/think/template/taglib/eyou/TagWeapp.php",
+    "target": "app/cms/compat/template/taglib/eyou/TagWeapp.php"
+  },
+  {
+    "source": "core/library/think/template/taglib/eyou/TagCollectnum.php",
+    "target": "app/cms/compat/template/taglib/eyou/TagCollectnum.php"
+  },
+  {
+    "source": "core/library/think/template/taglib/eyou/TagGlobal.php",
+    "target": "app/cms/compat/template/taglib/eyou/TagGlobal.php"
+  },
+  {
+    "source": "core/library/think/template/taglib/eyou/TagStatic.php",
+    "target": "app/cms/compat/template/taglib/eyou/TagStatic.php"
+  },
+  {
+    "source": "core/library/think/template/taglib/eyou/TagArcclick.php",
+    "target": "app/cms/compat/template/taglib/eyou/TagArcclick.php"
+  },
+  {
+    "source": "core/library/think/template/taglib/eyou/TagUsermenu.php",
+    "target": "app/cms/compat/template/taglib/eyou/TagUsermenu.php"
+  },
+  {
+    "source": "core/library/think/template/taglib/eyou/TagArclist.php",
+    "target": "app/cms/compat/template/taglib/eyou/TagArclist.php"
+  },
+  {
+    "source": "core/library/think/template/taglib/eyou/TagPosition.php",
+    "target": "app/cms/compat/template/taglib/eyou/TagPosition.php"
+  },
+  {
+    "source": "core/library/think/template/taglib/eyou/Base.php",
+    "target": "app/cms/compat/template/taglib/eyou/Base.php"
+  },
+  {
+    "source": "core/library/think/template/taglib/eyou/TagAd.php",
+    "target": "app/cms/compat/template/taglib/eyou/TagAd.php"
+  },
+  {
+    "source": "core/library/think/template/taglib/eyou/TagScreening.php",
+    "target": "app/cms/compat/template/taglib/eyou/TagScreening.php"
+  },
+  {
+    "source": "core/library/think/template/taglib/eyou/TagChannelartlist.php",
+    "target": "app/cms/compat/template/taglib/eyou/TagChannelartlist.php"
+  },
+  {
+    "source": "core/library/think/template/taglib/eyou/TagSpaddress.php",
+    "target": "app/cms/compat/template/taglib/eyou/TagSpaddress.php"
+  },
+  {
+    "source": "core/library/think/template/taglib/eyou/TagAttr.php",
+    "target": "app/cms/compat/template/taglib/eyou/TagAttr.php"
+  },
+  {
+    "source": "core/library/think/template/taglib/eyou/TagSporder.php",
+    "target": "app/cms/compat/template/taglib/eyou/TagSporder.php"
+  },
+  {
+    "source": "core/library/think/template/taglib/eyou/TagCitysite.php",
+    "target": "app/cms/compat/template/taglib/eyou/TagCitysite.php"
+  },
+  {
+    "source": "core/library/think/template/taglib/eyou/TagSpecnodelist.php",
+    "target": "app/cms/compat/template/taglib/eyou/TagSpecnodelist.php"
+  },
+  {
+    "source": "core/library/think/template/taglib/eyou/TagComment.php",
+    "target": "app/cms/compat/template/taglib/eyou/TagComment.php"
+  },
+  {
+    "source": "core/library/think/template/taglib/eyou/TagUitype.php",
+    "target": "app/cms/compat/template/taglib/eyou/TagUitype.php"
+  },
+  {
+    "source": "core/library/think/template/taglib/eyou/TagDownloadpay.php",
+    "target": "app/cms/compat/template/taglib/eyou/TagDownloadpay.php"
+  },
+  {
+    "source": "core/library/think/template/taglib/eyou/TagLikearticle.php",
+    "target": "app/cms/compat/template/taglib/eyou/TagLikearticle.php"
+  },
+  {
+    "source": "core/library/think/template/taglib/eyou/TagField.php",
+    "target": "app/cms/compat/template/taglib/eyou/TagField.php"
+  },
+  {
+    "source": "core/library/think/template/taglib/eyou/TagGuestbookform.php",
+    "target": "app/cms/compat/template/taglib/eyou/TagGuestbookform.php"
+  },
+  {
+    "source": "core/library/think/template/taglib/eyou/TagSppurchase.php",
+    "target": "app/cms/compat/template/taglib/eyou/TagSppurchase.php"
+  },
+  {
+    "source": "core/library/think/template/taglib/eyou/TagVideolist.php",
+    "target": "app/cms/compat/template/taglib/eyou/TagVideolist.php"
+  },
+  {
+    "source": "core/library/think/template/taglib/eyou/TagAdv.php",
+    "target": "app/cms/compat/template/taglib/eyou/TagAdv.php"
+  },
+  {
+    "source": "core/library/think/template/taglib/eyou/TagArticlepay.php",
+    "target": "app/cms/compat/template/taglib/eyou/TagArticlepay.php"
+  },
+  {
+    "source": "core/library/think/template/taglib/eyou/TagUicode.php",
+    "target": "app/cms/compat/template/taglib/eyou/TagUicode.php"
+  },
+  {
+    "source": "core/library/think/template/taglib/eyou/TagPagespecnode.php",
+    "target": "app/cms/compat/template/taglib/eyou/TagPagespecnode.php"
+  },
+  {
+    "source": "core/library/think/template/taglib/eyou/TagFlink.php",
+    "target": "app/cms/compat/template/taglib/eyou/TagFlink.php"
+  },
+  {
+    "source": "core/library/think/template/taglib/eyou/TagSppayapilist.php",
+    "target": "app/cms/compat/template/taglib/eyou/TagSppayapilist.php"
+  },
+  {
+    "source": "core/library/think/template/taglib/eyou/TagPagelist.php",
+    "target": "app/cms/compat/template/taglib/eyou/TagPagelist.php"
+  },
+  {
+    "source": "core/library/think/template/taglib/eyou/TagChannel.php",
+    "target": "app/cms/compat/template/taglib/eyou/TagChannel.php"
+  },
+  {
+    "source": "core/library/think/template/taglib/api/Base.php",
+    "target": "app/cms/compat/template/taglib/api/Base.php"
+  },
+  {
+    "source": "application/common/model/Arctype.php",
+    "target": "app/cms/compat/model/Arctype.php"
+  },
+  {
+    "source": "application/common/model/Channeltype.php",
+    "target": "app/cms/compat/model/Channeltype.php"
+  },
+  {
+    "source": "application/common/model/Channelfield.php",
+    "target": "app/cms/compat/model/Channelfield.php"
+  },
+  {
+    "source": "application/common/model/LanguageAttr.php",
+    "target": "app/cms/compat/model/LanguageAttr.php"
+  },
+  {
+    "source": "application/common/model/Weapp.php",
+    "target": "app/cms/compat/model/Weapp.php"
+  },
+  {
+    "source": "application/common/model/Citysite.php",
+    "target": "app/cms/compat/model/Citysite.php"
+  },
+  {
+    "source": "application/common/model/Taglist.php",
+    "target": "app/cms/compat/model/Taglist.php"
+  },
+  {
+    "source": "application/common/model/Config.php",
+    "target": "app/cms/compat/model/Config.php"
+  },
+  {
+    "source": "application/common/model/ConfigAttribute.php",
+    "target": "app/cms/compat/model/ConfigAttribute.php"
+  },
+  {
+    "source": "application/common/model/Language.php",
+    "target": "app/cms/compat/model/Language.php"
+  },
+  {
+    "source": "application/common/model/LanguageMark.php",
+    "target": "app/cms/compat/model/LanguageMark.php"
+  },
+  {
+    "source": "application/common/model/LanguagePack.php",
+    "target": "app/cms/compat/model/LanguagePack.php"
+  },
+  {
+    "source": "application/common/model/LanguageAttribute.php",
+    "target": "app/cms/compat/model/LanguageAttribute.php"
+  },
+  {
+    "source": "application/common/model/ForeignPack.php",
+    "target": "app/cms/compat/model/ForeignPack.php"
+  },
+  {
+    "source": "application/common/logic/ArctypeLogic.php",
+    "target": "app/cms/compat/logic/ArctypeLogic.php"
+  },
+  {
+    "source": "application/common/logic/NavigationLogic.php",
+    "target": "app/cms/compat/logic/NavigationLogic.php"
+  },
+  {
+    "source": "application/common/logic/CitysiteLogic.php",
+    "target": "app/cms/compat/logic/CitysiteLogic.php"
+  },
+  {
+    "source": "application/common/logic/BuildhtmlLogic.php",
+    "target": "app/cms/compat/logic/BuildhtmlLogic.php"
+  },
+  {
+    "source": "application/home/logic/FieldLogic.php",
+    "target": "app/cms/compat/logic/FieldLogic.php"
+  },
+  {
+    "source": "application/home/model/MediaFile.php",
+    "target": "app/cms/compat/model/MediaFile.php"
+  },
+  {
+    "source": "application/home/model/Archives.php",
+    "target": "app/cms/compat/model/Archives.php"
+  },
+  {
+    "source": "application/home/model/Download.php",
+    "target": "app/cms/compat/model/Download.php"
+  },
+  {
+    "source": "application/home/model/Product.php",
+    "target": "app/cms/compat/model/Product.php"
+  },
+  {
+    "source": "application/home/model/Field.php",
+    "target": "app/cms/compat/model/Field.php"
+  },
+  {
+    "source": "application/home/model/UiConfig.php",
+    "target": "app/cms/compat/model/UiConfig.php"
+  },
+  {
+    "source": "application/home/model/Special.php",
+    "target": "app/cms/compat/model/Special.php"
+  },
+  {
+    "source": "application/home/model/ProductImg.php",
+    "target": "app/cms/compat/model/ProductImg.php"
+  },
+  {
+    "source": "application/home/model/ImagesUpload.php",
+    "target": "app/cms/compat/model/ImagesUpload.php"
+  },
+  {
+    "source": "application/home/model/Recruit.php",
+    "target": "app/cms/compat/model/Recruit.php"
+  },
+  {
+    "source": "application/home/model/Single.php",
+    "target": "app/cms/compat/model/Single.php"
+  },
+  {
+    "source": "application/home/model/DownloadFile.php",
+    "target": "app/cms/compat/model/DownloadFile.php"
+  },
+  {
+    "source": "application/home/model/ProductAttr.php",
+    "target": "app/cms/compat/model/ProductAttr.php"
+  },
+  {
+    "source": "application/home/model/Media.php",
+    "target": "app/cms/compat/model/Media.php"
+  },
+  {
+    "source": "application/home/model/Article.php",
+    "target": "app/cms/compat/model/Article.php"
+  },
+  {
+    "source": "application/home/model/Images.php",
+    "target": "app/cms/compat/model/Images.php"
+  },
+  {
+    "source": "application/common/model/ShopGoodsLabel.php",
+    "target": "app/cms/compat/model/ShopGoodsLabel.php"
+  },
+  {
+    "source": "core/library/think/Paginator.php",
+    "target": "app/cms/compat/Paginator.php"
+  },
+  {
+    "source": "core/library/think/paginator/Collection.php",
+    "target": "app/cms/compat/paginator/Collection.php"
+  },
+  {
+    "source": "core/library/think/paginator/driver/Userseyou.php",
+    "target": "app/cms/compat/paginator/driver/Userseyou.php"
+  },
+  {
+    "source": "core/library/think/paginator/driver/Usersmobile.php",
+    "target": "app/cms/compat/paginator/driver/Usersmobile.php"
+  },
+  {
+    "source": "core/library/think/paginator/driver/Mobile.php",
+    "target": "app/cms/compat/paginator/driver/Mobile.php"
+  },
+  {
+    "source": "core/library/think/paginator/driver/Eyou.php",
+    "target": "app/cms/compat/paginator/driver/Eyou.php"
+  },
+  {
+    "source": "core/lang/cn.php",
+    "target": "app/cms/compat/lang/core/cn.php"
+  },
+  {
+    "source": "core/lang/zh-cn.php",
+    "target": "app/cms/compat/lang/core/zh-cn.php"
+  },
+  {
+    "source": "application/lang/cn.php",
+    "target": "app/cms/compat/lang/template/cn.php"
+  },
+  {
+    "source": "application/lang/en-us.php",
+    "target": "app/cms/compat/lang/template/en-us.php"
+  },
+  {
+    "source": "application/lang/zh-cn.php",
+    "target": "app/cms/compat/lang/template/zh-cn.php"
+  }
+]

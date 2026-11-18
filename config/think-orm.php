@@ -1,35 +1,26 @@
 <?php
-return [
+$dbSettings = \app\cms\database\DatabaseSettings::values();
+$database = [
     'default' => 'mysql',
     'connections' => [
         'mysql' => [
-            // 数据库类型
             'type' => 'mysql',
-            // 服务器地址
-            'hostname' => getenv('DB_HOST'),
-            // 数据库名
-            'database' => getenv('DB_NAME'),
-            // 数据库用户名
-            'username' => getenv('DB_USER'),
-            // 数据库密码
-            'password' => getenv('DB_PASSWORD'),
-            // 数据库连接端口
-            'hostport' => getenv('DB_PORT'),
-            // 数据库连接参数
-            'params' => [
-                // 连接超时3秒
-                \PDO::ATTR_TIMEOUT => 3,
-            ],
-            // 数据库编码默认采用utf8
+            'hostname' => $dbSettings['DB_HOST'],
+            'hostport' => $dbSettings['DB_PORT'],
+            'database' => $dbSettings['DB_NAME'],
+            'username' => $dbSettings['DB_USER'],
+            'password' => $dbSettings['DB_PASSWORD'],
             'charset' => 'utf8mb4',
-            // 数据库表前缀
-            'prefix' => getenv('DB_PREFIX'),
-            // 断线重连
+            'prefix' => \app\cms\database\TableNames::cms(),
             'break_reconnect' => true,
-            // 关闭SQL监听日志
-            'trigger_sql' => true,
-            // 自定义分页类
-            'bootstrap' =>  ''
+            'trigger_sql' => false,
+            'params' => [PDO::ATTR_TIMEOUT => 5],
         ],
     ],
 ];
+
+$admin = require base_path('app/cms/admin/config/thinkorm.php');
+foreach ($admin['connections'] as $name => $connection) {
+    $database['connections']['plugin.admin.' . $name] = $connection;
+}
+return $database;

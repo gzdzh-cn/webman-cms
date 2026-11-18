@@ -1,0 +1,27 @@
+[
+    {
+        "source": "vendor/topthink/think-image/src/Image.php",
+        "sha256": "6625649690c9ea61b5f2677711931d060340a090684d6f650fb260e879783373",
+        "target": "Image.php"
+    },
+    {
+        "source": "vendor/topthink/think-image/src/image/Exception.php",
+        "sha256": "a308024b315a34561db310176b7d1f8d509f8208ecce8e5b537d2d3c7ac4880f",
+        "target": "image/Exception.php"
+    },
+    {
+        "source": "vendor/topthink/think-image/src/image/gif/Gif.php",
+        "sha256": "b8b9b98daf852ff7df4e0e3357668f31e7f414c667ed5659b44580b453b6f22e",
+        "target": "image/gif/Gif.php"
+    },
+    {
+        "source": "vendor/topthink/think-image/src/image/gif/Encoder.php",
+        "sha256": "5e2c2eec9d3837a3c1177989ecc038473a6f6cc8466ed340ed45a78b9adfef7b",
+        "target": "image/gif/Encoder.php"
+    },
+    {
+        "source": "vendor/topthink/think-image/src/image/gif/Decoder.php",
+        "sha256": "4b6983659e8bc84298fa3da414eb4408fd4d4e9f03b304ff01b3fe95efa47047",
+        "target": "image/gif/Decoder.php"
+    }
+]
