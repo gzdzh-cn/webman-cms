@@ -26,7 +26,7 @@ final class ConfigFile
             try{if(!flock($h,LOCK_EX|LOCK_NB))throw new \RuntimeException('YAML 配置正在被修改');flock($h,LOCK_UN);}finally{fclose($h);}
         }
     }
-    public static function write(array $data, bool $merge=true, bool $installation=false): void
+    public static function write(array $data, bool $merge=true, bool $installation=false, ?string $backupDirectory=null): void
     {
         ConfigSchema::flatten($data);self::assertWritable($installation);
         $file=$installation?DeploymentConfig::discoverFile():DeploymentConfig::file();$directory=dirname($file);
@@ -48,7 +48,7 @@ final class ConfigFile
             $next=['version'=>1]+$next;ConfigSchema::flatten($next);
             $bytes="# CMS deployment configuration. Local .env keys override this file.\n".Yaml::dump($next,8,2,Yaml::DUMP_MULTI_LINE_LITERAL_BLOCK);
             if(is_file($file)) {
-                $backup=$directory.'/.backups';Paths::ensureDirectory($backup,0700);
+                $backup=$backupDirectory??$directory.'/.backups';Paths::ensureDirectory($backup,0700);
                 $backupFile=$backup.'/config-'.gmdate('YmdHis').'-'.bin2hex(random_bytes(4)).'.yaml';
                 $h=fopen($backupFile,'xb');if(!$h)throw new \RuntimeException('无法备份原 YAML 配置');
                 try{chmod($backupFile,0600);$old=file_get_contents($file);if(!is_string($old)||fwrite($h,$old)!==strlen($old)||!fflush($h))throw new \RuntimeException('YAML 配置备份失败');}finally{fclose($h);}

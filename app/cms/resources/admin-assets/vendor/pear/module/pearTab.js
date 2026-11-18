@@ -107,7 +107,7 @@ layui.define(['jquery', 'element'], function(exports) {
 				var left = e.clientX;
 				var menuWidth = 100;
 				var currentId = $(this).attr("lay-id");
-				var menu = "<ul><li class='item' id='" + option.elem +
+				var menu = "<ul><li class='item' id='" + option.elem + "refreshThis'>刷新</li><li class='item' id='" + option.elem +
 					"closeThis'>关闭当前</li><li class='item' id='" + option.elem +
 					"closeOther'>关闭其他</li><li class='item' id='" + option.elem +
 					"closeAll'>关闭所有</li></ul>";
@@ -117,6 +117,7 @@ layui.define(['jquery', 'element'], function(exports) {
 				if (isOutsideBounds) {
 					left = $(window).width() - menuWidth;
 				}
+				top = Math.max(0, Math.min(top, $(window).height() - 144));
 				// 初始化
 				layer.open({
 					type: 1,
@@ -124,7 +125,7 @@ layui.define(['jquery', 'element'], function(exports) {
 					shade: false,
 					skin: 'pear-tab-menu',
 					closeBtn: false,
-					area: [menuWidth + 'px', '108px'],
+					area: [menuWidth + 'px', '144px'],
 					fixed: true,
 					anim: false,
 					isOutAnim: false,
@@ -627,6 +628,10 @@ layui.define(['jquery', 'element'], function(exports) {
 	}
 
 	function menuEvent(option, index) {
+        $('#' + option.elem + 'refreshThis').click(function(){
+            var id = contextTabDOM.attr('lay-id');layer.close(index);
+            if(window.CmsNavigation)window.CmsNavigation.refreshTab(id);
+        });
 
 		$("#" + option.elem + "closeThis").click(function() {
 			var currentTab = contextTabDOM;

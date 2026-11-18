@@ -226,22 +226,32 @@ final class UpgradeExecutor
     private function download(string $url,string $target,int $size): void
     {
         if(!function_exists('curl_init'))throw new \RuntimeException('升级执行器需要内置 cURL');
-        $expected=ReleaseDownload::expected($this->job['release'],$this->job['package']);
+        $release=$this->job['release'];$provider=$release['provider']??'github';
+        $expected=ReleaseDownload::expected($release,$this->job['package']);
         if($url!==$expected)throw new \RuntimeException('升级下载地址不属于正式发布');
         $stream=fopen($target,'xb');if(!$stream)throw new \RuntimeException('升级下载目标已存在');chmod($target,0600);
         try {
-            for($i=0;$i<6;$i++){
-                $parts=parse_url($url);$host=$parts['host']??'';
-                ReleaseDownload::assertUrl($url,$this->job['release']['provider']??'github');
-                $location=null;$count=0;$curl=curl_init($url);
-                curl_setopt_array($curl,[CURLOPT_CONNECTTIMEOUT=>10,CURLOPT_TIMEOUT=>600,CURLOPT_FOLLOWLOCATION=>false,CURLOPT_PROTOCOLS=>CURLPROTO_HTTPS,CURLOPT_USERAGENT=>'webman-cms-updater',CURLOPT_HEADERFUNCTION=>static function($c,$line)use(&$location){if(str_starts_with(strtolower($line),'location:'))$location=trim(substr($line,9));return strlen($line);},CURLOPT_WRITEFUNCTION=>static function($c,$bytes)use($stream,$size,&$count){$count+=strlen($bytes);if($count>$size)return 0;return fwrite($stream,$bytes);}]);
-                $ok=curl_exec($curl);$code=curl_getinfo($curl,CURLINFO_RESPONSE_CODE);$errno=curl_errno($curl);curl_close($curl);
-                if($ok===false)throw new \RuntimeException($count>$size?'升级包超过清单大小':($errno===28?'升级包下载超时，请稍后重试':'升级下载失败（cURL '.$errno.'）'));
-                if($code===200){if($count!==$size)throw new \RuntimeException('升级包大小不一致');fflush($stream);return;}
-                if(!in_array($code,[301,302,303,307,308],true)||!$location)throw new \RuntimeException('升级下载响应失败（HTTP '.$code.'）');
-                ftruncate($stream,0);rewind($stream);$url=ReleaseDownload::redirect($url,$location);
+            for($attempt=0;$attempt<3;$attempt++){
+                $url=$expected;ftruncate($stream,0);rewind($stream);$retry=false;
+                for($redirects=0;$redirects<6;$redirects++){
+                    if($provider==='custom')ReleaseDownload::assertCustomUrl($url,$release['source_url']);else ReleaseDownload::assertUrl($url,$provider);
+                    $headers=['Accept: application/octet-stream'];
+                    if($provider==='custom')$headers[]='X-App-Update-Password: '.$this->job['download_password'];
+                    $location=null;$count=0;$retryAfter=2;$curl=curl_init($url);
+                    curl_setopt_array($curl,[CURLOPT_CONNECTTIMEOUT=>10,CURLOPT_TIMEOUT=>600,CURLOPT_FOLLOWLOCATION=>false,CURLOPT_PROTOCOLS=>CURLPROTO_HTTPS,CURLOPT_USERAGENT=>'webman-cms-updater',CURLOPT_HTTPHEADER=>$headers,CURLOPT_HEADERFUNCTION=>static function($c,$line)use(&$location,&$retryAfter){if(str_starts_with(strtolower($line),'location:'))$location=trim(substr($line,9));if(str_starts_with(strtolower($line),'retry-after:'))$retryAfter=max(1,min(10,(int)trim(substr($line,12))));return strlen($line);},CURLOPT_WRITEFUNCTION=>static function($c,$bytes)use($stream,$size,&$count){$count+=strlen($bytes);if($count>$size)return 0;return fwrite($stream,$bytes);}]);
+                    $ok=curl_exec($curl);$code=curl_getinfo($curl,CURLINFO_RESPONSE_CODE);$errno=curl_errno($curl);curl_close($curl);
+                    if($count>$size)throw new \RuntimeException('升级包超过清单大小');
+                    if($ok!==false&&$code===200){if($count!==$size)throw new \RuntimeException('升级包大小不一致');if(!fflush($stream))throw new \RuntimeException('升级包写入失败');return;}
+                    $transient=$ok===false||in_array($code,[403,429,500,502,503,504],true);
+                    if($transient){
+                        if($attempt<2){$retry=true;sleep($retryAfter);break;}
+                        throw new \RuntimeException(in_array($code,[403,429],true)?'升级源限流或拒绝下载（HTTP '.$code.'），请稍后重试或手动切换来源':($errno===28?'升级包下载超时，请稍后重试':'升级下载失败（HTTP '.$code.'，cURL '.$errno.'）'));
+                    }
+                    if(!in_array($code,[301,302,303,307,308],true)||!$location)throw new \RuntimeException('升级下载响应失败（HTTP '.$code.'）');
+                    ftruncate($stream,0);rewind($stream);$url=ReleaseDownload::redirect($url,$location);
+                }
+                if(!$retry)throw new \RuntimeException('升级下载重定向过多');
             }
-            throw new \RuntimeException('升级下载重定向过多');
         }finally{fclose($stream);}
     }
 }

@@ -42,7 +42,7 @@ final class GithubReleases
             $asset=self::asset($release,$package['name']);
             if (($asset['size']??null)!==$package['size']) throw new \RuntimeException('GitHub 资产大小与清单不符');
         }
-        return ['id'=>(string)$release['id'],'tag'=>$release['tag_name'],'version'=>$release['cms_version'],'published_at'=>$release['published_at']??'','notes'=>mb_substr((string)($release['body']??''),0,50000),'manifest'=>$manifest,'assets'=>$release['assets']];
+        return ['provider'=>'github','id'=>(string)$release['id'],'tag'=>$release['tag_name'],'version'=>$release['cms_version'],'published_at'=>$release['published_at']??'','notes'=>mb_substr((string)($release['body']??''),0,50000),'manifest'=>$manifest,'assets'=>$release['assets']];
     }
     public static function asset(array $release,string $name): array
     {

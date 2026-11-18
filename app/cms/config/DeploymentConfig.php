@@ -78,7 +78,8 @@ final class DeploymentConfig
     }
     public static function group(string $name, bool $live=false): array
     {
-        if($live && $name!=='redis')throw new \LogicException('仅 Redis 配置允许请求内刷新');
+        if($live && !in_array($name,['redis','update'],true))throw new \LogicException('仅 Redis 和升级源配置允许请求内刷新');
+        if($live&&$name==='update')return UpdateSourceConfig::values();
         if(!$live) { self::initialize();$flat=self::$snapshot; }
         else {
             $saved=ConfigSchema::flatten(self::document());$env=Environment::overrides();$flat=[];
@@ -94,7 +95,7 @@ final class DeploymentConfig
     public static function report(): array
     {
         self::initialize();$fields=[];
-        foreach(ConfigSchema::fields()as$key=>$spec)$fields[$key]=['value'=>preg_match('/password/',$key)?'[redacted]':self::$snapshot[$key],'default'=>preg_match('/password/',$key)?'[redacted]':$spec[0],'type'=>$spec[2],'sensitive'=>(bool)preg_match('/password/',$key),'source'=>self::$sources[$key],'environment'=>$spec[1],'effective'=>str_starts_with($key,'redis.')?'next_request':(str_starts_with($key,'build.')?'build':'restart')];
+        foreach(ConfigSchema::fields()as$key=>$spec)$fields[$key]=['value'=>preg_match('/password/',$key)?'[redacted]':self::$snapshot[$key],'default'=>preg_match('/password/',$key)?'[redacted]':$spec[0],'type'=>$spec[2],'sensitive'=>(bool)preg_match('/password/',$key),'source'=>self::$sources[$key],'environment'=>$spec[1],'effective'=>(str_starts_with($key,'redis.')||str_starts_with($key,'update.'))?'next_request':(str_starts_with($key,'build.')?'build':'restart')];
         $document=self::document();
         $warnings=array_key_exists('key_file',(array)($document['security']??[]))?['security.key_file 已废弃并忽略，可删除该字段；程序不再使用本地密钥文件']:[];
         if(array_key_exists('CMS_SECURITY_KEY_FILE',Environment::overrides()))$warnings[]='CMS_SECURITY_KEY_FILE 已废弃并忽略，可删除该环境变量';

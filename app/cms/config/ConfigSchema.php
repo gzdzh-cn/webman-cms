@@ -7,9 +7,12 @@ final class ConfigSchema
 {
     public static function fields(): array
     {
-        // key => [default, environment, type, minimum, maximum]. Redis alone is live.
+        // key => [default, environment, type, minimum, maximum]. Redis and update settings are live.
         return [
             'version'=>[1,'','int',1,1],
+            'update.provider'=>['gitee','CMS_UPDATE_PROVIDER','update_provider'],
+            'update.custom_url'=>['','CMS_UPDATE_CUSTOM_URL','update_url'],
+            'update.custom_password'=>['','CMS_UPDATE_CUSTOM_PASSWORD','update_password'],
             'build.output'=>['bin','CMS_BUILD_OUTPUT','build_path'],
             'build.binary_name'=>['cms','CMS_BUILD_BINARY_NAME','binary_name'],
             'build.target'=>[[],'CMS_BUILD_TARGET','targets'],
@@ -137,6 +140,12 @@ final class ConfigSchema
             if ($type === 'true' && !$value) throw $invalid();
         } else {
             if (!is_string($value) || str_contains($value,"\0") || strlen($value)>8192) throw $invalid();
+            if ($type==='update_provider'&&!in_array($value,['gitee','github','custom'],true))throw $invalid();
+            if ($type==='update_password'&&(strlen($value)>256||preg_match('/[\r\n]/',$value)))throw $invalid();
+            if ($type==='update_url'&&$value!=='') {
+                $parts=parse_url($value);
+                if(strlen($value)>2048||!filter_var($value,FILTER_VALIDATE_URL)||($parts['scheme']??'')!=='https'||empty($parts['host'])||isset($parts['user'])||isset($parts['pass'])||isset($parts['fragment'])||isset($parts['port'])||preg_match('/[\x00-\x20\x7f\\\\]/',$value))throw $invalid();
+            }
             if (in_array($type,['path','build_path'],true) && $value === '') throw $invalid();
             if ($type === 'relative' && ($value === '' || str_starts_with($value,'/') || str_contains($value,'\\') || preg_match('#(^|/)\.{1,2}(/|$)#',$value))) throw $invalid();
             if ($type === 'prefix' && !preg_match('/^[A-Za-z0-9:_-]{1,100}$/D',$value)) throw $invalid();

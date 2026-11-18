@@ -6,7 +6,20 @@ use app\cms\service\AdminUpdateService;
 use support\{Request,Response};
 class UpdateController
 {
-    protected $noNeedAuth=['check','start','status'];
+    protected $noNeedAuth=['check','start','status','source'];
+    public function source(Request $request): Response
+    {
+        if(!in_array($request->method(),['GET','POST'],true))return response('Method Not Allowed',405);
+        if(!Auth::isSuperAdmin())return json(['code'=>2,'msg'=>'仅超级管理员可配置升级源','data'=>[]])->withStatus(403);
+        try{
+            if($request->method()==='POST'){
+                LanguageAdminSecurity::assertWrite($request);
+                $data=\app\cms\config\UpdateSourceConfig::save($request->post());
+            }else $data=\app\cms\config\UpdateSourceConfig::summary();
+            return json(['code'=>0,'data'=>$data])->withHeader('Cache-Control','no-store');
+        }catch(\InvalidArgumentException|\RuntimeException $e){return json(['code'=>1,'msg'=>$e->getMessage(),'data'=>[]])->withHeader('Cache-Control','no-store');}
+        catch(\Throwable){return json(['code'=>1,'msg'=>'升级源保存失败，请检查配置写入权限','data'=>[]])->withHeader('Cache-Control','no-store');}
+    }
     public function check(Request $request): Response
     {
         if($request->method()!=='GET')return response('Method Not Allowed',405);

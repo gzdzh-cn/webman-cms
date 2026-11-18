@@ -52,8 +52,9 @@ final class ReleaseBuilder
     }
     public function publish(string $directory,string $notesFile,string $provider='gitee'): array
     {
+        if($provider==='custom')return (new CustomReleasePublisher())->publish($directory,$notesFile);
         if($provider==='gitee')return (new GiteeReleasePublisher())->publish($directory,$notesFile);
-        if($provider!=='github')throw new \InvalidArgumentException('发布中心必须为 gitee 或 github');
+        if($provider!=='github')throw new \InvalidArgumentException('发布中心必须为 gitee、github 或 custom');
         $token=getenv('GITHUB_TOKEN');if (!$token) throw new \RuntimeException('发布端需要 GITHUB_TOKEN');
         $manifest=ReleaseManifest::validate(json_decode((string)file_get_contents($directory.'/'.ReleaseManifest::NAME),true,512,JSON_THROW_ON_ERROR),'v'.\app\cms\admin\support\BackendVersion::version());
         $client=new \GuzzleHttp\Client(['connect_timeout'=>10,'timeout'=>600,'allow_redirects'=>false,'headers'=>['Authorization'=>'Bearer '.$token,'User-Agent'=>'webman-cms-release','Accept'=>'application/vnd.github+json']]);
@@ -63,12 +64,13 @@ final class ReleaseBuilder
         foreach (array_merge([['name'=>ReleaseManifest::NAME]],$manifest['packages']) as $package) {
             $path=AssetArchive::path($directory.'/'.$package['name']);
             if (isset($package['sha256']) && (!hash_equals($package['sha256'],(string)hash_file('sha256',$path)) || filesize($path)!==$package['size'])) throw new \RuntimeException('发布包在上传前发生变化；草稿已保留');
-            $stream=fopen($path,'rb');try{$client->post('https://uploads.github.com/repos/'.ReleaseManifest::REPOSITORY.'/releases/'.$release['id'].'/assets?name='.rawurlencode($package['name']),['headers'=>['Content-Type'=>'application/octet-stream'],'body'=>$stream]);}finally{fclose($stream);}
+            $stream=fopen($path,'rb');try{$client->post('https://uploads.github.com/repos/'.ReleaseManifest::REPOSITORY.'/releases/'.$release['id'].'/assets?name='.rawurlencode($package['name']),['headers'=>['Content-Type'=>'application/octet-stream'],'body'=>$stream]);}finally{if(is_resource($stream))fclose($stream);}
         }
         return ['id'=>$release['id'],'draft'=>true,'tag'=>$release['tag_name']];
     }
     public function finalize(string $id,string $provider='gitee'): array
     {
+        if($provider==='custom')return (new CustomReleasePublisher())->finalize($id);
         if($provider==='gitee')return (new GiteeReleasePublisher())->finalize($id);
         if($provider!=='github')throw new \InvalidArgumentException('发布中心必须为 gitee 或 github');
         if (!ctype_digit($id) || !getenv('GITHUB_TOKEN')) throw new \RuntimeException('需要草稿 ID 和发布端 GITHUB_TOKEN');

@@ -256,3 +256,9 @@ build:
   # 列表兼容旧版 app/cms/resources/admin-assets 条目，但该条目不能覆盖独立开关。
   # 内置系统资源、public/template 各根优先，不从外部补齐；内置 YAML 固定，外部不能覆盖。
   embedded_resources: []
+
+# Live: gitee (default), github, custom. Publishing credentials never belong here.
+update:
+  provider: gitee
+  custom_url: ''
+  custom_password: ''

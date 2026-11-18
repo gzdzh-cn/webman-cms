@@ -14,7 +14,7 @@ class ReleaseCommand extends Command
             ->addOption('binary',null,InputOption::VALUE_REQUIRED|InputOption::VALUE_IS_ARRAY,'Built standard binary directory',[])
             ->addOption('no-source',null,InputOption::VALUE_NONE,'Only package specified binaries')
             ->addOption('notes',null,InputOption::VALUE_REQUIRED,'Release notes file')
-            ->addOption('provider',null,InputOption::VALUE_REQUIRED,'gitee (default) or github','gitee')
+            ->addOption('provider',null,InputOption::VALUE_REQUIRED,'gitee (default), github or custom','gitee')
             ->addOption('id',null,InputOption::VALUE_REQUIRED,'Draft release ID');
     }
     protected function execute(InputInterface $input,OutputInterface $output): int

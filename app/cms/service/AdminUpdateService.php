@@ -2,17 +2,18 @@
 declare(strict_types=1);
 namespace app\cms\service;
 use app\cms\Paths;
-use app\cms\maintenance\{AssetArchive,GiteeReleases,ReleaseDownload,ReleaseManifest,MaintenanceGate,RuntimeProvider};
+use app\cms\maintenance\{AssetArchive,GiteeReleases,GithubReleases,CustomReleases,ReleaseDownload,ReleaseManifest,MaintenanceGate,RuntimeProvider};
 use app\cms\persistence\StateStore;
 use app\cms\support\{EmbeddedResources,ProcessLauncher};
 
 final class AdminUpdateService
 {
     private StateStore $store;
-    private const CACHE = 'release-cache-gitee-v1';
-    public function __construct(?StateStore $store=null, private ?GiteeReleases $releases=null)
+    private string $cacheKey;
+    private array $source;
+    public function __construct(?StateStore $store=null, private ?object $releases=null)
     {
-        $this->store=$store??new StateStore(self::scope());$this->releases??=new GiteeReleases();
+        $this->store=$store??new StateStore(self::scope());$this->source=\app\cms\config\UpdateSourceConfig::values();$this->cacheKey='release-cache-v2-'.\app\cms\config\UpdateSourceConfig::identity($this->source);$this->releases??=match($this->source['provider']){'github'=>new GithubReleases(),'custom'=>new CustomReleases($this->source),default=>new GiteeReleases()};
     }
     public static function scope(): string { return 'maintenance:update:'.substr(hash('sha256',Paths::root()),0,20); }
     public static function deployment(): array
@@ -23,39 +24,39 @@ final class AdminUpdateService
     public function check(bool $force=false): array
     {
         $refresh=$this->store->locked(function()use($force):bool{
-            $cache=$this->store->read(self::CACHE);
+            $cache=$this->store->read($this->cacheKey);
             if(!$force && time()-(int)($cache['attempted_at']??0)<self::cacheLifetime($cache))return false;
-            $cache['attempted_at']=time();$this->store->write(self::CACHE,$cache);return true;
+            $cache['attempted_at']=time();$this->store->write($this->cacheKey,$cache);return true;
         });
         if($refresh){
             $release=null;try{$release=$this->releases->latest();$error=null;}
             catch(\Throwable $e){
                 $context=method_exists($e,'getHandlerContext')?$e->getHandlerContext():[];
-                $error=($context['errno']??null)===28?'Gitee 连接超时，已保留上次结果，请稍后重试':'Gitee 检查更新失败，已保留上次结果，请稍后重试';
+                $error=$this->source['provider']==='custom'&&$e instanceof \RuntimeException&&!$e instanceof \GuzzleHttp\Exception\GuzzleException?$e->getMessage():($this->source['provider'].' 检查更新失败，已保留上次结果，请稍后重试');
             }
             $this->store->locked(function()use($release,$error):void{
-                $cache=$this->store->read(self::CACHE);$cache['checking_until']=0;
+                $cache=$this->store->read($this->cacheKey);$cache['checking_until']=0;
                 if($error===null){$cache['release']=$release;$cache['checked_at']=time();unset($cache['error']);}else $cache['error']=$error;
-                $this->store->write(self::CACHE,$cache);
+                $this->store->write($this->cacheKey,$cache);
             });
         }
-        $cache=$this->store->read(self::CACHE);
+        $cache=$this->store->read($this->cacheKey);
         $deployment=self::deployment();$release=$cache['release']??null;
         $new=$release && version_compare($release['version'],$deployment['version'],'>');
         $package=$release?ReleaseManifest::package($release['manifest'],$deployment):null;
         $compatible=$release && version_compare($deployment['version'],$release['manifest']['min_version'],'>=') && version_compare($deployment['version'],$release['manifest']['max_version'],'<=') && version_compare(PHP_VERSION,$release['manifest']['min_php'],'>=');
         $reason=$deployment['custom']?'此二进制内嵌站点配置或主题等专用资源，需要专用升级包':(!$package?'正式发布尚无匹配当前平台及资源方式的升级包':(!$compatible?'当前版本或 PHP 环境不符合升级要求':''));
         $current=$this->store->read('current');
-        return ['current'=>$deployment['version'],'latest'=>$release['version']??null,'release_id'=>$release?self::identity($release):null,'published_at'=>$release['published_at']??null,'notes'=>$release['notes']??'','has_update'=>(bool)$new,'upgradeable'=>(bool)($new&&$package&&$compatible),'reason'=>$reason,'checked_at'=>$cache['checked_at']??null,'error'=>$cache['error']??null,'checking'=>(int)($cache['checking_until']??0)>time(),'task_id'=>$current['id']??null];
+        return ['source'=>\app\cms\config\UpdateSourceConfig::summary(),'current'=>$deployment['version'],'latest'=>$release['version']??null,'release_id'=>$release?self::identity($release):null,'published_at'=>$release['published_at']??null,'notes'=>$release['notes']??'','has_update'=>(bool)$new,'upgradeable'=>(bool)($new&&$package&&$compatible),'reason'=>$reason,'checked_at'=>$cache['checked_at']??null,'error'=>$cache['error']??null,'checking'=>(int)($cache['checking_until']??0)>time(),'task_id'=>$current['id']??null];
     }
     /** HTTP only schedules a short detached check, and immediately returns the site cache. */
     private static function cacheLifetime(array $cache): int { return !empty($cache['error']) ? 60 : 900; }
     public function cachedCheck(bool $force=false): array
     {
         $launch=$this->store->locked(function()use($force):bool{
-            $cache=$this->store->read(self::CACHE);
+            $cache=$this->store->read($this->cacheKey);
             if((int)($cache['checking_until']??0)>time() || (!$force && time()-(int)($cache['attempted_at']??0)<self::cacheLifetime($cache)))return false;
-            $cache['attempted_at']=time();$cache['checking_until']=time()+120;$this->store->write(self::CACHE,$cache);return true;
+            $cache['attempted_at']=time();$cache['checking_until']=time()+120;$this->store->write($this->cacheKey,$cache);return true;
         });
         if($launch){
             try{
@@ -69,11 +70,11 @@ final class AdminUpdateService
                     } finally { self::finishFork(); }
                 }
                 pcntl_waitpid($pid,$status);
-            }catch(\Throwable){$cache=$this->store->read(self::CACHE);$cache['checking_until']=0;$cache['error']='后台更新检查不可用，请稍后重试';$this->store->write(self::CACHE,$cache);}
+            }catch(\Throwable){$cache=$this->store->read($this->cacheKey);$cache['checking_until']=0;$cache['error']='后台更新检查不可用，请稍后重试';$this->store->write($this->cacheKey,$cache);}
         }
         return $this->check(false);
     }
-    private static function identity(array $release): string { return $release['id'].':'.hash('sha256','gitee:'.GiteeReleases::REPOSITORY.':'.json_encode($release['manifest'],JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR)); }
+    private static function identity(array $release): string { return $release['id'].':'.hash('sha256',($release['provider']??'github').':'.($release['source_url']??ReleaseManifest::REPOSITORY).':'.json_encode($release['manifest'],JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR)); }
     public function start(string $identity,int $adminId): array
     {
         foreach (['pcntl_fork','pcntl_exec','posix_setsid','posix_kill','proc_open'] as $function) if (!function_exists($function)) throw new \RuntimeException('环境缺少独立升级执行能力');
@@ -90,14 +91,14 @@ final class AdminUpdateService
             }
             $info=$this->check(true);
             if (!empty($info['error']) || !$info['upgradeable'] || !hash_equals($info['release_id'],$identity)) throw new \RuntimeException($info['error']??($info['reason']?:'发布已变化，请重新检查'));
-            $release=$this->store->read(self::CACHE)['release'];$package=ReleaseManifest::package($release['manifest'],self::deployment());
+            $release=$this->store->read($this->cacheKey)['release'];$package=ReleaseManifest::package($release['manifest'],self::deployment());
             $id=bin2hex(random_bytes(16));$directory=$this->privateDirectory().'/'.$id;
             if (!mkdir($directory,0700)) throw new \RuntimeException('无法创建项目外私有升级目录');
             $gate=fopen(MaintenanceGate::file(),'c+b');if (!$gate||!flock($gate,LOCK_EX|LOCK_NB)) throw new \RuntimeException('安装、重启或生成任务正在执行');
             try {
                 if (is_file(Paths::config('cms-installing.lock'))) { $h=fopen(Paths::config('cms-installing.lock'),'r');if(!$h||!flock($h,LOCK_EX|LOCK_NB))throw new \RuntimeException('安装正在执行');flock($h,LOCK_UN);fclose($h); }
                 $db=\app\cms\database\DatabaseSettings::values();
-                $job=['id'=>$id,'root'=>Paths::root(),'directory'=>$directory,'scope'=>$this->store->scope(),'prefix'=>$this->store->prefix(),'database'=>$db,'release'=>$release,'package'=>$package,'url'=>ReleaseDownload::expected($release,$package),'version'=>$release['version'],'deployment'=>self::deployment(),'executable'=>EmbeddedResources::binary()?\Phar::running(false):PHP_BINARY,'entry'=>EmbeddedResources::binary()?null:Paths::code('webman'),'old_master'=>$master,'stop_timeout'=>(int)\app\cms\config\DeploymentConfig::get('server.stop_timeout'),'gate'=>MaintenanceGate::file(),'env'=>\app\cms\config\Environment::processEnvironment()];
+                $job=['id'=>$id,'root'=>Paths::root(),'directory'=>$directory,'scope'=>$this->store->scope(),'prefix'=>$this->store->prefix(),'database'=>$db,'release'=>$release,'package'=>$package,'download_password'=>$this->source['provider']==='custom'?$this->source['custom_password']:'','url'=>ReleaseDownload::expected($release,$package),'version'=>$release['version'],'deployment'=>self::deployment(),'executable'=>EmbeddedResources::binary()?\Phar::running(false):PHP_BINARY,'entry'=>EmbeddedResources::binary()?null:Paths::code('webman'),'old_master'=>$master,'stop_timeout'=>(int)\app\cms\config\DeploymentConfig::get('server.stop_timeout'),'gate'=>MaintenanceGate::file(),'env'=>\app\cms\config\Environment::processEnvironment()];
                 foreach (['UpgradeExecutor','AssetArchive','ReleaseManifest','RuntimeProvider','BinaryBuilder','GithubReleases','GiteeReleases','ReleaseDownload'] as $class) $this->copy(Paths::cms('maintenance/'.$class.'.php'),$directory.'/'.$class.'.php',0600);
                 $runner="<?php\ndeclare(strict_types=1);\nini_set('memory_limit','768M');\nini_set('zend.exception_ignore_args','1');\nforeach(['AssetArchive','RuntimeProvider','BinaryBuilder','ReleaseManifest','GithubReleases','GiteeReleases','ReleaseDownload','UpgradeExecutor'] as \$class) require __DIR__.'/'.\$class.'.php';\n\\app\\cms\\maintenance\\UpgradeExecutor::supervise(__DIR__.'/job.json');\n";
                 $this->write($directory.'/runner.php',$runner);

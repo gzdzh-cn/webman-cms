@@ -31,7 +31,7 @@ final class GiteeReleasePublisher
         foreach($files as $file){
             $stream=fopen($directory.'/'.$file['name'],'rb');
             try{$this->client->post(GiteeReleases::API.'/releases/'.$id.'/attach_files',['multipart'=>[['name'=>'access_token','contents'=>$this->token],['name'=>'file','contents'=>$stream,'filename'=>$file['name']]]]);}
-            finally{fclose($stream);}
+            finally{if(is_resource($stream))fclose($stream);}
         }
         return ['provider'=>'gitee','id'=>$id,'prerelease'=>true,'tag'=>$release['tag_name'],'message'=>'附件已上传为预览版；校验后执行 finalize 正式发布'];
     }

@@ -11,7 +11,7 @@ use Webman\Http\Response;
 {
     public function process(Request $request, callable $handler): Response
     {
-        if (preg_match('#^/web-admin/update/(check|start|status)/?$#D', $request->path())) return $this->processInternal($request,$handler);
+        if (preg_match('#^/web-admin/update/(check|start|status|source)/?$#D', $request->path())) return $this->processInternal($request,$handler);
         return \app\cms\maintenance\MaintenanceGate::read(fn()=> $this->processInternal($request,$handler),fn()=>response('程序正在升级，请稍后重试。',503,['Retry-After'=>'5','Cache-Control'=>'no-store']));
     }
 

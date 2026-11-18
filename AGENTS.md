@@ -51,7 +51,7 @@
 ## 配置、缓存与持久化
 
 - 资源校验、构建、打包、恢复及部署预检统一使用 PHP CLI；不引入 Node、Python、npm 或外部压缩器。资源按受管源码原字节发布，保留版权声明并锁定摘要。
-- 部署参数统一登记在 `app/cms/config/ConfigSchema.php`，外置配置按 `config.yaml`、`config/config.yaml`、`config/manifest/config.yaml` 选第一份，不合并；PHP 仅作适配。外置字段优先级为本地 `.env` 存在键 > 显式进程环境 > 所选 YAML > 默认；内置 YAML 固定且忽略全部外置部署参数，写入明确只读。Redis 参数按请求重读并验证，其余启动参数完整重启；不输出连接密码。
+- 部署参数统一登记在 `app/cms/config/ConfigSchema.php`，外置配置按 `config.yaml`、`config/config.yaml`、`config/manifest/config.yaml` 选第一份，不合并；PHP 仅作适配。外置字段优先级为本地 `.env` 存在键 > 显式进程环境 > 所选 YAML > 默认；内置 YAML 固定且忽略全部外置部署参数，写入明确只读。Redis 和 update 升级源参数按请求重读并验证，其余启动参数完整重启；不输出连接密码。
 - 二进制关闭全部安装/交接入口且不携带安装资料；未内置 YAML、主题或系统资源必须在规定外置位置存在，启动前拒绝缺失，不创建空目录。内置系统资源、public/template 各根优先，禁止从外置补齐；构建由 build.embed_admin_assets 布尔开关独立控制系统资源，默认 true，false 关闭；build.embedded_resources 默认 [] 只选择额外内置资源，空列表不关闭系统资源，列表环境变量使用 JSON 数组；public 仅选择允许的根公开文件，旧系统资源列表条目不能覆盖开关，旧版 public 聚合元数据继续兼容读取；uploads/runtime 永远外置。构建平台与资源列表由统一定义验证。
 - 包内代码使用 `Paths::code()`，外置目录使用 `Paths` 对应固定目录；不能用包内 base_path 推导可写数据目录。实体目录固定相对源码入口或二进制所在目录，禁止恢复 paths 或 CMS_*_DIR / CMS_SITE_ROOT 的自定义实体目录能力；build 输出/运行时路径和 YAML/.env 选择仍按其专用规则。新部署参数必须登记类型、默认值、环境名称、生效时机与敏感性。源码及二进制共用入口；二进制运行和重启不得依赖系统 PHP 或外部 PHP 脚本。
 - 不引入本地签名密钥或替代密钥依赖；缓存/会话使用版本化存储，前台缓存复用须验证依赖与编译 AST，后台继续强制编译。私有文件及 Redis 写权限是存储信任边界；摘要不提供抗伪造认证。
