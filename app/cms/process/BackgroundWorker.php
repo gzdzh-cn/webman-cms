@@ -55,7 +55,7 @@ class BackgroundWorker
         try {
             if (\app\cms\maintenance\DatabaseBackup::maintenance() || !(new \app\cms\install\InstallerService())->status()['installed']) return false;
             $busy = (bool)\app\cms\maintenance\DatabaseTraffic::read(function () use ($operation, &$completed) {
-                $result = $operation();
+                $result = \app\cms\maintenance\MaintenanceGate::shared($operation);
                 $completed = true;
                 return $result;
             }, static fn() => false);

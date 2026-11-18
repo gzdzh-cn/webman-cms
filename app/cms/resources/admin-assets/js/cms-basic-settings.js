@@ -34,7 +34,7 @@
         form.querySelectorAll('[data-setting]').forEach(node=>{const field=currentGroup()?.fields.find(item=>item.name===node.dataset.setting);node.disabled=busy||failed||!field||!writable(field);});
         $('save').disabled=busy||failed||!state?.permissions.save;form.setAttribute('aria-busy',String(busy));form.toggleAttribute('data-cms-submit-busy',busy);
     }
-    async function api(action,input,post=false){const response=await fetch('/web-admin/websiteconfig/'+action+(post?'':'?'+new URLSearchParams(input)),{method:post?'POST':'GET',credentials:'same-origin',cache:'no-store',headers:{Accept:'application/json'},body:post?input:undefined});let result;try{result=await response.json();}catch(_){throw Error('读取失败，请检查登录状态后重试');}if(result.code!==0)throw Error(result.msg||'操作失败');return result;}
+    async function api(action,input,post=false){const response=await fetch('/web-admin/websiteconfig/'+action+(post?'':'?'+new URLSearchParams(input)),{method:post?'POST':'GET',credentials:'same-origin',cache:'no-store',headers:{Accept:'application/json'},signal:AbortSignal.timeout(60000),body:post?input:undefined});let result;try{result=await response.json();}catch(_){throw Error('读取失败，请检查登录状态后重试');}if(result.code!==0)throw Error(result.msg||'操作失败');return result;}
     function updateVisibility(){
         const value=name=>form.elements.namedItem(name)?.value;
         form.querySelectorAll('[data-field]').forEach(row=>{
@@ -110,12 +110,12 @@
             const value=field.type==='checkbox'?(control.checked?'1':'0'):control.value;
             if(field.type==='password'?value!=='':String(value)!==String(field.value??'')){body.set(field.name,value);changed++;}
         });
-        if(!changed){window.CmsModuleNavigation.markClean(form);message('当前配置没有修改。');return;}
+        if(!changed){window.CmsModuleNavigation.markClean(form);message('当前配置没有修改。');window.CmsUI.success('当前配置没有修改。');return;}
         const newMode=body.get('web_cmsmode');
         const oldMode=String(currentGroup()?.fields.find(field=>field.name==='web_cmsmode')?.value??'');
         const names={'1':'运营模式','2':'开发模式','3':'Redis 缓存模式'};
         const ui=window.top.CmsUI||window.CmsUI;
-        let progress=null,modeError=null;
+        let progress=null,modeError=null,pending=null;
         // Lock the form before the asynchronous confirmation so repeated submissions cannot race.
         busy=true;controls();
         try{
@@ -129,12 +129,13 @@
                 clearModeError();
                 progress=ui.progress({title:newMode==='3'?'正在验证 Redis 配置':'正在切换网站模式',message:newMode==='3'?'正在检查连接和缓存读写能力，请稍候…':'正在保存设置，请稍候…'});
             }
+            pending=window.CmsUI.beginSave(form,{mask:!progress});
             message('正在保存…');
             const result=await api('configure',body,true);
-            if(group==='web'){
-                const name=result.data?.groups?.find(item=>item.id==='web')?.fields?.find(field=>field.name==='web_name')?.value;
-                if(typeof name==='string')window.top.CmsBranding?.setName(name);
-            }
+            pending.close();
+            const scroll=document.scrollingElement,position=scroll?.scrollTop||0;
+            state=result.data;failed=false;selectedLang=state.lang;draw();
+            if(scroll)scroll.scrollTop=position;
             window.CmsModuleNavigation.markClean(form);
             if(result.data?.session_reset_required){
                 message('配置已保存，缓存模式已切换，请重新登录。');
@@ -142,8 +143,9 @@
                 window.top.location.href='/web-admin';return;
             }
             if(progress)await progress.finish({title:'模式切换成功',message:'网站模式已保存',kind:'success'});else ui.success(result.msg||'配置已保存');
-            busy=false;await load(state.lang);message('');
+            message('');
         }catch(error){
+            pending?.close();
             if(progress)progress.close();
             if(newMode==='3'&&/redis/i.test(error.message)){
                 message('');
@@ -153,7 +155,10 @@
                 message(error.message,true);ui.failure(error.message);
             }
         }finally{
-            busy=false;controls();
+            pending?.close();busy=false;controls();
+            // The workspace wait dialog can return focus to its own document.
+            // Restore the originating form only after its save button is enabled.
+            event.submitter?.focus({preventScroll:true});
             if(modeError)showModeError(modeError);
         }
     });

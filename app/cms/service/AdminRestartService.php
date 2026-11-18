@@ -16,6 +16,11 @@ final class AdminRestartService
 
     public function start(int $adminId): array
     {
+        return \app\cms\maintenance\MaintenanceGate::shared(fn()=> $this->startInternal($adminId));
+    }
+
+    private function startInternal(int $adminId): array
+    {
         foreach (['pcntl_fork','pcntl_exec','pcntl_waitpid','posix_setsid','posix_kill','posix_getppid','proc_open'] as $function) {
             if (!function_exists($function)) throw new RuntimeException('当前环境不支持后台重启，请由服务器管理员操作');
         }
@@ -84,6 +89,11 @@ final class AdminRestartService
 
     /** Called by the detached CLI launcher, never with a user supplied command. */
     public function execute(string $id): void
+    {
+        \app\cms\maintenance\MaintenanceGate::shared(fn()=> $this->executeInternal($id));
+    }
+
+    private function executeInternal(string $id): void
     {
         $handle = $this->executorLock();
         if (!flock($handle, LOCK_EX | LOCK_NB)) { fclose($handle); return; }

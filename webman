@@ -1,11 +1,23 @@
 #!/usr/bin/env php
 <?php
 declare(strict_types=1);
+// The frozen runner is intentionally dispatched before deployment discovery:
+// its executable lives outside the site and must never select that directory's config.
+if (($argv[1] ?? '') === 'cms:update-executor') {
+    $runner=$argv[2]??'';
+    if (!is_string($runner) || basename($runner)!=='runner.php' || realpath($runner)!==$runner || !is_file($runner) || (fileperms($runner)&0077)!==0 || fileowner($runner)!==posix_geteuid()) exit(1);
+    require $runner;
+    exit;
+}
 require_once __DIR__.'/support/deployment.php';
 require_once __DIR__.'/vendor/autoload.php';
 ini_set('zend.exception_ignore_args', '1');
 try {
     $action = $argv[1] ?? 'list';
+    if ($action === 'cms:release-identity') {
+        echo json_encode(['version'=>\app\cms\admin\support\BackendVersion::version(),'build'=>\app\cms\support\EmbeddedResources::manifest()], JSON_THROW_ON_ERROR), PHP_EOL;
+        exit;
+    }
     if (in_array($action, ['start','restart','cms:container','cms:restart-executor'], true)) \app\cms\support\BinaryStartup::prepare();
     // Permission repair must be able to run before an unreadable .env is parsed.
     if ($action !== 'cms:permissions') \app\cms\config\Environment::initialize();
@@ -35,7 +47,7 @@ try {
         exit;
     }
     if(\app\cms\support\EmbeddedResources::binary()&&str_starts_with($action,'cms:install'))throw new RuntimeException('二进制不提供安装或安装交接功能');
-    $offline = ['cms:permissions','cms:deployment','cms:config','cms:config-migrate','cms:paths','cms:runtime','cms:build-bin','cms:assets','cms:container','list','help'];
+    $offline = ['cms:permissions','cms:deployment','cms:config','cms:config-migrate','cms:paths','cms:runtime','cms:build-bin','cms:assets','cms:container','cms:release','cms:update','cms:update-probe','list','help'];
     if (!in_array($action, $offline, true)) require_once __DIR__.'/support/bootstrap.php';
     $cli = new \Symfony\Component\Console\Application('CMS', '1');
     foreach (scandir(__DIR__.'/app/command') as $file) {

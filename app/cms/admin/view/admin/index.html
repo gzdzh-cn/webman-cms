@@ -9,21 +9,7 @@
         <link rel="stylesheet" href="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/admin/css/reset.css'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>" />
     <link rel="stylesheet" href="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/admin/css/cms-page-adapters.css?v=20261105-adapters1'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>">
 <link rel="stylesheet" href="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/admin/css/cms-module-navigation.css?v=20261106-basic2'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>"><script src="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/admin/js/cms-module-navigation.js?v=20261106-basic2'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>"></script>
-<style>
-@media(max-width:767px){
-    body.cms-classic-filter-page .cms-filterbar.top-search-from{width:100%;min-width:0;box-sizing:border-box;}
-    body.cms-classic-filter-page .cms-filterbar.top-search-from > .layui-form-item{box-sizing:border-box;display:block;flex:1 1 100%;width:100%;min-width:0;max-width:100%;margin-right:0;}
-    body.cms-classic-filter-page .cms-filterbar.top-search-from .layui-input-block{box-sizing:border-box;float:none;width:100%;min-width:0;max-width:100%;margin-left:0;margin-right:0;}
-    body.cms-classic-filter-page .cms-filterbar.top-search-from .layui-form-label{box-sizing:border-box;float:none;width:auto;max-width:100%;padding:0 0 6px;text-align:left;}
-    body.cms-classic-filter-page .cms-filterbar.top-search-from .layui-input{box-sizing:border-box;width:100%;max-width:100%;min-width:0;}
-    body.cms-classic-filter-page .cms-filterbar.top-search-from #created_at{display:flex;gap:6px;align-items:center;min-width:0;}
-    body.cms-classic-filter-page .cms-filterbar.top-search-from #created_at > input{flex:1 1 0;min-width:0;max-width:none;}
-    body.cms-classic-filter-page .cms-filterbar.top-search-from > .layui-form-item:has(> button[lay-submit]){display:flex;flex-wrap:wrap;gap:8px;align-items:center;}
-    body.cms-classic-filter-page .cms-filterbar.top-search-from > .layui-form-item:has(> button[lay-submit]) > .layui-form-label{display:none;}
-    body.cms-classic-filter-page .cms-filterbar.top-search-from > .layui-form-item > button{margin:0;}
-    body.cms-classic-filter-page #category,body.cms-classic-filter-page #category xm-select{box-sizing:border-box;min-width:0;max-width:100%;}
-}
-</style>
+
 </head>
     <body class="pear-container cms-classic-filter-page cms-page-adapted"><div data-cms-module-navigation></div>
     
@@ -62,8 +48,8 @@
                     
                     <div class="layui-form-item">
                         <label class="layui-form-label">创建时间</label>
-                        <div class="layui-input-block">
-                            <div class="layui-input-block" id="created_at">
+                        <div class="layui-input-block cms-date-range">
+                            <div id="created_at">
                                 <input type="text" autocomplete="off" name="created_at[]" id="created_at-date-start" class="layui-input inline-block" placeholder="开始时间">
                                 -
                                 <input type="text" autocomplete="off" name="created_at[]" id="created_at-date-end" class="layui-input inline-block" placeholder="结束时间">

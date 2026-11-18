@@ -39,7 +39,7 @@ final class LanguageAdminContext
         \app\cms\compat\Runtime::boot($context);
         $context->load();
         // These controllers select operation targets, not an alternative editor language.
-        $management=in_array($controller,['LanguageController','LanguagepackController','RoleController','AccountController','IndexController','ConfigController','RuleController','AdminController','DictController','PluginController','TableController','DevController','OperationlogController','UserController'],true);
+        $management=in_array($controller,['LanguageController','LanguagepackController','RoleController','AccountController','IndexController','UpdateController','ConfigController','RuleController','AdminController','DictController','PluginController','TableController','DevController','OperationlogController','UserController'],true);
         if($management){
             if($controller==='IndexController'&&strtolower((string)$request->action)==='dashboard'&&$state['lang']==='')throw new \InvalidArgumentException('没有可用的编辑语言，请联系管理员');
             return;

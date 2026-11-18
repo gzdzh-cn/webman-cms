@@ -5,9 +5,9 @@
     "platforms": {
         "darwin-aarch64": {
             "url": "https://static-php-cli.fra1.digitaloceanspaces.com/v3/php-bin/common/php-8.4.27-micro-macos-aarch64.tar.gz",
-            "archive_sha256": "6d42d213b3114a9ed5f0024fc03c4979143c9dde004d55b24122efcf9c237300",
+            "archive_sha256": "ff25c5561bd47f9c739cd2a9669827bf8fbb0e8fef0e0c3bab70f1f7fc82d5c8",
             "member": "micro.sfx",
-            "runtime_sha256": "f498d08e85f2888dfea0375944d1ccae2b8afa3b4dcd94b525c1e91b2f7bdb6e",
+            "runtime_sha256": "fe019f314fcdc5a9dae3432ab8b2ae0d5d02de65778262d2f12dc5d944e18ce9",
             "php": "8.4.27",
             "extensions": [
                 "Core",

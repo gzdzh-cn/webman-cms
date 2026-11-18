@@ -88,6 +88,7 @@ class ArchiveController extends \plugin\admin\app\controller\Crud
             $aid = (new \app\cms\service\ContentService())->save($request->post(), (int)admin_id());
             return $this->contentSaved($request, $aid, false);
         } catch (\InvalidArgumentException|\JsonException $error) {
+            if ($error instanceof \app\cms\service\ContentValidationException) return json(['code'=>1,'msg'=>$error->getMessage(),'fields'=>$error->fields]);
             return $this->json(1, $error->getMessage());
         }
     }
@@ -108,6 +109,7 @@ class ArchiveController extends \plugin\admin\app\controller\Crud
             (new \app\cms\service\ContentService())->save($request->post(), (int)admin_id(), $aid);
             return $this->contentSaved($request, $aid, true);
         } catch (\InvalidArgumentException|\JsonException $error) {
+            if ($error instanceof \app\cms\service\ContentValidationException) return json(['code'=>1,'msg'=>$error->getMessage(),'fields'=>$error->fields]);
             return $this->json(1, $error->getMessage());
         }
     }

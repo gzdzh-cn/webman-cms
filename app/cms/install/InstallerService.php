@@ -95,6 +95,11 @@ final class InstallerService
     }
     public function step(array $input,float $budget=3,?string $browserOwner=null): array
     {
+        return \app\cms\maintenance\MaintenanceGate::shared(fn()=> $this->stepInternal($input,$budget,$browserOwner));
+    }
+
+    private function stepInternal(array $input,float $budget=3,?string $browserOwner=null): array
+    {
         if($legacy=$this->legacyResumeService($input))return $legacy->step($input,$budget);
         $this->assertPaths();$this->assertOpen();$in=$this->normalize($input,true);$this->assertConfigOverrides($in);
         $environment=$this->environment();

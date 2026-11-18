@@ -648,4 +648,5 @@ $routes = array (
 foreach (["TagsController"=>["tools","batchPreview","batchRun","relations","saveRelations"],"SearchwordController"=>["tools","batchPreview","batchRun","searchSettings","saveSearchSettings","export"],"GuestbookController"=>["tools","export"],"CitysiteController"=>["migrationPreview","migrateSettings"],"ArchiveController"=>["batch","rebackdraft","resubmit","copyPlan","copy"],"ArctypeController"=>["batch","batchPreview","batchRun","batchStatus"]] as $short=>$actions) { $key="plugin\\admin\\app\\controller\\".$short; $routes[$key]["actions"]=array_values(array_unique(array_merge($routes[$key]["actions"],$actions))); }
 $routes['plugin\\admin\\app\\controller\\DatabasebackupController']=['path'=>'/web-admin/databasebackup','actions'=>['index','select','create','preview','restore','status','tasks','cleanupPreview','cleanup']];
 $routes['plugin\\admin\\app\\controller\\RobotsController']=['path'=>'/web-admin/robots','actions'=>['index','select','save','revisions','restore']];
+$routes['plugin\\admin\\app\\controller\\UpdateController']=['path'=>'/web-admin/update','actions'=>['check','start','status']];
 return $routes;

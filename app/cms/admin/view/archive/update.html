@@ -481,7 +481,7 @@
                                     <div class="layui-form-item">
                                         <label class="layui-form-label">发布时间</label>
                                         <div class="layui-input-block">
-                                            <input type="text" name="add_time" id="add-time" placeholder="请选择发布时间"
+                                            <input type="datetime-local" data-cms-datetime name="add_time" id="add-time" placeholder="请选择发布时间"
                                                 class="layui-input">
                                         </div>
                                     </div>
@@ -771,10 +771,7 @@
             element.render('tabs', 'archive-tabs');
 
             // 初始化日期选择器
-            laydate.render({
-                elem: '#add-time',
-                type: 'datetime'
-            });
+            window.cmsDatetimeFields.restore(document.getElementById('add-time'), Math.floor(Date.now() / 1000));
 
             // 初始化封面图片上传
             upload.render({
@@ -1189,7 +1186,7 @@
                         return window.CmsUI.success("操作成功", function () {
                             window.CmsModuleNavigation?.markClean(cmsForm);delete cmsForm.dataset.cmsDirty;
                             if (parent!==window && typeof parent.refreshTable==='function') parent.refreshTable();
-                            else window.CmsUI.saved('/web-admin/archive/index');
+                            else window.CmsUI.saved('/web-admin/archive/index' + location.search.replace(/([?&])aid=[^&]*&?/, '$1').replace(/[?&]$/, ''));
                         });
                     }
                 });
@@ -1313,22 +1310,7 @@
                 if (data.users_price !== undefined && data.users_price !== null) {
                     $('input[name="users_price"]').val(data.users_price);
                 }
-                if (data.add_time) {
-                    // 将时间戳转换为日期时间格式（YYYY-MM-DD HH:mm:ss）
-                    var addTime = data.add_time;
-                    if (typeof addTime === 'number' || (typeof addTime === 'string' && /^\d+$/.test(addTime))) {
-                        // 如果是时间戳，转换为日期时间字符串
-                        var date = new Date(parseInt(addTime) * 1000);
-                        var year = date.getFullYear();
-                        var month = String(date.getMonth() + 1).padStart(2, '0');
-                        var day = String(date.getDate()).padStart(2, '0');
-                        var hours = String(date.getHours()).padStart(2, '0');
-                        var minutes = String(date.getMinutes()).padStart(2, '0');
-                        var seconds = String(date.getSeconds()).padStart(2, '0');
-                        addTime = year + '-' + month + '-' + day + ' ' + hours + ':' + minutes + ':' + seconds;
-                    }
-                    $('#add-time').val(addTime);
-                }
+                window.cmsDatetimeFields.restore(document.getElementById('add-time'), data.add_time ?? '');
                 // 空值表示继承栏目模板，不能在重开时固化为列表中的第一项。
                 $('select[name="tempview"]').removeData('cms-template-loaded');
                 if (data.htmlfilename) {

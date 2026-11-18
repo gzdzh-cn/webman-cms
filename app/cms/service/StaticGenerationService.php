@@ -40,6 +40,11 @@ class StaticGenerationService
 
     public function start(array $input, int $owner = 0): array
     {
+        return \app\cms\maintenance\MaintenanceGate::shared(fn()=> $this->startInternal($input,$owner));
+    }
+
+    private function startInternal(array $input, int $owner = 0): array
+    {
         $options = $this->options($input);
         (new LanguageAccessService($this->repository))->assertLanguages($options['languages']);
         $tasks = [];
@@ -78,6 +83,11 @@ class StaticGenerationService
     }
 
     public function step(array $input): array
+    {
+        return \app\cms\maintenance\MaintenanceGate::shared(fn()=> $this->stepInternal($input));
+    }
+
+    private function stepInternal(array $input): array
     {
         if (CmsContext::current()->request !== null || !in_array(PHP_SAPI, ['cli','micro'], true)) throw new \RuntimeException('静态任务仅允许后台进程执行，请查询持久进度');
         $batch = max(1, min(10, (int)($input['batch'] ?? 1)));

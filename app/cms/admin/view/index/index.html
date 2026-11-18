@@ -30,7 +30,9 @@
         <!-- 重置样式 -->
         <link rel="stylesheet" href="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/admin/css/reset.css'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>" />
         <link rel="stylesheet" href="<?= htmlspecialchars(\app\cms\AssetManifest::url('/app/admin/admin/css/cms-workspace.css?v=20261106-featuremap1'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>" />
-    </head>
+        <link rel="stylesheet" href="<?= htmlspecialchars(\app\cms\AssetManifest::url('/admin-assets/css/cms-update.css'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>">
+    <script defer src="<?= htmlspecialchars(\app\cms\AssetManifest::url('/admin-assets/js/cms-update.js'), ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') ?>"></script>
+</head>
     <!-- 结 构 代 码 -->
     <body class="layui-layout-body pear-admin cms-workspace">
         <!-- 布 局 框 架 -->
@@ -135,7 +137,7 @@
             window.CmsBranding = {
                 setName: function(value) {
                     if (typeof value !== 'string') return;
-                    var name = value.trim() || '网站后台';
+                    var name = '后台管理';
                     document.title = name;
                     document.querySelectorAll('.layui-logo .title').forEach(function(node) {
                         node.textContent = name;

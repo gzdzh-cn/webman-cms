@@ -102,6 +102,7 @@ class AccessControl implements MiddlewareInterface
         $action = strtolower((string)$request->action);
         if ($controller === \plugin\admin\app\controller\DatabasebackupController::class) return true;
         $actions = [
+            \plugin\admin\app\controller\UpdateController::class => ['start'],
             \plugin\admin\app\controller\IndexController::class => ['restartstart'],
             \plugin\admin\app\controller\LanguageController::class => ['switch', 'preview'],
             \plugin\admin\app\controller\ArchiveController::class => ['copyplan'],

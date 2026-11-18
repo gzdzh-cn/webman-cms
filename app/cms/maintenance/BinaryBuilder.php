@@ -11,7 +11,7 @@ final class BinaryBuilder
     private ?\Closure $progress;
     public function __construct(?callable $progress=null) { $this->progress=$progress===null?null:\Closure::fromCallable($progress); }
     private function report(string $message): void { if($this->progress!==null)($this->progress)($message); }
-    private const CONFIG=['app','autoload','bootstrap','cms_admin','cms_cache','cms_language_pack','cms_site','cms_sms','container','database','dependence','event','exception','log','middleware','process','route','server','session','static','think-orm','translation','view'];
+    public const CONFIG=['app','autoload','bootstrap','cms_admin','cms_cache','cms_language_pack','cms_site','cms_sms','container','database','dependence','event','exception','log','middleware','process','route','server','session','static','think-orm','translation','view'];
     public function build(string $output,array $targets,string $runtimeDirectory,?array $embedded=null,?string $runtime=null,string $binaryName='cms',?bool $embedAdminAssets=null): array
     {
         if(EmbeddedResources::binary())throw new \RuntimeException('请在源码构建环境执行');
@@ -68,7 +68,7 @@ final class BinaryBuilder
             foreach($targets as$target) {
                 $this->report('['.(++$index).'/'.count($targets).'] '.$target.'：准备 PHP 运行时…');
                 $prepared=$provider->prepare($target,$runtimeDirectory,$runtime);$lock=$prepared['lock'];
-                $build=['format'=>2,'version'=>$version,'build_id'=>$buildId,'binary_name'=>$binaryName,'platform'=>$target,'php'=>$lock['php'],'extensions'=>$lock['extensions'],'ini'=>$lock['ini'],'runtime_sha256'=>$prepared['sha256'],'runtime_executed_on_build_host'=>$prepared['executed_on_build_host'],'runtime_lock_sha256'=>hash('sha256',json_encode($lock,JSON_THROW_ON_ERROR)),'composer_lock_sha256'=>$identity['composer.lock'],'asset_manifest_sha256'=>$identity['app/cms/resources/asset-manifest.json'],'embed_admin_assets'=>$embedAdminAssets,'embedded_resources'=>$embedded,'files'=>$identity];
+                $build=['format'=>2,'cms_version'=>\app\cms\admin\support\BackendVersion::version(),'version'=>$version,'build_id'=>$buildId,'binary_name'=>$binaryName,'platform'=>$target,'php'=>$lock['php'],'extensions'=>$lock['extensions'],'ini'=>$lock['ini'],'runtime_sha256'=>$prepared['sha256'],'runtime_executed_on_build_host'=>$prepared['executed_on_build_host'],'runtime_lock_sha256'=>hash('sha256',json_encode($lock,JSON_THROW_ON_ERROR)),'composer_lock_sha256'=>$identity['composer.lock'],'asset_manifest_sha256'=>$identity['app/cms/resources/asset-manifest.json'],'embed_admin_assets'=>$embedAdminAssets,'embedded_resources'=>$embedded,'files'=>$identity];
                 $meta=$stage.'/code/app/cms/resources/binary-build.json';file_put_contents($meta,json_encode($build,JSON_UNESCAPED_SLASHES|JSON_THROW_ON_ERROR)."\n");
                 $this->report($target.'：正在生成 PHAR 代码归档…');
                 $archive=$stage.'/'.$target.'.phar';$phar=new \Phar($archive,0,'webman');$phar->startBuffering();$phar->buildFromDirectory($stage.'/code');$phar->setSignatureAlgorithm(\Phar::SHA256);
@@ -135,7 +135,7 @@ final class BinaryBuilder
             throw new \RuntimeException('发布失败，此前产物已保留或恢复：'.$error->getMessage(),0,$error);
         }finally{flock($mutex,LOCK_UN);fclose($mutex);}
     }
-    private function files(array $embedded): array
+    public function files(array $embedded): array
     {
         $result=[];$root=Paths::code();
         foreach(['app','support','vendor']as$directory)foreach(new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($root.'/'.$directory,\FilesystemIterator::SKIP_DOTS))as$item) {

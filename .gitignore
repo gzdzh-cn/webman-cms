@@ -29,6 +29,7 @@
 
 # Compact source originals required by the source-package edition.
 !/app/cms/resources/admin-asset-sources.tar.xz
+!/app/cms/resources/asset-build-inputs.tar.gz
 
 # macOS Finder metadata
 .DS_Store

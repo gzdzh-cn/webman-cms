@@ -79,8 +79,8 @@ body.cms-dashboard-page .cms-dashboard-detail dt {
     background: #f7f9fc;
     color: #64748b;
     font-size: 13px;
-    white-space: nowrap;
-    overflow-wrap: normal;
+    white-space: normal;
+    overflow-wrap: anywhere;
 }
 body.cms-dashboard-page .cms-dashboard-detail small {
     display: block;

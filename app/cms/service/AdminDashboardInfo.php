@@ -49,7 +49,7 @@ final class AdminDashboardInfo
                 $this->row('database', 'MySQL版本', $database),
                 $this->row('http_package_limit', 'HTTP请求包上限', $this->bytes($packageLimit), $packageNote),
                 $this->row('php_memory_limit', 'PHP内存限制', $memoryLimit === '-1' ? '不限（-1）' : $this->text($memoryLimit, '未配置'), '当前PHP进程限制。'),
-                $this->row('php_memory_usage', '当前 HTTP 进程 PHP 内存', $this->bytes(memory_get_usage(true)), 'PHP 已分配内存，与整站 PSS、服务器内存口径不同。'),
+                $this->row('php_memory_usage', '当前 PHP 内存', $this->bytes(memory_get_usage(true)), '当前 HTTP 进程的 PHP 已分配内存，与整站 PSS、服务器内存口径不同。'),
                 $this->row('php_memory_peak', '进程内存峰值', $this->bytes(memory_get_peak_usage(true)), '当前进程已分配内存峰值。'),
                 $this->row('php_upload_max', 'PHP上传配置', $this->text(ini_get('upload_max_filesize'), '未配置'), 'PHP配置参考，不作为Webman生效上限。'),
                 $this->row('php_post_max', 'PHP POST配置', $this->text(ini_get('post_max_size'), '未配置'), 'PHP配置参考，不作为Webman生效上限。'),

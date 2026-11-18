@@ -28,7 +28,7 @@
     }
     function collect(formData, container) {
         container = container || window.document;
-        Array.prototype.forEach.call(container.querySelectorAll('[data-field-type="datetime"] input[type="datetime-local"]'), function (input) {
+        Array.prototype.forEach.call(container.querySelectorAll('input[data-cms-datetime], [data-field-type="datetime"] input[type="datetime-local"]'), function (input) {
             if (!input.name) return;
             if (input.disabled) { delete formData[input.name]; return; }
             if (input.hasAttribute(epochAttribute) && input.value === input.getAttribute(originalAttribute)) {

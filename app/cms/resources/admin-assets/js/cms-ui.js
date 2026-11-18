@@ -2,6 +2,7 @@
 (function(window, document) {
 'use strict'; if(window.CmsUI)return;
 const originals=new WeakMap(), baseline=new WeakMap(), busyState=new WeakMap();let confirming=null,lastSuccess=0,lastSuccessPopup=null,currentFeedback=null;
+const saveRoots=new Map(),legacySaves=new Map(),waiters=new Set();let waitDialog=null;
 function allForms(root=document){return root.matches?.('form')?[root]:Array.from(root.querySelectorAll('form'));}
 function signature(form){const rich=Array.from(form.querySelectorAll('iframe')).flatMap((frame,index)=>{try{const doc=frame.contentDocument,body=doc?.body;return body&&(body.isContentEditable||body.contentEditable==='true'||doc.designMode==='on')?[['rich:'+index,body.innerHTML]]:[];}catch(_){return [];}});return JSON.stringify(Array.from(form.elements||[]).map((e,index)=>({e,key:e.name||e.id||'@'+index})).filter(({e})=>!['submit','button','reset','hidden'].includes(e.type)&&!e.closest('[data-cms-filter]')).map(({e,key})=>[key,e.type==='file'?Array.from(e.files||[]).map(f=>f.name+':'+f.size):e.type==='checkbox'||e.type==='radio'?e.checked:e.value]).concat(rich));}
 function filter(form){return form.matches('[data-cms-filter],.cms-filterbar')||!!form.closest('[data-cms-filter]');}
@@ -30,7 +31,7 @@ async function confirm(message,options={}){
   const heading=document.createElement('h2');heading.id='cms-ui-confirm-title';heading.textContent=options.title||'确认操作';dialog.setAttribute('aria-labelledby',heading.id);
   const text=document.createElement('p');text.className='cms-ui-confirm-message';text.textContent=message;
   const actions=document.createElement('div');actions.className='cms-ui-actions';const cancel=document.createElement('button');cancel.type='button';cancel.textContent=options.cancelText||'取消';const ok=document.createElement('button');ok.type='button';ok.textContent=options.confirmText||'确认';ok.className=options.danger?'cms-ui-danger':'cms-ui-primary';actions.append(cancel,ok);dialog.append(heading,text,actions);
-  const previous=document.activeElement;function finish(value){dialog.close();dialog.remove();confirming=null;previous?.focus?.();resolve(value);}
+  const previous=document.activeElement;function finish(value){dialog.close();dialog.remove();confirming=null;if(previous?.isConnected)previous.focus?.({preventScroll:true});resolve(value);}
   cancel.onclick=()=>finish(false);ok.onclick=()=>finish(true);dialog.addEventListener('cancel',event=>{event.preventDefault();finish(false);});document.body.append(dialog);dialog.showModal();cancel.focus();
  });return confirming;
 }
@@ -55,9 +56,36 @@ function guard(callback,root=document){
 function returnUrl(explicit){const requested=safeUrl(new URL(location.href).searchParams.get('return'));const fallback=safeUrl(explicit||document.body.dataset.cmsReturnUrl||location.pathname.replace(/\/(insert|update)\/?$/,'/index'));const u=requested&&fallback&&requested.pathname===fallback.pathname?requested:fallback;if(!u)return null;const language=new URL(location.href).searchParams.get('lang');if(language)u.searchParams.set('lang',language);return u.pathname+u.search+u.hash;}
 function back(explicit){const target=returnUrl(explicit);if(target)return leave(()=>navigateBack(target,false));return Promise.resolve(false);}
 function saved(explicit){clean();const target=returnUrl(explicit);if(Date.now()-lastSuccess<4000&&lastSuccessPopup){return lastSuccessPopup.finished.then(()=>{if(target)navigateBack(target,true);});}return success('保存成功',()=>{if(target)navigateBack(target,true);});}
-function setBusy(root,value){if(!root)return;root.toggleAttribute('data-cms-submit-busy',!!value);root.setAttribute('aria-busy',String(!!value));const controls=root.querySelectorAll('button,input[type=submit]');if(value){controls.forEach(button=>{if(!busyState.has(button))busyState.set(button,{disabled:button.disabled,text:button.textContent});button.disabled=true;if(button.type==='submit'&&button.tagName==='BUTTON')button.textContent='正在保存…';});}else controls.forEach(button=>{const saved=busyState.get(button);if(saved){button.disabled=saved.disabled;button.textContent=saved.text;busyState.delete(button);}});}
+// Each request owns a release handle; nested writes cannot unlock one another.
+function savingMask(){
+ try{if(parent!==window&&parent.CmsUI?.savingMask)return parent.CmsUI.savingMask();}catch(_){}
+ const token={};waiters.add(token);
+ if(!waitDialog){
+  waitDialog=document.createElement('dialog');waitDialog.dataset.cmsUiOwned='1';waitDialog.className='cms-ui-saving';waitDialog.setAttribute('aria-label','正在保存，请稍候');
+  const spinner=document.createElement('span');spinner.className='cms-ui-emblem cms-ui-spinner';spinner.setAttribute('aria-hidden','true');
+  const label=document.createElement('p');label.textContent='正在保存，请稍候…';label.setAttribute('role','status');label.setAttribute('aria-live','polite');
+  waitDialog.append(spinner,label);waitDialog.addEventListener('cancel',event=>event.preventDefault());document.body.append(waitDialog);waitDialog.showModal();
+ }
+ let closed=false;return {close(){if(closed)return;closed=true;waiters.delete(token);if(!waiters.size&&waitDialog){waitDialog.close();waitDialog.remove();waitDialog=null;}}};
+}
+function beginSave(root=document.body,options={}){
+ root=root||document.body;let state=saveRoots.get(root);
+ if(!state){
+  state={tokens:new Set(),busy:root.getAttribute('aria-busy'),attribute:root.hasAttribute('data-cms-submit-busy'),controls:[...root.querySelectorAll('button,input[type=submit]')]};saveRoots.set(root,state);
+  root.setAttribute('data-cms-submit-busy','');root.setAttribute('aria-busy','true');
+  state.controls.forEach(button=>{let before=busyState.get(button);if(!before){before={disabled:button.disabled,nodes:[...button.childNodes],value:button.value,count:0};busyState.set(button,before);}before.count++;button.disabled=true;if(button.matches('input[type=submit]'))button.value='正在保存…';else if(button.matches('button[type=submit],button[lay-submit],button#save'))button.textContent='正在保存…';});
+ }
+ const token={};state.tokens.add(token);const mask=options.mask===false?null:savingMask();let closed=false;
+ const handle={close(){if(closed)return;closed=true;mask?.close();state.tokens.delete(token);if(state.tokens.size)return;saveRoots.delete(root);
+  root.toggleAttribute('data-cms-submit-busy',state.attribute);if(state.busy===null)root.removeAttribute('aria-busy');else root.setAttribute('aria-busy',state.busy);
+  state.controls.forEach(button=>{const before=busyState.get(button);if(before&&!--before.count){button.disabled=before.disabled;if(button.tagName==='BUTTON'&&button.textContent==='正在保存…')button.replaceChildren(...before.nodes);button.value=before.value;busyState.delete(button);}});
+ }};token.close=handle.close;return handle;
+}
+function setBusy(root,value){if(!root)return;if(value){if(!legacySaves.has(root))legacySaves.set(root,beginSave(root));}else{legacySaves.get(root)?.close();legacySaves.delete(root);}}
+function finishLegacySaves(){for(const [root,handle]of legacySaves){handle.close();legacySaves.delete(root);}}
+function syncScrollLock(){document.body.classList.toggle('cms-ui-editing',!!document.querySelector('dialog.cms-ui-page-editor[open]'));}
 function error(root,message,fields={}){
- root=root||document.body;root.querySelectorAll('.cms-ui-field-error').forEach(e=>e.remove());root.querySelectorAll('[aria-invalid=true]').forEach(e=>e.removeAttribute('aria-invalid'));
+ finishLegacySaves();root=root||document.body;root.querySelectorAll('.cms-ui-field-error').forEach(e=>e.remove());root.querySelectorAll('[aria-invalid=true]').forEach(e=>e.removeAttribute('aria-invalid'));
  let box=root.querySelector('[data-cms-form-error]');if(!box){box=document.createElement('p');box.dataset.cmsFormError='';box.className='cms-ui-error';box.setAttribute('role','alert');box.tabIndex=-1;root.prepend(box);}box.textContent=message||'操作失败，请重试。';
  let first=null;Object.entries(fields||{}).forEach(([name,value])=>{const control=Array.from(root.querySelectorAll('[name]')).find(e=>e.name===name);if(!control)return;control.setAttribute('aria-invalid','true');const line=document.createElement('span');line.className='cms-ui-field-error';line.textContent=Array.isArray(value)?value.join('；'):String(value);control.after(line);first||=control;});(first||box).focus();failure(box.textContent);
 }
@@ -85,7 +113,7 @@ function layoutDialog(dialog){
  let header=dialog.querySelector('[data-cms-editor-heading]');
  if(page&&!header){header=document.createElement('header');header.dataset.cmsEditorHeading='';header.className='cms-ui-editor-heading';const button=document.createElement('button');button.type='button';button.textContent='← 返回列表';button.onclick=()=>dialog.close();header.append(button);dialog.prepend(header);}
  if(header)header.hidden=!page;
- document.body.classList.toggle('cms-ui-editing',!!document.querySelector('dialog.cms-ui-page-editor[open]'));
+ syncScrollLock();
 }
 function prepareDialog(dialog){
  if(originals.has(dialog)||dialog.dataset.cmsUiOwned)return;
@@ -97,7 +125,7 @@ function prepareDialog(dialog){
  };
  dialog.close=function(value){if(isBusy(dialog)){notice('正在处理，请稍候。');return;}if(isDirty(dialog))return leave(()=>close(value),dialog);close(value);};
  dialog.addEventListener('cancel',event=>{event.preventDefault();dialog.close();});
- dialog.addEventListener('close',()=>{clean(dialog);if(!document.querySelector('dialog.cms-ui-page-editor[open]'))document.body.classList.remove('cms-ui-editing');});
+ dialog.addEventListener('close',()=>{clean(dialog);syncScrollLock();});
 }
 function setup(root=document){
  root.querySelectorAll?.('dialog').forEach(prepareDialog);
@@ -105,7 +133,30 @@ function setup(root=document){
  allForms(root).forEach(form=>{if(filter(form)){delete form.dataset.cmsDirty;return;}if(!baseline.has(form))baseline.set(form,signature(form));});
 }
 function invalid(event){const form=event.target.form;if(!form||filter(form))return;event.preventDefault();const fields={};Array.from(form.elements).filter(control=>control.willValidate&&!control.validity.valid&&control.name).forEach(control=>{fields[control.name]=control.validationMessage||'请检查此项';});error(form,'请检查标记的项目后再保存。',fields);}
-function start(){setup();window.addEventListener('beforeunload',event=>{if(isDirty()||isBusy()){event.preventDefault();event.returnValue='';}});document.addEventListener('input',track);document.addEventListener('change',track);document.addEventListener('invalid',invalid,true);document.addEventListener('click',event=>{const backButton=event.target.closest('[data-cms-back]');if(backButton){event.preventDefault();back();}});new MutationObserver(records=>{for(const record of records)for(const node of record.addedNodes)if(node.nodeType===1){if(node.matches('dialog'))prepareDialog(node);setup(node);}}).observe(document.body,{childList:true,subtree:true});}
+// Keep Layui's validation rules, but render their errors through the shared UI.
+function setupValidation(){
+ if(!document.documentElement.classList.contains('cms-admin-document')||!window.layui)return;
+ window.layui.use(['form','layer'],function(){
+  const form=window.layui.form,api=window.layui.layer,validate=form.validate;let validating=false;
+  if(!validate||form.cmsValidationAdapted)return;form.cmsValidationAdapted=true;
+  form.validate=function(elements){
+   const nodes=typeof elements==='string'?document.querySelectorAll(elements):elements?.nodeType?[elements]:Array.from(elements||[]);
+   const root=nodes[0]?.closest?.('form');if(validating||!root||filter(root))return validate.apply(this,arguments);
+   const methods={msg:api.msg,tips:api.tips,alert:api.alert};let message='请检查标记的项目后再保存。',result;
+   validating=true;Object.keys(methods).forEach(key=>{api[key]=text=>{message=String(text||message);return 0;};});
+   try{result=validate.apply(this,arguments);}finally{Object.assign(api,methods);validating=false;}
+   if(result===false){const fields={};root.querySelectorAll('.layui-form-danger[name]').forEach(control=>{fields[control.name]=message;});error(root,message,fields);}
+   return result;
+  };
+ });
+}
+function start(){
+ if(document.documentElement.classList.contains('cms-admin-document')){
+  document.body.classList.add('cms-admin-page');
+  if(!document.body.classList.contains('cms-workspace')&&/\/(index|dashboard|featuremap)\/?$/.test(location.pathname)){document.body.classList.add('cms-workspace-page');document.body.dataset.cmsPageKey||=location.pathname.split('/').slice(-2,-1)[0];}
+ }
+ setup();setupValidation();
+ window.addEventListener('pagehide',()=>{for(const state of saveRoots.values())for(const token of [...state.tokens])token.close();legacySaves.clear();syncScrollLock();});window.addEventListener('beforeunload',event=>{if(isDirty()||isBusy()){event.preventDefault();event.returnValue='';}});document.addEventListener('input',track);document.addEventListener('change',track);document.addEventListener('invalid',invalid,true);document.addEventListener('click',event=>{const backButton=event.target.closest('[data-cms-back]');if(backButton){event.preventDefault();back();}});new MutationObserver(records=>{for(const record of records)for(const node of record.addedNodes)if(node.nodeType===1){if(node.matches('dialog'))prepareDialog(node);setup(node);}syncScrollLock();for(const [root,state]of saveRoots)if(!root.isConnected)for(const token of [...state.tokens])token.close();}).observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['open']});}
 function track(event){const form=event.target.form||event.target.closest('form');if(!form)return;const control=event.target;if(control.getAttribute('aria-invalid')==='true'&&(!control.validity||control.validity.valid)){control.removeAttribute('aria-invalid');if(control.nextElementSibling?.classList.contains('cms-ui-field-error'))control.nextElementSibling.remove();if(!form.querySelector('[aria-invalid=true]'))form.querySelector('[data-cms-form-error]')?.remove();}if(filter(form)){delete form.dataset.cmsDirty;return;}if(event.target.closest('[data-cms-filter]'))return;if(!baseline.has(form))baseline.set(form,signature(form));form.dataset.cmsDirty=signature(form)===baseline.get(form)?'0':'1';}
 function toast(message,options={}){
         const box=document.createElement('div');box.className='cms-ui-toast';box.dataset.kind=options.kind||'error';
@@ -118,25 +169,40 @@ function toast(message,options={}){
         box.style.setProperty('--cms-feedback-duration',Math.max(0,Number(duration)||0)+'ms');
         const lifetime=document.createElement('span');lifetime.className='cms-ui-feedback-lifetime';lifetime.setAttribute('aria-hidden','true');box.append(lifetime);
     }
-    // Keep feedback in the workspace so closing an editor frame cannot hide it.
+    // Result messages never take modal focus or lock the embedded page's scroll.
+    // Keep them in the workspace, above any still-open editor.
     function feedback(message,options={}){
+        finishLegacySaves();
+        const duration=options.duration??(options.kind==='error'||options.kind==='warning'?1000:500);
         try{if(window.parent!==window&&window.parent.CmsUI)return window.parent.CmsUI.feedback(message,options);}catch(_){}
         if(currentFeedback?.message===String(message)&&currentFeedback?.kind===(options.kind||'success'))return currentFeedback;
         currentFeedback?.close();
-        const previous=document.activeElement,dialog=document.createElement('dialog');dialog.className='cms-ui-feedback';dialog.dataset.cmsUiOwned='1';dialog.dataset.kind=options.kind||'success';
+        const dialog=document.createElement('div');dialog.className='cms-ui-feedback';dialog.dataset.cmsUiOwned='1';dialog.dataset.kind=options.kind||'success';
         const emblem=document.createElement('span');emblem.className='cms-ui-emblem';emblem.setAttribute('aria-hidden','true');emblem.textContent=options.kind==='error'?'!':options.kind==='warning'?'!':'✓';
         const title=document.createElement('h2');title.id='cms-feedback-'+Math.random().toString(36).slice(2);title.textContent=options.title||(options.kind==='error'?'操作未完成':options.kind==='warning'?'请注意':'操作成功');dialog.setAttribute('aria-labelledby',title.id);
         const text=document.createElement('p');text.className='cms-ui-confirm-message';text.id=title.id+'-message';text.textContent=String(message||'已保存');text.setAttribute('role',options.kind==='error'?'alert':'status');dialog.setAttribute('aria-describedby',text.id);
-        const content=document.createElement('div');content.className='cms-ui-feedback-content';content.append(title,text);dialog.append(emblem,content);feedbackLifetime(dialog,options.duration??2000);
-        let timer,closed=false,resolve;const finished=new Promise(done=>{resolve=done;});const handle={finished,message:String(message),kind:options.kind||'success',close(){if(closed)return;closed=true;clearTimeout(timer);dialog.close();dialog.remove();if(currentFeedback===handle)currentFeedback=null;if(previous?.isConnected)previous.focus?.({preventScroll:true});resolve();}};
-        dialog.addEventListener('cancel',event=>{event.preventDefault();handle.close();});document.body.append(dialog);dialog.showModal();currentFeedback=handle;
-        timer=setTimeout(handle.close,options.duration??2000);return handle;
+        const content=document.createElement('div');content.className='cms-ui-feedback-content';content.append(title,text);dialog.append(emblem,content);feedbackLifetime(dialog,duration);
+        let timer,closed=false,resolve;const finished=new Promise(done=>{resolve=done;});const handle={finished,message:String(message),kind:options.kind||'success',close(){if(closed)return;closed=true;clearTimeout(timer);if(typeof dialog.hidePopover==='function'&&dialog.matches(':popover-open'))dialog.hidePopover();dialog.remove();if(currentFeedback===handle)currentFeedback=null;resolve();}};
+        dialog.dataset.cmsFeedbackOpen='';
+        const modals=[...document.querySelectorAll('dialog[open]')].filter(node=>node.matches(':modal'));
+        (modals[modals.length-1]||document.body).append(dialog);
+        if(typeof dialog.showPopover==='function'){
+            dialog.setAttribute('popover','manual');dialog.showPopover();
+        }
+        currentFeedback=handle;
+        timer=setTimeout(handle.close,duration);return handle;
     }
-    function success(message,callback){lastSuccess=Date.now();const popup=feedback(message,{kind:'success'});lastSuccessPopup=popup;popup.finished.then(()=>{lastSuccess=Date.now();callback?.();});return popup;}
+    function success(message,callback,options={}){lastSuccess=Date.now();const popup=feedback(message,{...options,kind:'success'});lastSuccessPopup=popup;popup.finished.then(()=>{lastSuccess=Date.now();callback?.();});return popup;}
     function failure(message,callback){const popup=feedback(message,{kind:'error'});popup.finished.then(()=>callback?.());return popup;}
     function warning(message,callback){const popup=feedback(message,{kind:'warning'});popup.finished.then(()=>callback?.());return popup;}
     // Explicit save requests opt in; reads, uploads and background tasks stay silent.
-    async function persist(run,options={}){try{const result=await run();success(options.message||result?.message||result?.msg||'保存成功');return result;}catch(error){failure(error.message||'保存失败，请稍后重试');throw error;}}
+    async function persist(run,options={}){
+ const root=options.root||document.activeElement?.closest('form')||document.querySelector('dialog[open]:not([data-cms-ui-owned]) form')||document.body;
+ const pending=beginSave(root,options);
+ try{const result=await run();pending.close();success(options.message||result?.message||result?.msg||'保存成功');return result;}
+ catch(error){pending.close();failure(error.message||'保存失败，请稍后重试');throw error;}
+ finally{pending.close();}
+}
     function progress(options={}){
         const previous=document.activeElement,dialog=document.createElement('dialog');dialog.className='cms-ui-progress';dialog.dataset.cmsUiOwned='1';dialog.dataset.cmsDialogKind='confirm';dialog.setAttribute('aria-modal','true');
         const emblem=document.createElement('span');emblem.className='cms-ui-emblem cms-ui-spinner';emblem.setAttribute('aria-hidden','true');
@@ -144,9 +210,9 @@ function toast(message,options={}){
         const message=document.createElement('p');message.className='cms-ui-confirm-message';message.setAttribute('role','status');message.setAttribute('aria-live','polite');message.textContent=options.message||'请稍候…';
         const track=document.createElement('div');track.className='cms-ui-progress-track';track.setAttribute('aria-hidden','true');track.append(document.createElement('span'));
         dialog.append(emblem,title,message,track);dialog.addEventListener('cancel',event=>event.preventDefault());document.body.append(dialog);dialog.showModal();
-        let closed=false;function close(){if(closed)return;closed=true;dialog.close();dialog.remove();previous?.focus?.()}
-        return {update(text){if(!closed)message.textContent=text},close,async finish(result={}){if(closed)return;dialog.dataset.kind=result.kind||'success';emblem.classList.remove('cms-ui-spinner');emblem.textContent=result.kind==='error'?'!':'✓';title.textContent=result.title||'操作完成';message.textContent=result.message||'已完成';track.hidden=true;await new Promise(resolve=>window.setTimeout(resolve,result.duration??1000));close()}};
+        let closed=false;function close(){if(closed)return;closed=true;dialog.close();dialog.remove();if(previous?.isConnected)previous.focus?.({preventScroll:true});syncScrollLock()}
+        return {update(text){if(!closed)message.textContent=text},close,async finish(result={}){if(closed)return;dialog.dataset.kind=result.kind||'success';emblem.classList.remove('cms-ui-spinner');emblem.textContent=result.kind==='error'?'!':'✓';title.textContent=result.title||'操作完成';message.textContent=result.message||'已完成';track.hidden=true;await new Promise(resolve=>window.setTimeout(resolve,result.duration??(result.kind==='error'?1000:500)));close()}};
     }
-    window.CmsUI={openEditor,toast,feedback,success,failure,warning,persist,progress,confirm,leave,guard,discard,back,saved,clean,dirty,isDirty,layer,setBusy,error,notice,returnUrl,setup};
+    window.CmsUI={openEditor,toast,feedback,success,failure,warning,persist,progress,confirm,leave,guard,discard,back,saved,clean,dirty,isDirty,layer,setBusy,beginSave,savingMask,error,notice,returnUrl,setup};
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 })(window,document);

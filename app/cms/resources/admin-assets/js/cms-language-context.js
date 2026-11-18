@@ -107,6 +107,7 @@
         headers.set('X-CMS-Edit-Language', current.edit || '');
         settings.headers = headers;
         var method = String(settings.method || (isRequest ? input.method : 'GET')).toUpperCase();
+        if(method!=='GET'&&/\/(configure|save|insert|update|edit|newfile)\/?$/.test(url.pathname)&&!url.pathname.startsWith('/web-admin/update/')&&!settings.signal&&!(isRequest&&input.signal.aborted))settings.signal=AbortSignal.any([...(isRequest?[input.signal]:[]),AbortSignal.timeout(60000)]);
         if (method === 'GET' && url.searchParams.has('lang') && !url.pathname.startsWith('/web-admin/language/')) {
             url.searchParams.set('lang', current.edit || '');
             if (isRequest && url.href !== input.url) input = new Request(url.href, input);
@@ -116,7 +117,7 @@
     };
     var open = XMLHttpRequest.prototype.open, send = XMLHttpRequest.prototype.send, abort = XMLHttpRequest.prototype.abort;
     XMLHttpRequest.prototype.open = function (method, href) {
-        this.cmsContextUrl = editableRequest(href); this.cmsContextAsync = arguments.length < 3 || arguments[2] !== false; this.cmsContextCancelled = false; this.cmsContextSending = false;
+        this.cmsContextUrl = editableRequest(href); this.cmsContextMethod=String(method).toUpperCase(); this.cmsContextAsync = arguments.length < 3 || arguments[2] !== false; this.cmsContextCancelled = false; this.cmsContextSending = false;
         var args = Array.from(arguments), current = parentState() || context;
         if (this.cmsContextUrl && current && String(method).toUpperCase() === 'GET' && this.cmsContextUrl.searchParams.has('lang') && !this.cmsContextUrl.pathname.startsWith('/web-admin/language/')) { this.cmsContextUrl.searchParams.set('lang', current.edit || ''); args[1] = this.cmsContextUrl.href; }
         return open.apply(this, args);
@@ -128,6 +129,7 @@
         if (!xhr.cmsContextAsync) { var current = parentState() || context; if (current) apply(current); return send.call(xhr, body); }
         if (xhr.cmsContextSending) throw new DOMException('Request already sent', 'InvalidStateError');
         xhr.cmsContextSending = true;
+        if(xhr.cmsContextMethod!=='GET'&&/\/(configure|save|insert|update|edit|newfile)\/?$/.test(xhr.cmsContextUrl.pathname)&&!xhr.cmsContextUrl.pathname.startsWith('/web-admin/update/')&&!xhr.timeout)xhr.timeout=60000;
         ready().then(function (current) { if (!xhr.cmsContextCancelled) { apply(current); send.call(xhr, body); } }).catch(function () { xhr.abort(); });
     };
     XMLHttpRequest.prototype.abort = function () { this.cmsContextCancelled = true; return abort.apply(this, arguments); };

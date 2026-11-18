@@ -23,7 +23,7 @@ final class AssetArchive
         }
         return rtrim($path, '/');
     }
-    public static function read(string $archive, string $sha256, array $expected, callable $receive): void
+    public static function read(string $archive, string $sha256, array $expected, callable $receive, int $maxMember = 67108864): void
     {
         self::path($archive);
         if (!is_file($archive) || !hash_equals($sha256, (string)hash_file('sha256', $archive))) throw new \RuntimeException('资源归档 SHA256 不一致');
@@ -42,7 +42,7 @@ final class AssetArchive
                 $checked = substr_replace($header, str_repeat(' ', 8), 148, 8);
                 if (array_sum(unpack('C*', $checked)) !== $checksum) throw new \RuntimeException('资源归档头校验失败');
                 $size = self::octal(substr($header, 124, 12));
-                if ($size > 67108864) throw new \RuntimeException('资源归档成员过大');
+                if ($size > $maxMember) throw new \RuntimeException('资源归档成员过大');
                 $type = $header[156];
                 $name = rtrim(substr($header, 0, 100), "\0");
                 $prefix = rtrim(substr($header, 345, 155), "\0");
@@ -105,7 +105,7 @@ final class AssetArchive
         return $result;
     }
     /** Stable ustar entries, sorted paths, fixed owner/time/mode. */
-    public static function write(string $archive, array $files): void
+    public static function write(string $archive, array $files, int $maxMember = 67108864): void
     {
         self::path($archive);
         $exclusive = @fopen($archive, 'xb');
@@ -117,7 +117,7 @@ final class AssetArchive
             ksort($files);
             foreach ($files as $name => $source) {
                 self::relative($name); self::path($source);
-                if (!is_file($source) || filesize($source) > 67108864) throw new \RuntimeException('资源归档输入无效');
+                if (!is_file($source) || filesize($source) > $maxMember) throw new \RuntimeException('资源归档输入无效');
                 $bytes = file_get_contents($source); if (!is_string($bytes)) throw new \RuntimeException('无法读取资源归档输入');
                 $short = $name; $prefix = '';
                 if (strlen($short) > 100) {

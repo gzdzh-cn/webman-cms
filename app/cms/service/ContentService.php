@@ -66,11 +66,7 @@ class ContentService
             unset($main['admin_id'], $main['users_id'], $main['is_del'], $main['del_method'], $main['attrlist_id']);
             $main['channel'] = (int)$category['current_channel']; $main['typeid'] = $typeid; $main['lang'] = $category['lang'] ?: (new LanguagePolicy($this->repository))->main();
             $main['update_time'] = time();
-            if (isset($main['add_time']) && !is_numeric($main['add_time'])) {
-                $parsed = strtotime((string)$main['add_time']);
-                if ($parsed === false) { throw new InvalidArgumentException('发布时间格式错误'); }
-                $main['add_time'] = $parsed;
-            }
+            if (array_key_exists('add_time', $input)) $main['add_time'] = self::timestamp($input['add_time'], '发布时间');
             if (!$aid) {
                 $main += ['admin_id' => $adminId, 'lang' => $category['lang'] ?: (new LanguagePolicy($this->repository))->main(), 'add_time' => time(), 'status' => 1, 'arcrank' => 0, 'sort_order' => 100];
                 if (!array_key_exists('click', $input)) $main['click'] = (new InitialCounterService($repository))->draw('other_arcclick', $main['lang']);
@@ -108,6 +104,9 @@ class ContentService
             }
             foreach ($fields as $field) {
                 $name = $field['name'];
+                // System timestamps are normalized above; legacy model metadata
+                // may call add_time an int and must not cast the original date string.
+                if (in_array($name, ['add_time', 'update_time'], true)) continue;
                 if (!array_key_exists($name, $input)) {
                     if (!empty($field['ifrequire'])) {
                         $previous = !empty($field['ifmain']) ? ($existing[$name] ?? '') : ($existingAddon[$name] ?? '');
@@ -171,6 +170,22 @@ class ContentService
     {
         foreach (['addonFieldExt', 'addonField'] as $key) { if (isset($input[$key]) && is_array($input[$key])) { $input += $input[$key]; } }
         return $input;
+    }
+
+    public static function timestamp(mixed $value, string $label): int
+    {
+        if (is_int($value) || (is_string($value) && preg_match('/^[0-9]{1,11}$/D', $value))) {
+            $epoch = (int)$value;
+            if ($epoch >= 0 && $epoch <= 253402300799) return $epoch;
+        }
+        if (is_string($value)) {
+            foreach (['!Y-m-d H:i:s', '!Y-m-d\\TH:i:s', '!Y-m-d\\TH:i', '!Y-m-d'] as $format) {
+                $date = \DateTimeImmutable::createFromFormat($format, $value);
+                $errors = \DateTimeImmutable::getLastErrors();
+                if ($date && ($errors === false || (!$errors['warning_count'] && !$errors['error_count'])) && $date->getTimestamp() >= 0) return $date->getTimestamp();
+            }
+        }
+        throw new ContentValidationException([$label === '发布时间' ? 'add_time' : $label => $label . '格式错误']);
     }
 
     /** Move a selected batch atomically; original addon/attachment IDs and values survive. */
@@ -309,7 +324,7 @@ class ContentService
             'checkbox', 'checkboxs', 'files' => is_array($value) ? implode(',', array_filter($value, 'is_scalar')) : $value,
             'imgs' => is_array($value) ? serialize(array_map(fn($url, $index) => ['image_url' => $url, 'intro' => $input[$field['name'] . '_eyou_intro'][$index] ?? ''], $value, array_keys($value))) : $value,
             'img' => isset($input[$field['name'] . '_eyou_is_remote']) ? ($input[$field['name'] . ($input[$field['name'] . '_eyou_is_remote'] ? '_eyou_remote' : '_eyou_local')] ?? '') : $value,
-            'datetime' => is_numeric($value) ? (int)$value : (strtotime((string)$value) ?: 0),
+            'datetime' => ($value === '' || $value === null) ? '' : self::timestamp($value, (string)$field['title']),
             default => is_array($value) ? implode(',', array_filter($value, 'is_scalar')) : $value,
         };
     }
